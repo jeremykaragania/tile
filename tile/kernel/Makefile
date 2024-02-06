@@ -1,6 +1,6 @@
 HOST = arm-none-eabi
 CC = $(HOST)-gcc
-CFLAGS = -std=c89 -ffreestanding
+CFLAGS = -std=c89 -I../include/ -ffreestanding
 AS = $(HOST)-as
 ASFLAGS = -mcpu=cortex-a15 -march=armv7-a
 LD = $(HOST)-ld
@@ -16,5 +16,6 @@ head.o:
 
 main.o:
 
+.PHONY: clean
 clean:
 	rm *.o
