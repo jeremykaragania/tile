@@ -1,7 +1,7 @@
 .text
 .global _start
 _start:
-  ldr sp, =0x80200000
+  ldr sp, =KERNEL_RAM_PADDR
   bl start_kernel
 1:
   b 1b
