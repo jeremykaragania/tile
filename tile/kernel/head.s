@@ -11,19 +11,21 @@ _start:
   mov r0, #0
   mov r1, #0
   ldr r2, =PG_DIR_PADDR
+  ldr r3, =KERNEL_RAM_PADDR
 1:
-  ldr r3, =#0xc02
-  orr r4, r0, r3
-  str r4, [r2]
+  ldr r4, =#0xc02
+  orr r5, r0, r4
+  str r5, [r2]
   add r0, r0, #0x100000
   add r2, r2, #0x4
-  ldr r5, =KERNEL_RAM_PADDR
-  cmp r2, r5
+  cmp r2, r3
   ble 1b
   mov r0, #0x3
   mcr p15, #0x0, r0, c3, c0, #0x0
+  mrc p15, #0x0, r0, c1, c0, #0x0
+  orr r0, r0, #0x1
   mcr p15, #0x0, r0, c1, c0, #0x0
-  ldr sp, =KERNEL_RAM_PADDR
+  mov sp, r3
   bl start_kernel
 2:
   b 2b
