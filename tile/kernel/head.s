@@ -1,31 +1,50 @@
-.set PHYS_OFFSET, 0x80000000
+.set OTHER_ADDR, 0x00000000
+.set KERNEL_SPACE_ADDR, 0x80000000
+.set USER_SPACE_ADDR, 0xc0000000
 .set TEXT_OFFSET, 0x00008000
-.set KERNEL_RAM_PADDR, PHYS_OFFSET + TEXT_OFFSET
+.set KERNEL_ADDR, KERNEL_SPACE_ADDR + TEXT_OFFSET
 .set PG_DIR_SIZE, 0x00004000
-.set PG_DIR_PADDR, PHYS_OFFSET + PG_DIR_SIZE
+.set PG_DIR_ADDR, KERNEL_SPACE_ADDR + PG_DIR_SIZE
 .text
 .global _start
 _start:
-  ldr r0, =PG_DIR_PADDR
+  ldr r0, =PG_DIR_ADDR
   mcr p15, #0x0, r0, c2, c0, #0x0
-  mov r0, #0
-  mov r1, #0
-  ldr r2, =PG_DIR_PADDR
-  ldr r3, =KERNEL_RAM_PADDR
+  ldr r0, =#0xc02
+  ldr r1, =PG_DIR_ADDR
+  ldr r2, =OTHER_ADDR
+  ldr r3, =(PG_DIR_ADDR + 0x2000)
 1:
-  ldr r4, =#0xc02
-  orr r5, r0, r4
-  str r5, [r2]
-  add r0, r0, #0x100000
-  add r2, r2, #0x4
-  cmp r2, r3
-  ble 1b
+  orr r4, r2, r0
+  str r4, [r1]
+  add r2, r2, #0x100000
+  add r1, r1, #0x4
+  cmp r1, r3
+  blt 1b
+  ldr r2, =KERNEL_SPACE_ADDR
+  ldr r3, =(PG_DIR_ADDR + 0x3000)
+2:
+  orr r4, r2, r0
+  str r4, [r1]
+  add r2, r2, #0x100000
+  add r1, r1, #0x4
+  cmp r1, r3
+  blt 2b
+  ldr r2, =KERNEL_SPACE_ADDR
+  ldr r3, =(PG_DIR_ADDR + 0x4000)
+3:
+  orr r4, r2, r0
+  str r4, [r1]
+  add r2, r2, #0x100000
+  add r1, r1, #0x4
+  cmp r1, r3
+  blt 3b
+  ldr sp, =KERNEL_ADDR
   mov r0, #0x3
   mcr p15, #0x0, r0, c3, c0, #0x0
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x1
   mcr p15, #0x0, r0, c1, c0, #0x0
-  mov sp, r3
   bl start_kernel
-2:
-  b 2b
+4:
+  b 4b
