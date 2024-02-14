@@ -10,7 +10,7 @@
 _start:
   ldr r0, =PG_DIR_ADDR
   mcr p15, #0x0, r0, c2, c0, #0x0
-  ldr r0, =#0xc02
+  ldr r0, =#0x402 // Read/write, only at PL1.
   ldr r1, =PG_DIR_ADDR
   ldr r2, =OTHER_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x2000)
@@ -21,6 +21,7 @@ _start:
   add r1, r1, #0x4
   cmp r1, r3
   blt 1b
+  ldr r0, =#0xc02 // Read/write, at any privilege level.
   ldr r2, =KERNEL_SPACE_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x3000)
 2:
@@ -43,8 +44,8 @@ _start:
   mov r0, #0x3
   mcr p15, #0x0, r0, c3, c0, #0x0
   mrc p15, #0x0, r0, c1, c0, #0x0
-  orr r0, r0, #0x1
-  mcr p15, #0x0, r0, c1, c0, #0x0
+  orr r0, r0, #0x20000001
+  mcr p15, #0x0, r0, c1, c0, #0x0 // Enable access flag and MMU.
   bl start_kernel
 4:
   b 4b
