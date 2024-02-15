@@ -8,39 +8,37 @@
 .text
 .global _start
 _start:
-  ldr r0, =PG_DIR_ADDR
-  mcr p15, #0x0, r0, c2, c0, #0x0
+  b map_other
+new_sections:
+  orr r4, r2, r0
+  str r4, [r1]
+  add r2, r2, #0x100000
+  add r1, r1, #0x4
+  cmp r1, r3
+  blt sections
+  bx lr
+map_other:
   ldr r0, =#0x402 // Read/write, only at PL1.
   ldr r1, =PG_DIR_ADDR
   ldr r2, =OTHER_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x2000)
-1:
-  orr r4, r2, r0
-  str r4, [r1]
-  add r2, r2, #0x100000
-  add r1, r1, #0x4
-  cmp r1, r3
-  blt 1b
-  ldr r0, =#0xc02 // Read/write, at any privilege level.
+  bl new_sections
+map_user:
+  ldr r0, =#0x402 // Read/write, only at PL1.
+  ldr r1, =(PG_DIR_ADDR + 0x2000)
   ldr r2, =KERNEL_SPACE_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x3000)
-2:
-  orr r4, r2, r0
-  str r4, [r1]
-  add r2, r2, #0x100000
-  add r1, r1, #0x4
-  cmp r1, r3
-  blt 2b
-  ldr r2, =KERNEL_SPACE_ADDR
+  bl new_sections
+map_kernel:
+  ldr r0, =#0xc02 // Read/write, at any privilege level.
+  ldr r1, =(PG_DIR_ADDR + 0x3000)
+  ldr r2, =USER_SPACE_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x4000)
-3:
-  orr r4, r2, r0
-  str r4, [r1]
-  add r2, r2, #0x100000
-  add r1, r1, #0x4
-  cmp r1, r3
-  blt 3b
+  bl new_sections
   ldr sp, =KERNEL_ADDR
+emable_mmu:
+  ldr r0, =PG_DIR_ADDR
+  mcr p15, #0x0, r0, c2, c0, #0x0
   mov r0, #0x3
   mcr p15, #0x0, r0, c3, c0, #0x0
   mrc p15, #0x0, r0, c1, c0, #0x0
