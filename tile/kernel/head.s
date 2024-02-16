@@ -15,7 +15,7 @@ new_sections:
   add r2, r2, #0x100000
   add r1, r1, #0x4
   cmp r1, r3
-  blt sections
+  blt new_sections
   bx lr
 map_other:
   ldr r0, =#0x402 // Read/write, only at PL1.
@@ -23,13 +23,13 @@ map_other:
   ldr r2, =OTHER_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x2000)
   bl new_sections
-map_user:
+map_kernel:
   ldr r0, =#0x402 // Read/write, only at PL1.
   ldr r1, =(PG_DIR_ADDR + 0x2000)
   ldr r2, =KERNEL_SPACE_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x3000)
   bl new_sections
-map_kernel:
+map_user:
   ldr r0, =#0xc02 // Read/write, at any privilege level.
   ldr r1, =(PG_DIR_ADDR + 0x3000)
   ldr r2, =USER_SPACE_ADDR
@@ -39,7 +39,7 @@ map_kernel:
 emable_mmu:
   ldr r0, =PG_DIR_ADDR
   mcr p15, #0x0, r0, c2, c0, #0x0
-  mov r0, #0x3
+  mov r0, #0x1
   mcr p15, #0x0, r0, c3, c0, #0x0
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x20000001
