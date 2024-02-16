@@ -8,6 +8,7 @@
 .text
 .global _start
 _start:
+  cps #0x13
   b map_other
 new_sections:
   orr r4, r2, r0
@@ -35,15 +36,16 @@ map_user:
   ldr r2, =USER_SPACE_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x4000)
   bl new_sections
-  ldr sp, =KERNEL_ADDR
 emable_mmu:
   ldr r0, =PG_DIR_ADDR
   mcr p15, #0x0, r0, c2, c0, #0x0
   mov r0, #0x1
   mcr p15, #0x0, r0, c3, c0, #0x0
   mrc p15, #0x0, r0, c1, c0, #0x0
-  orr r0, r0, #0x20000001
-  mcr p15, #0x0, r0, c1, c0, #0x0 // Enable access flag and MMU.
+  orr r0, r0, #0x1
+  mcr p15, #0x0, r0, c1, c0, #0x0 // Enable MMU.
+  cps #0x10
+  ldr sp, =KERNEL_ADDR
   bl start_kernel
 4:
   b 4b
