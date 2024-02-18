@@ -1,7 +1,7 @@
 #include <console.h>
 
 int console_putchar(int c) {
-  *(uint32_t*)(VE_UART0) = c;
+  *(uint32_t*)VE_UART0 = c;
   return c;
 }
 

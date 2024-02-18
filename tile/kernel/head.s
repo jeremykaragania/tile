@@ -38,14 +38,13 @@ map_user:
   bl new_sections
 emable_mmu:
   ldr r0, =PG_DIR_ADDR
-  mcr p15, #0x0, r0, c2, c0, #0x0
+  mcr p15, #0x0, r0, c2, c0, #0x0 // Set translation table base 0 address.
   mov r0, #0x1
-  mcr p15, #0x0, r0, c3, c0, #0x0
+  mcr p15, #0x0, r0, c3, c0, #0x0 // Set domain access permision.
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x1
-  mcr p15, #0x0, r0, c1, c0, #0x0 // Enable MMU.
-  cps #0x10
-  ldr sp, =KERNEL_ADDR
+  mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
+  ldr sp, =USER_SPACE_ADDR
   bl start_kernel
 4:
   b 4b
