@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 0x80008000;
+    . = 0x80010000;
 
     .text : {
         main.o(.text)
