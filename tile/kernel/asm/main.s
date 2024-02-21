@@ -5,7 +5,18 @@
 .set KERNEL_ADDR, KERNEL_SPACE_ADDR + TEXT_OFFSET
 .set PG_DIR_SIZE, 0x00004000
 .set PG_DIR_ADDR, KERNEL_SPACE_ADDR + PG_DIR_SIZE
-.text
+.section .vector_table, "x"
+.global exception_base_address
+exception_base_address:
+  b .
+  b .
+  b .
+  b .
+  b .
+  b .
+  b .
+  b .
+.section .text
 .global _start
 _start:
   cps #0x13
@@ -36,7 +47,7 @@ map_user:
   ldr r2, =USER_SPACE_ADDR
   ldr r3, =(PG_DIR_ADDR + 0x4000)
   bl new_sections
-emable_mmu:
+setup:
   ldr r0, =PG_DIR_ADDR
   mcr p15, #0x0, r0, c2, c0, #0x0 // Set translation table base 0 address.
   mov r0, #0x1
@@ -44,6 +55,10 @@ emable_mmu:
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x1
   mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
+  mrc p15, #0x0, r0, c12, c0, #0x0
+  ldr r1, =#0x8000000
+  orr r0, r0, r1
+  mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
   ldr sp, =USER_SPACE_ADDR
   bl start_kernel
 4:
