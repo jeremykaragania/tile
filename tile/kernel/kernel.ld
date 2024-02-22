@@ -4,8 +4,8 @@ SECTIONS {
     . = 0x0;
 
     .text : {
-        main.o(.vector_table)
-        main.o(.text)
+        asm/main.o(.vector_table)
+        asm/main.o(.text)
         *(.text)
     }
 
