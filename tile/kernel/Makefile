@@ -5,7 +5,7 @@ AS = $(HOST)-as
 ASFLAGS = -mcpu=cortex-a15 -march=armv7-a
 LD = $(HOST)-ld
 LDFLAGS = -Tkernel.ld
-OBJS = console.o asm/main.o main.o memory.o
+OBJS = asm/main.o main.o memory.o uart.o
 
 kernel: $(OBJS)
 	$(LD) $^ -o$@ $(LDFLAGS)
