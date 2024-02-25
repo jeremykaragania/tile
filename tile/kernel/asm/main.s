@@ -2,7 +2,6 @@
 .set KERNEL_SPACE_ADDR, 0x80010000
 .set USER_SPACE_ADDR, 0xc0000000
 .set TEXT_OFFSET, 0x00008000
-.set KERNEL_ADDR, KERNEL_SPACE_ADDR + TEXT_OFFSET
 .set PG_DIR_SIZE, 0x00004000
 .set PG_DIR_ADDR, KERNEL_SPACE_ADDR + PG_DIR_SIZE
 .section .vector_table, "x"
@@ -52,13 +51,13 @@ setup:
   mcr p15, #0x0, r0, c2, c0, #0x0 // Set translation table base 0 address.
   mov r0, #0x1
   mcr p15, #0x0, r0, c3, c0, #0x0 // Set domain access permision.
-  mrc p15, #0x0, r0, c1, c0, #0x0
-  orr r0, r0, #0x1
-  mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
   mrc p15, #0x0, r0, c12, c0, #0x0
   ldr r1, =#0x8000000
   orr r0, r0, r1
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
+  mrc p15, #0x0, r0, c1, c0, #0x0
+  orr r0, r0, #0x1
+  mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
   ldr sp, =USER_SPACE_ADDR
   bl start_kernel
 4:
