@@ -15,7 +15,7 @@
 #define CR_TXE 1 << 8
 #define CR_UARTEN 1 << 0
 
-volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0x1c090000;
+volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xfc090000;
 
 void uart_init() {
   uint32_t lcr_h = 0;

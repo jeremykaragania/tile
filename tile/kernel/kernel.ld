@@ -1,8 +1,7 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 0x0;
-
+    . = 0x80000000;
     .text : {
         asm/main.o(.vector_table)
         asm/main.o(.text)
