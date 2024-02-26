@@ -18,7 +18,6 @@
 volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xfc090000;
 
 void uart_init() {
-  uint32_t lcr_h = 0;
   uart_0->cr &= ~CR_UARTEN;
   while (uart_0->fr & FR_BUSY);
   uart_0->lcr_h &= ~LCR_H_FEN;
