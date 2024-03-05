@@ -4,6 +4,7 @@
 .set KERNEL_SPACE_VADDR, 0xc0000000
 .set PG_DIR_SIZE, 0x00004000
 .set PG_DIR_PADDR, KERNEL_SPACE_PADDR + PG_DIR_SIZE
+.set THREAD_SIZE, 0x00002000
 .section .vector_table, "x"
 .global exception_base_address
 exception_base_address:
@@ -87,3 +88,6 @@ mmap_switched:
   bl start_kernel
 4:
   b 4b
+
+.section .data.init_stack
+.space THREAD_SIZE, 0x0
