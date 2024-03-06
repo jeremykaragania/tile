@@ -4,7 +4,6 @@
 .set KERNEL_SPACE_VADDR, 0xc0000000
 .set PG_DIR_SIZE, 0x00004000
 .set PG_DIR_PADDR, KERNEL_SPACE_PADDR + PG_DIR_SIZE
-.set THREAD_SIZE, 0x00002000
 .section .vector_table, "x"
 .global exception_base_address
 exception_base_address:
@@ -48,25 +47,25 @@ map_turn_mmu_on:
   ldr r2, =turn_mmu_on
   lsr r2, r2, #19
   lsl r2, r2, #19
-  ldr r3, =(turn_mmu_on + 0x100000)
+  ldr r3, =turn_mmu_on + 0x100000
   bl new_sections
 /*
   map_kernel maps the kernel space. It creates a KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans 500MB.
 */
 map_kernel:
   ldr r0, =#0x402 // Read/write, only at PL1.
-  ldr r1, =(PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4)
+  ldr r1, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
   ldr r2, =KERNEL_SPACE_PADDR
-  ldr r3, =(KERNEL_SPACE_PADDR + 0x20000000)
+  ldr r3, =KERNEL_SPACE_PADDR + 0x20000000
   bl new_sections
 /*
   map_smc maps the static memory controller. It creates a SMC_PADDR-to-0xe0000000 mapping which spans 500MB.
 */
 map_smc:
   ldr r0, =#0x402
-  ldr r1, =(PG_DIR_PADDR + (0xe0000000 >> 20) * 0x4)
+  ldr r1, =PG_DIR_PADDR + (0xe0000000 >> 20) * 0x4
   ldr r2, =SMC_PADDR
-  ldr r3, =(SMC_PADDR + 0x20000000)
+  ldr r3, =SMC_PADDR + 0x20000000
   bl new_sections
 enable_mmu:
   ldr r0, =PG_DIR_PADDR
@@ -84,10 +83,7 @@ mmap_switched:
   ldr r1, =#0xc0000000
   orr r0, r0, r1
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
-  ldr sp, =SMC_VADDR
+  ldr sp, =init_end - 0x8
   bl start_kernel
 4:
   b 4b
-
-.section .data.init_stack
-.space THREAD_SIZE, 0x0

@@ -1,3 +1,6 @@
+THREAD_SIZE = 0x00002000;
+PAGE_SIZE = 0x00001000;
+
 ENTRY(_start)
 
 SECTIONS {
@@ -15,13 +18,13 @@ SECTIONS {
       *(.rodata)
     }
 
-    init_stack = .;
-    .data.init_stack : {
-      asm/main.o(.data.init_stack)
-    }
-
     data_begin = .;
     .data : {
+      . = ALIGN(PAGE_SIZE);
+      init_begin = .;
+      main.o(.init_process_table_entry)
+      . = init_begin + THREAD_SIZE;
+      init_end = .;
       *(.data)
     }
     data_end = .;
