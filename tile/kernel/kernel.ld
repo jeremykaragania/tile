@@ -1,10 +1,13 @@
+PHYS_OFFSET = 0x80000000;
+TEXT_OFFSET = 0x00008000;
 THREAD_SIZE = 0x00002000;
 PAGE_SIZE = 0x00001000;
 
 ENTRY(_start)
 
 SECTIONS {
-    . = 0x80000000;
+    . = PHYS_OFFSET;
+    . += TEXT_OFFSET;
 
     text_begin = .;
     .text : {
