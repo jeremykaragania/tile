@@ -17,6 +17,8 @@
 
 volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xfc090000;
 
+char uart_buf[256];
+
 void uart_init() {
   uart_0->cr &= ~CR_UARTEN;
   while (uart_0->fr & FR_BUSY);
@@ -35,6 +37,24 @@ int uart_putchar(const int c) {
   return c;
 }
 
+void uart_putint(int a) {
+  size_t i = 0;
+  size_t j;
+  if (a < 0) {
+    uart_putchar('-');
+    a *= -1;
+  }
+  while (a) {
+    int d = (a % 10) + 48;
+    uart_buf[i] = d;
+    a /= 10;
+    ++i;
+  }
+  for (j = 0; j < i; ++j) {
+    uart_putchar(uart_buf[i-j-1]);
+  }
+}
+
 int uart_puts(const char* s) {
   size_t i = 0;
   while (s[i]) {
@@ -43,6 +63,33 @@ int uart_puts(const char* s) {
   }
   uart_putchar('\n');
   return 0;
+}
+
+int uart_printf(const char *format, ...) {
+  va_list args;
+  size_t i = 0;
+  va_start(args, format);
+  while (format[i]) {
+    char c = format[i];
+    if (c == '%') {
+      ++i;
+      switch (format[i]) {
+        case 'd': {
+          uart_putint(va_arg(args, int));
+          break;
+        }
+        default: {
+          uart_putchar('%');
+          uart_putchar(format[i]);
+        }
+      }
+    }
+    else {
+      uart_putchar(c);
+    }
+    ++i;
+  }
+  return i;
 }
 
 int uart_getchar() {

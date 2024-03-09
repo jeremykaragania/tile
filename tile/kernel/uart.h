@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 struct uart_registers {
   uint32_t dr;
@@ -27,8 +28,13 @@ void uart_init();
 
 int uart_putchar(const int c);
 
+void uart_putint(int a);
+
 int uart_puts(const char* s);
 
+int uart_printf(const char *format, ...);
+
 int uart_getchar();
+
 
 #endif
