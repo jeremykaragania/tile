@@ -16,6 +16,20 @@ exception_base_address:
   b .
   b .
 .section .text
+/*
+  enable_interrupts enables the I and F bits in the Current Program Status Register (CPSR).
+*/
+.global enable_interrupts
+enable_interrupts:
+  cpsie if
+  bx lr
+/*
+  disable_interrupts disables the I and F bits in the CPSR.
+*/
+.global disable_interrupts
+disable_interrupts:
+  cpsid if
+  bx lr
 .global _start
 _start:
   cps #0x13

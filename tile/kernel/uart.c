@@ -40,12 +40,13 @@ int uart_putchar(const int c) {
 void uart_putint(int a) {
   size_t i = 0;
   size_t j;
+  const int ascii_offset = 48;
   if (a < 0) {
     uart_putchar('-');
     a *= -1;
   }
   while (a) {
-    int d = (a % 10) + 48;
+    int d = (a % 10) + ascii_offset;
     uart_buf[i] = d;
     a /= 10;
     ++i;
