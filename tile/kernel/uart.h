@@ -28,9 +28,11 @@ void uart_init();
 
 int uart_putchar(const int c);
 
-void uart_putint(int a);
+void uart_putint(const int a);
 
 void uart_putuint(unsigned int a);
+
+void uart_puthex(unsigned int a);
 
 int uart_puts(const char* s);
 

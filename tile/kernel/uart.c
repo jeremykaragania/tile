@@ -40,7 +40,7 @@ int uart_putchar(const int c) {
 void uart_putint(int a) {
   size_t i = 0;
   size_t j;
-  const int ascii_offset = 48;
+  const unsigned int ascii_offset = 48;
   if (a < 0) {
     uart_putchar('-');
     a *= -1;
@@ -59,13 +59,34 @@ void uart_putint(int a) {
 void uart_putuint(unsigned int a) {
   size_t i = 0;
   size_t j;
-  const int ascii_offset = 48;
+  const unsigned int ascii_offset = 48;
   while (a) {
     char d = (a % 10) + ascii_offset;
     uart_buf[i] = d;
     a /= 10;
     ++i;
   }
+  for (j = 0; j < i; ++j) {
+    uart_putchar(uart_buf[i-j-1]);
+  }
+}
+
+void uart_puthex(unsigned int a) {
+  size_t i = 0;
+  size_t j;
+  unsigned int ascii_offset = 48;
+  while (a) {
+    char d = a % 16;
+    if (d > 9) {
+      ascii_offset = 87;
+    }
+    d += ascii_offset;
+    uart_buf[i] = d;
+    a /= 16;
+    ++i;
+  }
+  uart_putchar('0');
+  uart_putchar('x');
   for (j = 0; j < i; ++j) {
     uart_putchar(uart_buf[i-j-1]);
   }
@@ -92,6 +113,14 @@ int uart_printf(const char *format, ...) {
       switch (format[i]) {
         case 'd': {
           uart_putint(va_arg(args, int));
+          break;
+        }
+        case 'i': {
+          uart_putint(va_arg(args, int));
+          break;
+        }
+        case 'x': {
+          uart_puthex(va_arg(args, unsigned int));
           break;
         }
         case 'u': {
