@@ -46,7 +46,22 @@ void uart_putint(int a) {
     a *= -1;
   }
   while (a) {
-    int d = (a % 10) + ascii_offset;
+    char d = (a % 10) + ascii_offset;
+    uart_buf[i] = d;
+    a /= 10;
+    ++i;
+  }
+  for (j = 0; j < i; ++j) {
+    uart_putchar(uart_buf[i-j-1]);
+  }
+}
+
+void uart_putuint(unsigned int a) {
+  size_t i = 0;
+  size_t j;
+  const int ascii_offset = 48;
+  while (a) {
+    char d = (a % 10) + ascii_offset;
     uart_buf[i] = d;
     a /= 10;
     ++i;
@@ -77,6 +92,10 @@ int uart_printf(const char *format, ...) {
       switch (format[i]) {
         case 'd': {
           uart_putint(va_arg(args, int));
+          break;
+        }
+        case 'u': {
+          uart_putuint(va_arg(args, unsigned int));
           break;
         }
         default: {

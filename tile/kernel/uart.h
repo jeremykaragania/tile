@@ -30,11 +30,12 @@ int uart_putchar(const int c);
 
 void uart_putint(int a);
 
+void uart_putuint(unsigned int a);
+
 int uart_puts(const char* s);
 
 int uart_printf(const char *format, ...);
 
 int uart_getchar();
-
 
 #endif
