@@ -8,5 +8,6 @@ static struct process_table_entry init_process_table_entry __attribute__((sectio
 
 void start_kernel() {
   disable_interrupts();
+  set_process_stack_end_token(&init_process_table_entry);
   return;
 }
