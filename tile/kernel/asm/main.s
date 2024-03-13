@@ -94,7 +94,7 @@ turn_mmu_on:
   b mmap_switched
 mmap_switched:
   mrc p15, #0x0, r0, c12, c0, #0x0
-  ldr r1, =#0xc0000000
+  ldr r1, =exception_base_address;
   orr r0, r0, r1
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
   ldr sp, =init_end - 0x8

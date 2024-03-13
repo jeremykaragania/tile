@@ -11,7 +11,6 @@ SECTIONS {
 
     text_begin = .;
     .text : {
-        asm/main.o(.vector_table)
         asm/main.o(.text)
         *(.text)
     }
@@ -31,6 +30,10 @@ SECTIONS {
       *(.data)
     }
     data_end = .;
+
+    .vector_table : {
+      asm/main.o(.vector_table)
+    }
 
     .bss : {
       *(.bss)
