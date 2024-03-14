@@ -24,6 +24,7 @@ SECTIONS {
     .data : {
       . = ALIGN(PAGE_SIZE);
       init_begin = .;
+      . = ALIGN(THREAD_SIZE);
       main.o(.init_process_table_entry)
       . = init_begin + THREAD_SIZE;
       init_end = .;

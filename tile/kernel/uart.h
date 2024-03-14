@@ -1,6 +1,10 @@
 #ifndef UART_H
 #define UART_H
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdarg.h>
+
 #define UART_CLK 24000000
 #define BAUD_RATE 460800
 #define DR_DATA 255 << 0
@@ -15,10 +19,6 @@
 #define CR_RXE 1 << 9
 #define CR_TXE 1 << 8
 #define CR_UARTEN 1 << 0
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdarg.h>
 
 struct uart_registers {
   uint32_t dr;
