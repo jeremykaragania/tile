@@ -59,8 +59,8 @@ void uart_putuint(unsigned int a) {
 void uart_puthex(unsigned int a) {
   size_t i = 0;
   size_t j;
-  unsigned int ascii_offset = 48;
   while (a) {
+    unsigned int ascii_offset = 48;
     char d = a % 16;
     if (d > 9) {
       ascii_offset = 87;
