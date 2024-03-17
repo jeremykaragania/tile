@@ -33,12 +33,16 @@ SECTIONS {
     }
     data_end = .;
 
+    vector_table_begin = .;
     .vector_table : {
       asm/main.o(.vector_table)
     }
+    vector_table_end = .;
 
+    bss_begin = .;
     .bss : {
       *(.bss)
       *(COMMON)
     }
+    bss_end = .;
 }
