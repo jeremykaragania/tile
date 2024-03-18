@@ -56,14 +56,19 @@ void uart_putuint(unsigned int a) {
   }
 }
 
-void uart_puthex(unsigned int a) {
+void uart_puthex(unsigned int a, const char format) {
   size_t i = 0;
   size_t j;
   while (a) {
     unsigned int ascii_offset = 48;
     char d = a % 16;
     if (d > 9) {
-      ascii_offset = 87;
+      if (format == 'x') {
+        ascii_offset = 87;
+      }
+      else {
+        ascii_offset = 55;
+      }
     }
     d += ascii_offset;
     uart_buf[i] = d;
@@ -71,7 +76,7 @@ void uart_puthex(unsigned int a) {
     ++i;
   }
   uart_putchar('0');
-  uart_putchar('x');
+  uart_putchar(format);
   for (j = 0; j < i; ++j) {
     uart_putchar(uart_buf[i-j-1]);
   }
@@ -105,7 +110,11 @@ int uart_printf(const char *format, ...) {
           break;
         }
         case 'x': {
-          uart_puthex(va_arg(args, unsigned int));
+          uart_puthex(va_arg(args, unsigned int), 'x');
+          break;
+        }
+        case 'X': {
+          uart_puthex(va_arg(args, unsigned int), 'X');
           break;
         }
         case 'u': {

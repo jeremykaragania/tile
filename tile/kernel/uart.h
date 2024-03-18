@@ -47,7 +47,7 @@ void uart_putint(const int a);
 
 void uart_putuint(unsigned int a);
 
-void uart_puthex(unsigned int a);
+void uart_puthex(unsigned int a, const char format);
 
 int uart_puts(const char* s);
 
