@@ -26,7 +26,7 @@ SECTIONS {
       . = ALIGN(PAGE_SIZE);
       init_begin = .;
       . = ALIGN(THREAD_SIZE);
-      main.o(.init_process_table_entry)
+      main.o(.init_process_info)
       . = init_begin + THREAD_SIZE;
       init_end = .;
       *(.data)

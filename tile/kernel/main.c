@@ -9,10 +9,10 @@ extern void enable_interrupts();
 extern void disable_interrupts();
 
 static uint32_t* pg_dir = (uint32_t*)&PG_DIR_VADDR;
-static struct process_table_entry init_process_table_entry __attribute__((section(".init_process_table_entry"))) = {0, CREATED, &init_end};
+static struct process_info init_process_info __attribute__((section(".init_process_info"))) = {0, CREATED, &init_end};
 
 void start_kernel() {
   disable_interrupts();
-  set_process_stack_end_token(&init_process_table_entry);
+  set_process_stack_end_token(&init_process_info);
   return;
 }

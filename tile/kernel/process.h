@@ -14,16 +14,16 @@ enum process_state  {
   TERMINATED
 };
 
-struct process_table_entry {
+struct process_info {
   int id;
   int state;
   void* stack;
 };
 
-void set_process_stack_end_token(const struct process_table_entry* proc);
+void set_process_stack_end_token(const struct process_info* proc);
 
 extern uint32_t current_stack_pointer();
 
-struct process_table_entry* current_process_table_entry();
+struct process_info* current_process_info();
 
 #endif
