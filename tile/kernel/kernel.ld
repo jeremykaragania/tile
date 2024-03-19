@@ -10,39 +10,73 @@ SECTIONS {
     . = PHYS_OFFSET;
     . += TEXT_OFFSET;
 
+    /*
+      Initial section.
+    */
+    init_begin = .;
+    . = ALIGN(PAGE_SIZE);
+    .init.text : {
+      init_text_begin = .;
+      asm/main.o(.text)
+      main.o(.text)
+      init_text_end = .;
+    }
+
+    . = ALIGN(PAGE_SIZE);
+    .init.data : {
+      init_data_begin = .;
+      asm/main.o(.data)
+      main.o(.data)
+      init_data_end = .;
+    }
+    init_end = .;
+
+    /*
+      Text section.
+    */
     text_begin = .;
+    . = ALIGN(PAGE_SIZE);
     .text : {
-        asm/main.o(.text)
-        *(.text)
+      *(.text)
     }
     text_end = .;
 
+    /*
+      Data section.
+    */
+    data_begin = .;
+    . = ALIGN(PAGE_SIZE);
     .rodata : {
+      rodata_begin = .;
       *(.rodata)
+      rodata_end = .;
     }
 
-    data_begin = .;
+    . = ALIGN(PAGE_SIZE);
     .data : {
-      . = ALIGN(PAGE_SIZE);
-      init_begin = .;
+      init_process_data_begin = .;
       . = ALIGN(THREAD_SIZE);
       main.o(.init_process_info)
-      . = init_begin + THREAD_SIZE;
-      init_end = .;
+      . = init_process_data_begin + THREAD_SIZE;
+      init_process_data_end = .;
       *(.data)
     }
     data_end = .;
 
+    /*
+      Interrupt vector table.
+    */
     vector_table_begin = .;
     .vector_table : {
       asm/main.o(.vector_table)
     }
     vector_table_end = .;
 
-    bss_begin = .;
+    /*
+      Block starting symbol section.
+    */
     .bss : {
       *(.bss)
       *(COMMON)
     }
-    bss_end = .;
 }
