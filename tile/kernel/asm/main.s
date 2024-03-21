@@ -101,7 +101,7 @@ mmap_switched:
   ldr r1, =exception_base_address;
   orr r0, r0, r1
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
-  ldr sp, =init_end - 0x8
+  ldr sp, =init_process_data_end - 0x8
   bl start_kernel
 4:
   b 4b
