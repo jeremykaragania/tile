@@ -8,17 +8,6 @@
 .set KERNEL_SPACE_VADDR, 0xc0000000
 .global PG_DIR_VADDR
 .set PG_DIR_VADDR, KERNEL_SPACE_VADDR + PG_DIR_SIZE
-.section .vector_table, "x"
-.global exception_base_address
-exception_base_address:
-  b .
-  b .
-  b .
-  b .
-  b .
-  b .
-  b .
-  b .
 .section .text
 /*
   enable_interrupts enables the I and F bits in the Current Program Status Register (CPSR).
@@ -36,7 +25,7 @@ disable_interrupts:
   bx lr
 .global _start
 _start:
-  cps #0x13
+  cps #0x13 // Set processor mode to supervisor.
   b map_turn_mmu_on
 /*
   new_sections inserts new similar section entries into the page table. r0 is bits [19:0] of a section, r1 is the beginning
@@ -98,7 +87,7 @@ turn_mmu_on:
   b mmap_switched
 mmap_switched:
   mrc p15, #0x0, r0, c12, c0, #0x0
-  ldr r1, =exception_base_address;
+  ldr r1, =vector_table_begin;
   orr r0, r0, r1
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
   ldr sp, =init_process_data_end - 0x8
