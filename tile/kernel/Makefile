@@ -12,5 +12,4 @@ kernel: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm *.o
-	rm asm/*.o
+	rm kernel $(OBJS)
