@@ -8,6 +8,17 @@
 .set KERNEL_SPACE_VADDR, 0xc0000000
 .global PG_DIR_VADDR
 .set PG_DIR_VADDR, KERNEL_SPACE_VADDR + PG_DIR_SIZE
+.section .vector_table, "x"
+.global vector_table
+vector_table:
+  b .
+  b .
+  b .
+  b .
+  b .
+  b .
+  b .
+  b .
 .section .text
 /*
   enable_interrupts enables the I and F bits in the Current Program Status Register (CPSR).

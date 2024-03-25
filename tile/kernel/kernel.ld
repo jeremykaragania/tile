@@ -69,7 +69,7 @@ SECTIONS {
     . = ALIGN(0x4);
     vector_table_begin = .;
     .vector_table : {
-      main.o(.vector_table)
+      asm/main.o(.vector_table)
     }
     vector_table_end = .;
 

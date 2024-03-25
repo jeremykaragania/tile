@@ -1,5 +1,6 @@
 #include <memory.h>
 #include <process.h>
+#include <uart.h>
 
 const extern uint32_t* SMC_VADDR;
 const extern uint32_t* KERNEL_SPACE_VADDR;
@@ -35,15 +36,9 @@ static struct process_info init_process_info __attribute__((section(".init_proce
   &init_end
 };
 
-static struct memory_info init_memory_info = {
-  (uint32_t)&text_begin,
-  (uint32_t)&text_end,
-  (uint32_t)&data_begin,
-  (uint32_t)&data_end
-};
-
 void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process_info);
+  uart_init();
   return;
 }
