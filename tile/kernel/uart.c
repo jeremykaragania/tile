@@ -23,57 +23,73 @@ int uart_putchar(const int c) {
 }
 
 void uart_putint(int a) {
-  size_t i = 0;
-  size_t j;
   const unsigned int ascii_offset = 48;
-  if (a < 0) {
-    uart_putchar('-');
-    a *= -1;
+  if (a == 0) {
+    uart_putchar('0');
   }
-  while (a) {
-    char d = (a % 10) + ascii_offset;
-    uart_buf[i] = d;
-    a /= 10;
-    ++i;
-  }
-  for (j = 0; j < i; ++j) {
-    uart_putchar(uart_buf[i-j-1]);
+  else {
+    size_t i = 0;
+    size_t j;
+    if (a < 0) {
+      uart_putchar('-');
+      a *= -1;
+    }
+    while (a) {
+      char d = (a % 10) + ascii_offset;
+      uart_buf[i] = d;
+      a /= 10;
+      ++i;
+    }
+    for (j = 0; j < i; ++j) {
+      uart_putchar(uart_buf[i-j-1]);
+    }
   }
 }
 
 void uart_putuint(unsigned int a) {
-  size_t i = 0;
-  size_t j;
-  const unsigned int ascii_offset = 48;
-  while (a) {
-    char d = (a % 10) + ascii_offset;
-    uart_buf[i] = d;
-    a /= 10;
-    ++i;
+  if (a == 0) {
+    uart_putchar('0');
   }
-  for (j = 0; j < i; ++j) {
-    uart_putchar(uart_buf[i-j-1]);
+  else {
+    size_t i = 0;
+    size_t j;
+    const unsigned int ascii_offset = 48;
+    while (a) {
+      char d = (a % 10) + ascii_offset;
+      uart_buf[i] = d;
+      a /= 10;
+      ++i;
+    }
+    for (j = 0; j < i; ++j) {
+      uart_putchar(uart_buf[i-j-1]);
+    }
   }
 }
 
 void uart_puthex(unsigned int a, const char format) {
   size_t i = 0;
   size_t j;
-  while (a) {
-    unsigned int ascii_offset = 48;
-    char d = a % 16;
-    if (d > 9) {
-      if (format == 'x') {
-        ascii_offset = 87;
-      }
-      else {
-        ascii_offset = 55;
-      }
-    }
-    d += ascii_offset;
-    uart_buf[i] = d;
-    a /= 16;
+  if (a == 0) {
     ++i;
+    uart_buf[0] = '0';
+  }
+  else {
+    while (a) {
+      unsigned int ascii_offset = 48;
+      char d = a % 16;
+      if (d > 9) {
+        if (format == 'x') {
+          ascii_offset = 87;
+        }
+        else {
+          ascii_offset = 55;
+        }
+      }
+      d += ascii_offset;
+      uart_buf[i] = d;
+      a /= 16;
+      ++i;
+    }
   }
   uart_putchar('0');
   uart_putchar(format);
