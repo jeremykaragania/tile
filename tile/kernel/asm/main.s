@@ -95,14 +95,17 @@ turn_mmu_on:
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x1
   mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
-  ldr r0, =mmap_switched + KERNEL_SPACE_VADDR - KERNEL_SPACE_PADDR // The virtual address of mmap_switched.
+  ldr r0, =mmap_switched
+  bl phys_to_virt
   bx r0
 mmap_switched:
   mrc p15, #0x0, r0, c12, c0, #0x0
   ldr r1, =vector_table_begin;
   orr r0, r0, r1
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
-  ldr sp, =init_process_data_end - 0x8
+  ldr r0, =mmap_switched
+  bl phys_to_virt
+  mov sp, r0
   bl start_kernel
 4:
   b 4b

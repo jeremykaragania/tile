@@ -14,8 +14,8 @@ struct memory_info {
   const uint32_t data_end;
 };
 
-uint32_t virt_to_phys(uint32_t x);
+extern uint32_t virt_to_phys(uint32_t x);
 
-uint32_t phys_to_virt(uint32_t x);
+extern uint32_t phys_to_virt(uint32_t x);
 
 #endif
