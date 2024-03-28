@@ -8,6 +8,8 @@ const extern uint32_t* PHYS_OFFSET;
 
 const extern uint32_t* VIRT_OFFSET;
 
+const extern uint32_t* KERNEL_SPACE_PADDR;
+
 struct memory_block {
   uint32_t begin;
   uint32_t size;
