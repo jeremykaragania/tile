@@ -1,21 +1,21 @@
 #include <memory.h>
 
-static struct memory_region reserved_memory_region = {
+static struct memory_map_group memory_map_reserved_group = {
   0x0,
   NULL
 };
 
-static struct memory_block memory_memory_blocks = {
+static struct memory_map_block memory_map_memory_block = {
   (uint32_t)&KERNEL_SPACE_PADDR,
   0x80000000
 };
 
-static struct memory_region memory_memory_region = {
+static struct memory_map_group memory_map_memory_group = {
   0x1,
-  &memory_memory_blocks
+  &memory_map_memory_block
 };
 
-struct memory_info memory_info = {
-  &memory_memory_region,
-  &reserved_memory_region
+struct memory_map_info memory_map_info = {
+  &memory_map_memory_group,
+  &memory_map_reserved_group
 };
