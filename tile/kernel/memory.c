@@ -1,5 +1,13 @@
 #include <memory.h>
 
+struct memory_manager_info init_memory_manager_info = {
+  (uint32_t*)&PG_DIR_VADDR,
+  (uint32_t)&text_begin,
+  (uint32_t)&text_end,
+  (uint32_t)&data_begin,
+  (uint32_t)&data_end
+};
+
 static struct memory_map_group memory_map_reserved_group = {
   0x0,
   NULL
