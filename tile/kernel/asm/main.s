@@ -2,13 +2,8 @@
 .set SMC_PADDR, 0x00000000
 .global KERNEL_SPACE_PADDR
 .set KERNEL_SPACE_PADDR, 0x80000000
+.global PG_DIR_PADDR
 .set PG_DIR_PADDR, KERNEL_SPACE_PADDR + PG_DIR_SIZE
-.global SMC_VADDR
-.set SMC_VADDR, 0xe0000000
-.global KERNEL_SPACE_VADDR
-.set KERNEL_SPACE_VADDR, 0xc0000000
-.global PG_DIR_VADDR
-.set PG_DIR_VADDR, KERNEL_SPACE_VADDR + PG_DIR_SIZE
 .section .vector_table, "x"
 .global vector_table
 vector_table:

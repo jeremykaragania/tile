@@ -8,9 +8,7 @@ const extern uint32_t* PHYS_OFFSET;
 const extern uint32_t* VIRT_OFFSET;
 
 const extern uint32_t* KERNEL_SPACE_PADDR;
-const extern uint32_t* SMC_VADDR;
-const extern uint32_t* KERNEL_SPACE_VADDR;
-const extern uint32_t* PG_DIR_VADDR;
+const extern uint32_t* PG_DIR_PADDR;
 
 const extern uint32_t* text_begin;
 const extern uint32_t* text_end;

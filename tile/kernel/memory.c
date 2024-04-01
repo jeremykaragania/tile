@@ -23,7 +23,7 @@ struct memory_map_info memory_map_info = {
 struct memory_manager_info init_memory_manager_info;
 
 void init_init_memory_manager_info(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end) {
-  init_memory_manager_info.pg_dir = pg_dir;
+  init_memory_manager_info.pg_dir = (uint32_t*)phys_to_virt((uint32_t)pg_dir);
   init_memory_manager_info.text_begin = phys_to_virt((uint32_t)text_begin);
   init_memory_manager_info.text_end = phys_to_virt((uint32_t)text_end);
   init_memory_manager_info.data_begin = phys_to_virt((uint32_t)data_begin);
