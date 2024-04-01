@@ -48,7 +48,7 @@ struct memory_map_info {
 };
 
 /*
-  struct memory_manager_info represents the memory information of a process.
+  struct memory_manager_info represents the virtual memory information of a process.
 */
 struct memory_manager_info {
   uint32_t* pg_dir;
@@ -57,5 +57,7 @@ struct memory_manager_info {
   uint32_t data_begin;
   uint32_t data_end;
 };
+
+void init_init_memory_manager_info(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
 
 #endif
