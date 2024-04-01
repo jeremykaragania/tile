@@ -2,14 +2,14 @@
 #include <process.h>
 #include <uart.h>
 
-extern void* init_end;
+extern void* init_process_data_end;
 extern void enable_interrupts();
 extern void disable_interrupts();
 
 static struct process_info init_process_info __attribute__((section(".init_process_info"))) = {
   0,
   CREATED,
-  &init_end
+  &init_process_data_end
 };
 
 void start_kernel() {

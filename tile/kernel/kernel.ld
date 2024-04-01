@@ -11,32 +11,15 @@ SECTIONS {
     . += TEXT_OFFSET;
 
     /*
-      Initial section.
-    */
-    init_begin = .;
-    . = ALIGN(PAGE_SIZE);
-    .init.text : {
-      init_text_begin = .;
-      asm/main.o(.text)
-      main.o(.text)
-      init_text_end = .;
-    }
-
-    . = ALIGN(PAGE_SIZE);
-    .init.data : {
-      init_data_begin = .;
-      asm/main.o(.data)
-      main.o(.data)
-      init_data_end = .;
-    }
-    init_end = .;
-
-    /*
       Text section.
     */
     text_begin = .;
     . = ALIGN(PAGE_SIZE);
     .text : {
+      init_text_begin = .;
+      asm/main.o(.text)
+      main.o(.text)
+      init_text_end = .;
       *(.text)
     }
     text_end = .;
@@ -54,6 +37,10 @@ SECTIONS {
 
     . = ALIGN(PAGE_SIZE);
     .data : {
+      init_data_begin = .;
+      asm/main.o(.data)
+      main.o(.data)
+      init_data_end = .;
       init_process_data_begin = .;
       . = ALIGN(THREAD_SIZE);
       main.o(.init_process_info)
