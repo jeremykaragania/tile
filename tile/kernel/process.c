@@ -1,5 +1,11 @@
 #include <process.h>
 
+struct process_info init_process_info __attribute__((section(".init_process_info"))) = {
+  0,
+  CREATED,
+  &init_process_data_end
+};
+
 /*
   set_process_stack_end_token receives a struct process_info "proc", and adds a magic token to the end of its stack.
   This allows us to detect the last usable uint32_t of the stack.

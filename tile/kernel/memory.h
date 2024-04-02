@@ -4,9 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-const extern uint32_t* PHYS_OFFSET;
-const extern uint32_t* VIRT_OFFSET;
-
 const extern uint32_t* KERNEL_SPACE_PADDR;
 const extern uint32_t* PG_DIR_PADDR;
 
