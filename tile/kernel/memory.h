@@ -11,6 +11,8 @@ const extern uint32_t* text_begin;
 const extern uint32_t* text_end;
 const extern uint32_t* data_begin;
 const extern uint32_t* data_end;
+const extern uint32_t* bss_begin;
+const extern uint32_t* bss_end;
 
 extern uint32_t virt_to_phys(uint32_t x);
 extern uint32_t phys_to_virt(uint32_t x);
@@ -53,6 +55,7 @@ struct memory_manager_info {
   uint32_t data_end;
 };
 
+void init_memory_map_info();
 void init_init_memory_manager_info(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
 
 #endif

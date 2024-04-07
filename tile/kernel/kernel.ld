@@ -63,8 +63,10 @@ SECTIONS {
     /*
       Block starting symbol section.
     */
+    bss_begin = .;
     .bss : {
       *(.bss)
       *(COMMON)
     }
+    bss_end = .;
 }
