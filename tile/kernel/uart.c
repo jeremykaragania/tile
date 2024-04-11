@@ -1,6 +1,6 @@
 #include <uart.h>
 
-volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xfc090000;
+volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc90000;
 
 char uart_buf[256];
 

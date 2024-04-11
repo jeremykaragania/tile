@@ -1,5 +1,5 @@
 .set PG_DIR_SIZE, 0x00004000
-.set SMC_PADDR, 0x00000000
+.set SMC_PADDR, 0x1c000000
 .global KERNEL_SPACE_PADDR
 .set KERNEL_SPACE_PADDR, 0x80000000
 .global PG_DIR_PADDR
@@ -77,13 +77,13 @@ map_kernel:
   sub r3, r3, r4
   bl new_sections
 /*
-  map_smc maps the static memory controller. It creates a SMC_PADDR-to-0xe0000000 mapping which spans 500MB.
+  map_smc maps the static memory controller. It creates a SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
 */
 map_smc:
   ldr r0, =#0x402
-  ldr r1, =PG_DIR_PADDR + (0xe0000000 >> 20) * 0x4
+  ldr r1, =PG_DIR_PADDR + (0xffc00000 >> 20) * 0x4
   ldr r2, =SMC_PADDR
-  ldr r3, =SMC_PADDR + 0x20000000
+  ldr r3, =SMC_PADDR + 0x100000
   bl new_sections
 enable_mmu:
   ldr r0, =PG_DIR_PADDR
