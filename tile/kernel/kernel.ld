@@ -53,9 +53,9 @@ SECTIONS {
     /*
       Interrupt vector table.
     */
-    . = ALIGN(0x4);
-    vector_table_begin = .;
     .vector_table : {
+      . = ALIGN(PAGE_SIZE);
+      vector_table_begin = .;
       asm/main.o(.vector_table)
     }
     vector_table_end = .;

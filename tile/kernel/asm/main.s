@@ -64,7 +64,7 @@ map_turn_mmu_on:
   ldr r3, =turn_mmu_on + 0x100000
   bl new_sections
 /*
-  map_kernel maps the kernel space. It creates a KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin.
+  map_kernel maps the kernel space. It creates a KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin MB.
 */
 map_kernel:
   ldr r0, =#0x402 // Read/write, only at PL1.
@@ -99,9 +99,8 @@ turn_mmu_on:
   bl phys_to_virt
   bx r0
 mmap_switched:
-  mrc p15, #0x0, r0, c12, c0, #0x0
-  ldr r1, =vector_table_begin;
-  orr r0, r0, r1
+  ldr r0, =vector_table_begin
+  bl phys_to_virt
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
   ldr r0, =mmap_switched
   bl phys_to_virt
