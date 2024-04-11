@@ -64,13 +64,17 @@ map_turn_mmu_on:
   ldr r3, =turn_mmu_on + 0x100000
   bl new_sections
 /*
-  map_kernel maps the kernel space. It creates a KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans 500MB.
+  map_kernel maps the kernel space. It creates a KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin.
 */
 map_kernel:
   ldr r0, =#0x402 // Read/write, only at PL1.
   ldr r1, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
   ldr r2, =KERNEL_SPACE_PADDR
-  ldr r3, =KERNEL_SPACE_PADDR + 0x20000000
+  mov r3, r2
+  ldr r4, =bss_end
+  add r3, r3, r4
+  ldr r4, =text_begin
+  sub r3, r3, r4
   bl new_sections
 /*
   map_smc maps the static memory controller. It creates a SMC_PADDR-to-0xe0000000 mapping which spans 500MB.
