@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 
-void* memcpy(void *src, void *dest, size_t n);
+void* memcpy(void *dest, void *src, size_t n);
+void* memmove(void *dest, void *src, size_t n);
 
 #endif
