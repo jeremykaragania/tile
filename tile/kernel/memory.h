@@ -67,5 +67,6 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t b
 void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size);
 
 void* memory_alloc(size_t size);
+int memory_free(void* ptr);
 
 #endif

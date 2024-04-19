@@ -108,3 +108,17 @@ void* memory_alloc(size_t size) {
   }
   return NULL;
 }
+
+int memory_free(void* ptr) {
+  size_t i;
+  struct memory_map_block* block;
+  for (i = 0; i < memory_map.reserved->length; ++i) {
+    block = &memory_map.reserved->blocks[i];
+    if (block->begin == (uint32_t)ptr) {
+      memmove(block, block + 1, (memory_map.reserved->length - i) * sizeof(*block));
+      --memory_map.reserved->length;
+      return 1;
+    }
+  }
+  return 0;
+}
