@@ -37,11 +37,11 @@ void init_init_memory_manager(void* pg_dir, void* text_begin, void* text_end, vo
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end) {
   size_t i;
   size_t merged = 0;
-  struct memory_map_block* a = &group->blocks[0];
+  struct memory_map_block* a = &group->blocks[begin];
   struct memory_map_block* b;
   size_t a_end;
-  for (i = 1; i < group->length; ++i) {
-    a_end = a->begin + a->size;
+  for (i = begin + 1; i < end; ++i) {
+    a_end = a->begin + a->size - 1;
     b = &group->blocks[i];
     if (a_end >= b->begin) {
       a->size += (b->begin - a_end) + b->size;
@@ -71,7 +71,7 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
   else {
     for (i = 0; i < group->length; ++i) {
       block = &group->blocks[i];
-      block_end = block->begin + block->size;
+      block_end = block->begin + block->size - 1;
       if (begin <= block_end) {
         pos = i;
         if (begin >= block->begin) {
@@ -84,4 +84,27 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
   }
   memory_map_merge_blocks(group, pos, group->length);
   return;
+}
+
+void* memory_alloc(size_t size) {
+  size_t i;
+  size_t j;
+  uint32_t a_begin;
+  uint32_t a_end;
+  struct memory_map_block* b;
+  uint32_t b_end;
+  for (i = 0; i < memory_map.memory->length; ++i) {
+    a_begin = memory_map.memory->blocks[i].begin;
+    for (j = 0; j < memory_map.reserved->length; ++j) {
+      a_end = a_begin + size;
+      b = &memory_map.reserved->blocks[j];
+      b_end = b->begin + b->size - 1;
+      if (a_begin < b->begin && a_end < b_end) {
+        memory_map_add_block(memory_map.reserved, a_begin, size);
+        return (uint32_t*)a_begin;
+      }
+      a_begin = b_end + 1;
+    }
+  }
+  return NULL;
 }

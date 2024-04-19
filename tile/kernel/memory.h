@@ -61,8 +61,11 @@ struct memory_manager {
 
 void init_memory_map();
 void init_init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
+
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end);
 void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t begin, uint32_t size);
 void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size);
+
+void* memory_alloc(size_t size);
 
 #endif
