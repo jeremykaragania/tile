@@ -18,7 +18,8 @@ vector_table:
   b do_fiq_interrupt
 .section .text
 /*
-  enable_interrupts enables the I and F bits in the Current Program Status Register (CPSR).
+  enable_interrupts enables the I and F bits in the Current Program Status
+  Register (CPSR).
 */
 .global enable_interrupts
 enable_interrupts:
@@ -36,9 +37,10 @@ _start:
   cps #0x13 // Set processor mode to supervisor.
   b map_turn_mmu_on
 /*
-  new_sections inserts new similar section entries into the page table. r0 is bits [19:0] of a section, r1 is the beginning
-  entry index which is correlated with the beginning virtual address, r2 is the beginning physical address, and r3 is the
-  ending physical address.
+  new_sections inserts new similar section entries into the page table. r0 is
+  bits [19:0] of a section, r1 is the beginning entry index which is correlated
+  with the beginning virtual address, r2 is the beginning physical address, and
+  r3 is the ending physical address.
 */
 new_sections:
   orr r4, r2, r0
@@ -49,7 +51,8 @@ new_sections:
   blt new_sections
   bx lr
 /*
-  map_turn_mmu_on maps the turn_mmu_on symbol. It creates a one-to-one mapping which spans 1MB.
+  map_turn_mmu_on maps the turn_mmu_on symbol. It creates a one-to-one mapping
+  which spans 1MB.
 */
 map_turn_mmu_on:
   ldr r0, =#0x402 // Read/write, only at PL1.
@@ -65,7 +68,8 @@ map_turn_mmu_on:
   ldr r3, =turn_mmu_on + 0x100000
   bl new_sections
 /*
-  map_kernel maps the kernel space. It creates a KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin MB.
+  map_kernel maps the kernel space. It creates a
+  KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin MB.
 */
 map_kernel:
   ldr r0, =#0x402 // Read/write, only at PL1.
@@ -78,7 +82,8 @@ map_kernel:
   sub r3, r3, r4
   bl new_sections
 /*
-  map_smc maps the static memory controller. It creates a SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
+  map_smc maps the static memory controller. It creates a
+  SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
 */
 map_smc:
   ldr r0, =#0x402
