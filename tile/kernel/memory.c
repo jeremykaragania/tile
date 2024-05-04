@@ -20,9 +20,9 @@ struct memory_map memory_map = {
 struct memory_manager init_memory_manager;
 
 void init_memory_map() {
-  memory_map_add_block(memory_map.memory, (uint32_t)&KERNEL_SPACE_PADDR, 0x80000000);
+  memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
   memory_map_add_block(memory_map.reserved, (uint32_t)&text_begin, (uint32_t)&bss_end - (uint32_t)&text_begin);
-  memory_map_add_block(memory_map.reserved, (uint32_t)&PG_DIR_PADDR, (uint32_t)&PG_DIR_SIZE);
+  memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
 }
 
 void init_init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end) {

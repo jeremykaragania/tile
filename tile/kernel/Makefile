@@ -2,7 +2,7 @@ HOST = arm-none-eabi
 CC = $(HOST)-gcc
 CFLAGS = -std=c89 -ffreestanding -Wpedantic -Wall -I.. -I.
 AS = $(HOST)-as
-ASFLAGS = -mcpu=cortex-a15
+ASFLAGS = -mcpu=cortex-a15 -I.. -I.
 LD = $(HOST)-ld
 LDFLAGS = -Tkernel.ld
 OBJS = asm/main.o asm/memory.o asm/process.o interrupts.o main.o memory.o process.o string.o uart.o

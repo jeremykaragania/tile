@@ -1,10 +1,5 @@
-.global PG_DIR_SIZE
-.set PG_DIR_SIZE, 0x00004000
-.set SMC_PADDR, 0x1c000000
-.global KERNEL_SPACE_PADDR
-.set KERNEL_SPACE_PADDR, 0x80000000
-.global PG_DIR_PADDR
-.set PG_DIR_PADDR, KERNEL_SPACE_PADDR + PG_DIR_SIZE
+#include <asm/memory.h>
+
 .section .vector_table, "x"
 .global vector_table
 vector_table:

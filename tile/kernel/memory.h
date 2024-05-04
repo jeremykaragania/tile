@@ -1,15 +1,12 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include <asm/memory.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
 #define MEMORY_MAP_GROUP_LENGTH 128
-
-const extern uint32_t* KERNEL_SPACE_PADDR;
-const extern uint32_t* PG_DIR_PADDR;
-const extern uint32_t* PG_DIR_SIZE;
 
 const extern uint32_t* text_begin;
 const extern uint32_t* text_end;
