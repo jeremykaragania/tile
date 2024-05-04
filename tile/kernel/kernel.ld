@@ -43,7 +43,7 @@ SECTIONS {
       init_data_end = .;
       init_process_data_begin = .;
       . = ALIGN(THREAD_SIZE);
-      main.o(.init_process_info)
+      main.o(.init_process)
       . = init_process_data_begin + THREAD_SIZE;
       init_process_data_end = .;
       *(.data)

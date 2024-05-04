@@ -9,7 +9,7 @@
 extern void* init_process_data_begin;
 extern void* init_process_data_end;
 
-extern struct process_info init_process_info;
+extern struct process init_process;
 extern uint32_t current_stack_pointer();
 
 enum process_state  {
@@ -20,13 +20,13 @@ enum process_state  {
   TERMINATED
 };
 
-struct process_info {
+struct process {
   int id;
   int state;
   void* stack;
 };
 
-void set_process_stack_end_token(const struct process_info* proc);
-struct process_info* current_process_info();
+void set_process_stack_end_token(const struct process* proc);
+struct process* current_process();
 
 #endif

@@ -1,15 +1,15 @@
 #include <memory.h>
 
-static struct memory_map_block memory_map_memory_block[MEMORY_MAP_GROUP_LENGTH];
+static struct memory_map_block memory_map_memory_blocks[MEMORY_MAP_GROUP_LENGTH];
 static struct memory_map_group memory_map_memory_group = {
   0,
-  memory_map_memory_block
+  memory_map_memory_blocks
 };
 
-static struct memory_map_block memory_map_reserved_block[MEMORY_MAP_GROUP_LENGTH];
+static struct memory_map_block memory_map_reserved_blocks[MEMORY_MAP_GROUP_LENGTH];
 static struct memory_map_group memory_map_reserved_group = {
   0,
-  memory_map_reserved_block
+  memory_map_reserved_blocks
 };
 
 struct memory_map memory_map = {
