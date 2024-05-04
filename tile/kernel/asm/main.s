@@ -38,15 +38,15 @@ _start:
   b map_turn_mmu_on
 /*
   new_sections inserts new similar section entries into the page table. r0 is
-  bits [19:0] of a section, r1 is the beginning entry index which is correlated
-  with the beginning virtual address, r2 is the beginning physical address, and
-  r3 is the ending physical address.
+  the beginning entry index which is correlated with the beginning virtual
+  address, r1 is bits [19:0] of a section, r2 is the beginning physical
+  address, and r3 is the ending physical address.
 */
 new_sections:
-  orr r4, r2, r0
-  str r4, [r1]
+  orr r4, r2, r1
+  str r4, [r0]
   add r2, r2, #0x100000
-  add r1, r1, #0x4
+  add r0, r0, #0x4
   cmp r2, r3
   blt new_sections
   bx lr
@@ -55,13 +55,13 @@ new_sections:
   which spans 1MB.
 */
 map_turn_mmu_on:
-  ldr r0, =#0x402 // Read/write, only at PL1.
-  ldr r1, =turn_mmu_on
-  lsr r1, r1, #20
+  ldr r1, =#0x402 // Read/write, only at PL1.
+  ldr r0, =turn_mmu_on
+  lsr r0, r0, #20
   mov r4, #0x4
-  mul r1, r1, r4
+  mul r0, r0, r4
   ldr r4, =PG_DIR_PADDR
-  add r1, r1, r4
+  add r0, r0, r4
   ldr r2, =turn_mmu_on
   lsr r2, r2, #19
   lsl r2, r2, #19
@@ -72,8 +72,8 @@ map_turn_mmu_on:
   KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin MB.
 */
 map_kernel:
-  ldr r0, =#0x402 // Read/write, only at PL1.
-  ldr r1, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
+  ldr r0, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
+  ldr r1, =#0x402 // Read/write, only at PL1.
   ldr r2, =KERNEL_SPACE_PADDR
   mov r3, r2
   ldr r4, =bss_end
@@ -86,8 +86,8 @@ map_kernel:
   SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
 */
 map_smc:
-  ldr r0, =#0x402
-  ldr r1, =PG_DIR_PADDR + (0xffc00000 >> 20) * 0x4
+  ldr r0, =PG_DIR_PADDR + (0xffc00000 >> 20) * 0x4
+  ldr r1, =#0x402
   ldr r2, =SMC_PADDR
   ldr r3, =SMC_PADDR + 0x100000
   bl new_sections
