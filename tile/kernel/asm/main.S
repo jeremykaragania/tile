@@ -67,7 +67,12 @@ map_turn_mmu_on:
   KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin MB.
 */
 map_kernel:
-  ldr r0, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
+  ldr r0, =KERNEL_SPACE_PADDR
+  bl phys_to_virt
+  bl pgd_index
+  ldr r1, =PG_DIR_PADDR
+  add r0, r0, r1
+  //ldr r0, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
   ldr r1, =#0x402 // Read/write, only at PL1.
   ldr r2, =KERNEL_SPACE_PADDR
   mov r3, r2
@@ -81,7 +86,10 @@ map_kernel:
   SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
 */
 map_smc:
-  ldr r0, =PG_DIR_PADDR + (0xffc00000 >> 20) * 0x4
+  ldr r0, =#0xffc00000
+  bl pgd_index
+  ldr r1, =PG_DIR_PADDR
+  add r0, r0, r1
   ldr r1, =#0x402
   ldr r2, =SMC_PADDR
   ldr r3, =SMC_PADDR + 0x100000
