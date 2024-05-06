@@ -6,8 +6,9 @@
 #define STACK_END_MAGIC 0x57ac6e9d
 #define THREAD_SIZE 0x00002000
 
-extern void* init_process_data_begin;
-extern void* init_process_data_end;
+extern void* init_process_begin;
+extern void* init_process_end;
+extern void* init_process_stack;
 
 extern struct process init_process;
 extern uint32_t current_stack_pointer();

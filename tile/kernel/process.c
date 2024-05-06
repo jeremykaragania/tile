@@ -3,7 +3,7 @@
 struct process init_process __attribute__((section(".init_process"))) = {
   0,
   CREATED,
-  &init_process_data_end
+  &init_process_stack
 };
 
 /*

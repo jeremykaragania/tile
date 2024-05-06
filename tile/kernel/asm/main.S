@@ -111,7 +111,7 @@ mmap_switched:
   ldr r0, =vector_table_begin
   bl phys_to_virt
   mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
-  ldr r0, =mmap_switched
+  ldr r0, =init_process_end - 0x8
   bl phys_to_virt
   mov sp, r0
   bl start_kernel
