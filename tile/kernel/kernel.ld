@@ -68,5 +68,6 @@ SECTIONS {
       *(.bss)
       *(COMMON)
     }
+    . = ALIGN(PAGE_SIZE);
     bss_end = .;
 }
