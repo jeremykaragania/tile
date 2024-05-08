@@ -93,6 +93,7 @@ void* memory_alloc(size_t size) {
   uint32_t a_end;
   struct memory_map_block* b;
   uint32_t b_end;
+  size = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
   for (i = 0; i < memory_map.memory->length; ++i) {
     a_begin = memory_map.memory->blocks[i].begin;
     for (j = 0; j < memory_map.reserved->length; ++j) {

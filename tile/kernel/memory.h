@@ -2,6 +2,7 @@
 #define MEMORY_H
 
 #include <asm/memory.h>
+#include <asm/page.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
