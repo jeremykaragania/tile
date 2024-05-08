@@ -64,7 +64,7 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
   size_t i;
   struct memory_map_block *block;
   uint32_t block_end;
-  size_t pos = 0;
+  size_t pos = group->length;
   if (group->length == 0) {
     memory_map_insert_block(group, pos, begin, size);
   }
@@ -77,10 +77,10 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
         if (begin >= block->begin) {
           ++pos;
         }
-        memory_map_insert_block(group, pos, begin, size);
         break;
       }
     }
+    memory_map_insert_block(group, pos, begin, size);
   }
   memory_map_merge_blocks(group, pos, group->length);
   return;
@@ -91,20 +91,34 @@ void* memory_alloc(size_t size) {
   size_t j;
   uint32_t a_begin;
   uint32_t a_end;
-  struct memory_map_block* b;
-  uint32_t b_end;
+  struct memory_map_block* m;
+  uint32_t m_end;
+  struct memory_map_block* r;
+  uint32_t r_end;
+  size_t reserved_length = memory_map.reserved->length;
+  size_t memory_length = memory_map.memory->length;
   size = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-  for (i = 0; i < memory_map.memory->length; ++i) {
-    a_begin = memory_map.memory->blocks[i].begin;
-    for (j = 0; j < memory_map.reserved->length; ++j) {
-      a_end = a_begin + size;
-      b = &memory_map.reserved->blocks[j];
-      b_end = b->begin + b->size - 1;
-      if (a_begin < b->begin && a_end < b_end) {
+  for (i = 0; i < memory_length; ++i) {
+    m = &memory_map.memory->blocks[i];
+    m_end = m->begin + memory_map.memory->blocks[i].size - 1;
+    a_begin = m->begin;
+    for (j = 0; j < reserved_length; ++j) {
+      a_end = a_begin + size - 1;
+      r = &memory_map.reserved->blocks[j];
+      r_end = r->begin + r->size - 1;
+      if (a_begin < r->begin && a_end < r_end) {
         memory_map_add_block(memory_map.reserved, a_begin, size);
         return (uint32_t*)a_begin;
       }
-      a_begin = b_end + 1;
+      if (j == reserved_length - 1) {
+        a_begin = memory_map.reserved->blocks[j].begin + memory_map.reserved->blocks[j].size;
+        a_end = a_begin + size;
+        if (a_end < m_end) {
+          memory_map_add_block(memory_map.reserved, a_begin, size);
+          return (uint32_t*)a_begin;
+        }
+      }
+      a_begin = r_end + 1;
     }
   }
   return NULL;
