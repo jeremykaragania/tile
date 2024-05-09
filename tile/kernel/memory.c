@@ -17,7 +17,7 @@ struct memory_map memory_map = {
   &memory_map_reserved_group
 };
 
-struct memory_manager init_memory_manager;
+struct memory_manager memory_manager;
 
 void init_memory_map() {
   memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
@@ -25,12 +25,12 @@ void init_memory_map() {
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
 }
 
-void init_init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end) {
-  init_memory_manager.pg_dir = (uint32_t*)phys_to_virt((uint32_t)pg_dir);
-  init_memory_manager.text_begin = phys_to_virt((uint32_t)text_begin);
-  init_memory_manager.text_end = phys_to_virt((uint32_t)text_end);
-  init_memory_manager.data_begin = phys_to_virt((uint32_t)data_begin);
-  init_memory_manager.data_end = phys_to_virt((uint32_t)data_end);
+void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end) {
+  memory_manager.pg_dir = (uint32_t*)phys_to_virt((uint32_t)pg_dir);
+  memory_manager.text_begin = phys_to_virt((uint32_t)text_begin);
+  memory_manager.text_end = phys_to_virt((uint32_t)text_end);
+  memory_manager.data_begin = phys_to_virt((uint32_t)data_begin);
+  memory_manager.data_end = phys_to_virt((uint32_t)data_end);
   return;
 }
 

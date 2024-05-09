@@ -20,7 +20,7 @@ extern uint32_t virt_to_phys(uint32_t x);
 extern uint32_t phys_to_virt(uint32_t x);
 
 extern struct memory_map memory_map;
-extern struct memory_manager init_memory_manager;
+extern struct memory_manager memory_manager;
 
 /*
   struct memory_map_block represents the bounds of a memory region.
@@ -58,7 +58,7 @@ struct memory_manager {
 };
 
 void init_memory_map();
-void init_init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
+void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
 
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end);
 void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t begin, uint32_t size);
