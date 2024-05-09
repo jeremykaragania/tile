@@ -18,3 +18,8 @@ pte_index:
   mov r1, #0x4
   mul r0, r0, r1
   bx lr
+
+.global invalidate_entire_tlb
+invalidate_entire_tlb:
+  mcr p15, 0, r0, c8, c6, 0
+  bx lr
