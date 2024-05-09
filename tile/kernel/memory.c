@@ -38,16 +38,22 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
   size_t i;
   size_t merged = 0;
   struct memory_map_block* a = &group->blocks[begin];
-  struct memory_map_block* b;
+  struct memory_map_block* b = &group->blocks[begin+1];
   size_t a_end;
-  for (i = begin + 1; i < end; ++i) {
+  size_t b_end;
+  for (i = begin+1; i < end; ++i) {
     a_end = a->begin + a->size - 1;
-    b = &group->blocks[i];
-    if (a_end >= b->begin) {
-      a->size += (b->begin - a_end) + b->size;
+    b_end = b->begin + b->size - 1;
+    if (a_end >= b->begin-1) {
+      if (a_end <= b_end) {
+        a->size = b_end - a->begin + 1;
+      }
+      b = &group->blocks[i+1];
       ++merged;
     }
-    a = &group->blocks[i];
+    else {
+      a = &group->blocks[i];
+    }
   }
   group->length -= merged;
 }
