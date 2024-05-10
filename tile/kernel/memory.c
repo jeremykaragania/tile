@@ -70,7 +70,6 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t b
 void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size) {
   size_t i;
   struct memory_map_block *b;
-  uint32_t a_end = begin + size - 1;
   uint32_t b_end;
   size_t pos = group->length;
   size_t overlap = 0;
