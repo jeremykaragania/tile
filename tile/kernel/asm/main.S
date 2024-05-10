@@ -64,7 +64,7 @@ map_turn_mmu_on:
   bl new_sections
 /*
   map_kernel maps the kernel space. It creates a
-  KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans bss_end - text_begin MB.
+  KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans 1GB.
 */
 map_kernel:
   ldr r0, =KERNEL_SPACE_PADDR
@@ -72,33 +72,15 @@ map_kernel:
   bl pgd_index
   ldr r1, =PG_DIR_PADDR
   add r0, r0, r1
-  //ldr r0, =PG_DIR_PADDR + (0xc0000000 >> 20) * 0x4
   ldr r1, =#0x402 // Read/write, only at PL1.
   ldr r2, =KERNEL_SPACE_PADDR
-  mov r3, r2
-  ldr r4, =bss_end
-  add r3, r3, r4
-  ldr r4, =text_begin
-  sub r3, r3, r4
-  bl new_sections
-/*
-  map_smc maps the static memory controller. It creates a
-  SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
-*/
-map_smc:
-  ldr r0, =#0xffc00000
-  bl pgd_index
-  ldr r1, =PG_DIR_PADDR
-  add r0, r0, r1
-  ldr r1, =#0x402
-  ldr r2, =SMC_PADDR
-  ldr r3, =SMC_PADDR + 0x100000
+  ldr r3, =KERNEL_SPACE_PADDR + 0x40000000
   bl new_sections
 enable_mmu:
   ldr r0, =PG_DIR_PADDR
-  mcr p15, #0x0, r0, c2, c0, #0x0 // Set translation table base 0 address.
+  mcr p15, 0, r0, c2, c0, 0 // Set translation table base 0 address.
   mov r0, #0x1
-  mcr p15, #0x0, r0, c3, c0, #0x0 // Set domain access permision.
+  mcr p15, 0, r0, c3, c0, 0 // Set domain access permision.
   b turn_mmu_on
 turn_mmu_on:
   mrc p15, #0x0, r0, c1, c0, #0x0
@@ -110,7 +92,7 @@ turn_mmu_on:
 mmap_switched:
   ldr r0, =vector_table_begin
   bl phys_to_virt
-  mcr p15, #0x0, r0, c12, c0, #0x0 // Set vector base address.
+  mcr p15, 0, r0, c12, c0, 0 // Set vector base address.
   ldr r0, =init_process_end - 0x8
   bl phys_to_virt
   mov sp, r0
