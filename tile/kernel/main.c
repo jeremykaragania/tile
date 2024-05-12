@@ -7,6 +7,8 @@
 extern void enable_interrupts();
 extern void disable_interrupts();
 
+char tile_banner[] = "Tile\n";
+
 void map_smc() {
   uint32_t* pte;
   pte = pte_alloc(&memory_manager, 0Xffc00000);
@@ -21,5 +23,6 @@ void start_kernel() {
   init_memory_manager((uint32_t*)PG_DIR_PADDR, &text_begin, &text_end, &data_begin, &data_end);
   map_smc();
   uart_init();
+  uart_printf(tile_banner);
   return;
 }
