@@ -38,7 +38,6 @@ void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* d
   memory_manager.text_end = phys_to_virt((uint32_t)text_end);
   memory_manager.data_begin = phys_to_virt((uint32_t)data_begin);
   memory_manager.data_end = phys_to_virt((uint32_t)data_end);
-  return;
 }
 
 /*
@@ -129,7 +128,6 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
 
   pos -= overlap;
   memory_map_merge_blocks(group, pos, group->length);
-  return;
 }
 
 /*

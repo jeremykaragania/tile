@@ -13,7 +13,6 @@ void map_smc() {
   uint32_t* pte;
   pte = pte_alloc(&memory_manager, 0Xffc00000);
   pte_insert(pte, 0xffc00000, 0x1c090000);
-  return;
 }
 
 void start_kernel() {
@@ -24,5 +23,4 @@ void start_kernel() {
   map_smc();
   uart_init();
   uart_printf(tile_banner);
-  return;
 }
