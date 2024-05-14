@@ -1,6 +1,8 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
+#include <uart.h>
+
 void do_reset();
 void do_undefined_instruction();
 void do_supervisor_call();
