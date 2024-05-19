@@ -34,7 +34,7 @@ struct memory_map_block {
   struct memory_map_group represents a group of memory regions.
 */
 struct memory_map_group {
-  size_t length;
+  size_t size;
   struct memory_map_block* blocks;
 };
 

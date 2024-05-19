@@ -72,7 +72,7 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
     }
   }
 
-  group->length -= merged;
+  group->size -= merged;
 }
 
 /*
@@ -82,10 +82,10 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
 void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t begin, uint32_t size) {
   struct memory_map_block* block = &group->blocks[pos];
 
-  memmove(block + 1, block, (group->length - pos) * sizeof(*block));
+  memmove(block + 1, block, (group->size - pos) * sizeof(*block));
   block->begin = begin;
   block->size = size;
-  ++group->length;
+  ++group->size;
 }
 
 /*
@@ -97,14 +97,14 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
   size_t i;
   struct memory_map_block *b;
   uint32_t b_end;
-  size_t pos = group->length;
+  size_t pos = group->size;
   size_t overlap = 0;
 
-  if (group->length == 0) {
+  if (group->size == 0) {
     memory_map_insert_block(group, pos, begin, size);
   }
   else {
-    for (i = 0; i < group->length; ++i) {
+    for (i = 0; i < group->size; ++i) {
       b = &group->blocks[i];
       b_end = b->begin + b->size - 1;
 
@@ -127,7 +127,7 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
   }
 
   pos -= overlap;
-  memory_map_merge_blocks(group, pos, group->length);
+  memory_map_merge_blocks(group, pos, group->size);
 }
 
 /*
@@ -152,13 +152,13 @@ void* memory_alloc(size_t size) {
     trying to allocate; "m" is the block where we can allocate; and "r" is the
     block where we can't allocate.
   */
-  for (i = 0; i < memory_map.memory->length; ++i) {
+  for (i = 0; i < memory_map.memory->size; ++i) {
     m = &memory_map.memory->blocks[i];
     m_end = m->begin + memory_map.memory->blocks[i].size - 1;
     a_begin = m->begin;
     a_end = a_begin + size - 1;
 
-    for (j = 0; j < memory_map.reserved->length; ++j) {
+    for (j = 0; j < memory_map.reserved->size; ++j) {
       r = &memory_map.reserved->blocks[j];
       r_end = r->begin + r->size - 1;
 
@@ -190,12 +190,12 @@ int memory_free(void* ptr) {
   size_t i;
   struct memory_map_block* block;
 
-  for (i = 0; i < memory_map.reserved->length; ++i) {
+  for (i = 0; i < memory_map.reserved->size; ++i) {
     block = &memory_map.reserved->blocks[i];
 
     if (block->begin == (uint32_t)ptr) {
-      memmove(block, block + 1, (memory_map.reserved->length - i) * sizeof(*block));
-      --memory_map.reserved->length;
+      memmove(block, block + 1, (memory_map.reserved->size - i) * sizeof(*block));
+      --memory_map.reserved->size;
       return 1;
     }
   }
