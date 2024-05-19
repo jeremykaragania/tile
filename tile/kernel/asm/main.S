@@ -64,7 +64,7 @@ map_turn_mmu_on:
   bl new_sections
 /*
   map_kernel maps the kernel space. It creates a
-  KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans 1GB.
+  KERNEL_SPACE_PADDR-to-0xc0000000 mapping which spans 768MB.
 */
 map_kernel:
   ldr r0, =KERNEL_SPACE_PADDR
@@ -74,7 +74,7 @@ map_kernel:
   add r0, r0, r1
   ldr r1, =#0x402 // Read/write, only at PL1.
   ldr r2, =KERNEL_SPACE_PADDR
-  ldr r3, =KERNEL_SPACE_PADDR + 0x40000000
+  ldr r3, =KERNEL_SPACE_PADDR + 0x30000000
   bl new_sections
 enable_mmu:
   ldr r0, =PG_DIR_PADDR
