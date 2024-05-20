@@ -41,6 +41,18 @@ void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* d
 }
 
 /*
+  memory_map_mask_block sets a flag "flag" to "mask" in "block".
+*/
+void memory_map_mask_block(struct memory_map_block* block, int flag, int mask) {
+  if (mask) {
+    block->flags |= flag;
+  }
+  else {
+    block->flags &= ~flag;
+  }
+}
+
+/*
   memory_map_merge_blocks merges the blocks in "group" from "begin" to "end".
 */
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end) {
