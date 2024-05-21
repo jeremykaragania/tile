@@ -9,6 +9,9 @@
 
 #define MEMORY_MAP_GROUP_LENGTH 128
 
+#define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
+#define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
+
 const extern uint32_t* text_begin;
 const extern uint32_t* text_end;
 const extern uint32_t* data_begin;

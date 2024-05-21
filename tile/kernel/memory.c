@@ -156,8 +156,7 @@ void* memory_alloc(size_t size) {
   struct memory_map_block* r;
   uint32_t r_end;
 
-  /* We align "size" to a multiple of PAGE_SIZE. */
-  size = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+  size = ALIGN(size, PAGE_SIZE);
 
   /*
     We allocate a block with the constraints: "a" is the block which we are
