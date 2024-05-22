@@ -47,3 +47,16 @@ void pte_insert(uint32_t* pte, uint32_t v_addr, uint32_t p_addr) {
   *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
   invalidate_entire_tlb();
 }
+
+void init_paging() {
+  int i;
+  struct memory_map_block* b;
+  uint64_t b_end;
+
+  for (i = 0; i < memory_map.memory->size; ++i) {
+    b = &memory_map.memory->blocks[i];
+    if (!IS_ALIGNED(b->begin, PAGE_SIZE)) {
+      memory_map_mask_block(b, BLOCK_RESERVED, 1);
+    }
+  }
+}
