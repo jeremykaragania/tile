@@ -23,4 +23,5 @@ void start_kernel() {
   map_smc();
   uart_init();
   uart_printf(tile_banner);
+  init_paging();
 }
