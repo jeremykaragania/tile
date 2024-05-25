@@ -1,6 +1,6 @@
 HOST = arm-none-eabi
 CC = $(HOST)-gcc
-CFLAGS = -std=c89 -ffreestanding -Wpedantic -Wall -I.. -I.
+CFLAGS = -std=c99 -ffreestanding -Wpedantic -Wall -I.. -I.
 AS = $(HOST)-as
 ASFLAGS = -mcpu=cortex-a15 -I.. -I.
 LD = $(HOST)-ld
