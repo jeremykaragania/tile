@@ -60,10 +60,10 @@ void __aeabi_uidivmod(unsigned int numerator, unsigned int denominator) {
 
 void __aeabi_ldivmod(long long numerator, long long denominator) {
   struct signed_divide_return sdr = signed_divide(numerator, denominator);
-  value_in_regs((unsigned int)(sdr.quotient >> 32), (unsigned int)(sdr.quotient & 0xffffffffull), (unsigned int)(sdr.remainder >> 32), (unsigned int)(sdr.remainder & 0xffffffffull));
+  value_in_regs((unsigned int)(sdr.quotient & 0xffffffffull), (unsigned int)(sdr.quotient >> 32), (unsigned int)(sdr.remainder >> 32), (unsigned int)(sdr.remainder & 0xffffffffull));
 }
 
 void __aeabi_uldivmod(unsigned long long numerator, unsigned long long denominator) {
   struct unsigned_divide_return udr = unsigned_divide(numerator, denominator);
-  value_in_regs((unsigned int)(udr.quotient >> 32), (unsigned int)(udr.quotient & 0xffffffffull), (unsigned int)(udr.remainder >> 32), (unsigned int)(udr.remainder & 0xffffffffull));
+  value_in_regs((unsigned int)(udr.quotient & 0xffffffffull), (unsigned int)(udr.quotient >> 32), (udr.remainder & 0xffffffffull), (udr.remainder >> 32));
 }
