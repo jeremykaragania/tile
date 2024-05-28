@@ -16,50 +16,31 @@ void uart_init() {
   uart_0->cr |= CR_UARTEN;
 }
 
-int uart_putchar(const int c) {
-  while(uart_0->fr & FR_TXFF);
-  uart_0->dr = c;
-  return c;
+void uart_put_signed_integer(long long a) {
+  if (a < 0) {
+    uart_putchar('-');
+    a *= -1;
+  }
+  uart_put_unsigned_integer(a);
 }
 
-void uart_putint(int a) {
-  const unsigned int ascii_offset = 48;
+void uart_put_unsigned_integer(unsigned long long a) {
   if (a == 0) {
     uart_putchar('0');
   }
   else {
     size_t i = 0;
     size_t j;
-    if (a < 0) {
-      uart_putchar('-');
-      a *= -1;
-    }
-    while (a) {
-      char d = (a % 10) + ascii_offset;
-      uart_buf[i] = d;
-      a /= 10;
-      ++i;
-    }
-    for (j = 0; j < i; ++j) {
-      uart_putchar(uart_buf[i-j-1]);
-    }
-  }
-}
+    const unsigned short ascii_offset = 48;
 
-void uart_putuint(unsigned int a) {
-  if (a == 0) {
-    uart_putchar('0');
-  }
-  else {
-    size_t i = 0;
-    size_t j;
-    const unsigned int ascii_offset = 48;
     while (a) {
       char d = (a % 10) + ascii_offset;
+
       uart_buf[i] = d;
       a /= 10;
       ++i;
     }
+
     for (j = 0; j < i; ++j) {
       uart_putchar(uart_buf[i-j-1]);
     }
@@ -98,6 +79,12 @@ void uart_puthex(unsigned int a, const char format) {
   }
 }
 
+int uart_putchar(const int c) {
+  while(uart_0->fr & FR_TXFF);
+  uart_0->dr = c;
+  return c;
+}
+
 int uart_puts(const char* s) {
   size_t i = 0;
   while (s[i]) {
@@ -117,12 +104,9 @@ int uart_printf(const char *format, ...) {
     if (c == '%') {
       ++i;
       switch (format[i]) {
-        case 'd': {
-          uart_putint(va_arg(args, int));
-          break;
-        }
+        case 'd':
         case 'i': {
-          uart_putint(va_arg(args, int));
+          uart_put_signed_integer(va_arg(args, int));
           break;
         }
         case 'x': {
@@ -134,7 +118,7 @@ int uart_printf(const char *format, ...) {
           break;
         }
         case 'u': {
-          uart_putuint(va_arg(args, unsigned int));
+          uart_put_unsigned_integer(va_arg(args, unsigned int));
           break;
         }
         default: {

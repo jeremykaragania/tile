@@ -41,14 +41,12 @@ struct uart_registers {
 
 void uart_init();
 
-int uart_putchar(const int c);
-
-void uart_putint(const int a);
-
-void uart_putuint(unsigned int a);
+void uart_put_signed_integer(long long a);
+void uart_put_unsigned_integer(unsigned long long a);
 
 void uart_puthex(unsigned int a, const char format);
 
+int uart_putchar(const int c);
 int uart_puts(const char* s);
 
 int uart_printf(const char *format, ...);
