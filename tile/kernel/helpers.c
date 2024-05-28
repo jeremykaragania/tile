@@ -29,12 +29,17 @@ static struct signed_divide_return signed_divide(long long numerator, long long 
 static struct unsigned_divide_return unsigned_divide(unsigned long long numerator, unsigned long long denominator) {
   struct unsigned_divide_return udr = {
     0,
-    numerator
+    0
   };
 
-  while (udr.remainder >= denominator) {
-    udr.remainder -= denominator;
-    udr.quotient += 1;
+  for (int i = 64; i >= 0; --i) {
+    udr.remainder <<= 1;
+    udr.remainder |= (numerator >> i) & 1;
+
+    if (udr.remainder >= denominator) {
+      udr.remainder -= denominator;
+      udr.quotient |= 1 << i;
+    }
   }
 
   return udr;
