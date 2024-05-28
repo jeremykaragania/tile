@@ -49,11 +49,10 @@ void pte_insert(uint32_t* pte, uint32_t v_addr, uint32_t p_addr) {
 }
 
 void init_paging() {
-  int i;
   struct memory_map_block* b;
   uint32_t b_end;
 
-  for (i = 0; i < memory_map.memory->size; ++i) {
+  for (size_t i = 0; i < memory_map.memory->size; ++i) {
     b = &memory_map.memory->blocks[i];
     if (!IS_ALIGNED(b->begin, PAGE_SIZE)) {
       memory_map_mask_block(b, BLOCK_RESERVED, 1);

@@ -30,7 +30,6 @@ void uart_put_unsigned_integer(unsigned long long a) {
   }
   else {
     size_t i = 0;
-    size_t j;
     const unsigned short ascii_offset = 48;
 
     while (a) {
@@ -41,7 +40,7 @@ void uart_put_unsigned_integer(unsigned long long a) {
       ++i;
     }
 
-    for (j = 0; j < i; ++j) {
+    for (size_t j = 0; j < i; ++j) {
       uart_putchar(uart_buf[i-j-1]);
     }
   }
@@ -49,7 +48,6 @@ void uart_put_unsigned_integer(unsigned long long a) {
 
 void uart_puthex(unsigned int a, const char format) {
   size_t i = 0;
-  size_t j;
   if (a == 0) {
     ++i;
     uart_buf[0] = '0';
@@ -74,7 +72,7 @@ void uart_puthex(unsigned int a, const char format) {
   }
   uart_putchar('0');
   uart_putchar(format);
-  for (j = 0; j < i; ++j) {
+  for (size_t j = 0; j < i; ++j) {
     uart_putchar(uart_buf[i-j-1]);
   }
 }

@@ -56,7 +56,6 @@ void memory_map_mask_block(struct memory_map_block* block, int flag, int mask) {
   memory_map_merge_blocks merges the blocks in "group" from "begin" to "end".
 */
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end) {
-  size_t i;
   size_t merged = 0;
   struct memory_map_block* a = &group->blocks[begin];
   struct memory_map_block* b = &group->blocks[begin+1];
@@ -67,7 +66,7 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
     We have two blocks to consider: "a": the block we try to merge into; and
     "b": the block after "a".
   */
-  for (i = begin+1; i < end; ++i) {
+  for (size_t i = begin+1; i < end; ++i) {
     a_end = a->begin + a->size - 1;
     b_end = b->begin + b->size - 1;
 
@@ -106,7 +105,6 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t b
   sorted by their beginning.
 */
 void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size) {
-  size_t i;
   struct memory_map_block *b;
   uint32_t b_end;
   size_t pos = group->size;
@@ -116,7 +114,7 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
     memory_map_insert_block(group, pos, begin, size);
   }
   else {
-    for (i = 0; i < group->size; ++i) {
+    for (size_t i = 0; i < group->size; ++i) {
       b = &group->blocks[i];
       b_end = b->begin + b->size - 1;
 
@@ -147,14 +145,13 @@ void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32
   returns a pointer to it. Memory is allocated adjacent to reserved memory.
 */
 void* memory_alloc(size_t size) {
-  size_t i;
-  size_t j;
   uint32_t a_begin;
   uint32_t a_end;
   struct memory_map_block* m;
   uint32_t m_end;
   struct memory_map_block* r;
   uint32_t r_end;
+  size_t rs = memory_map.reserved->size;
 
   size = ALIGN(size, PAGE_SIZE);
 
@@ -163,13 +160,13 @@ void* memory_alloc(size_t size) {
     trying to allocate; "m" is the block where we can allocate; and "r" is the
     block where we can't allocate.
   */
-  for (i = 0; i < memory_map.memory->size; ++i) {
+  for (size_t i = 0; i < memory_map.memory->size; ++i) {
     m = &memory_map.memory->blocks[i];
     m_end = m->begin + memory_map.memory->blocks[i].size - 1;
     a_begin = m->begin;
     a_end = a_begin + size - 1;
 
-    for (j = 0; j < memory_map.reserved->size; ++j) {
+    for (size_t j = 0; j < memory_map.reserved->size; ++j) {
       r = &memory_map.reserved->blocks[j];
       r_end = r->begin + r->size - 1;
 
@@ -183,7 +180,7 @@ void* memory_alloc(size_t size) {
   }
 
   /* We try to allocate after the ending reserved block. */
-  a_begin = memory_map.reserved->blocks[j-1].begin + memory_map.reserved->blocks[j-1].size;
+  a_begin = memory_map.reserved->blocks[rs-1].begin + memory_map.reserved->blocks[rs-1].size;
   a_end = a_begin + size;
 
   if (a_end < m_end) {
@@ -198,10 +195,9 @@ void* memory_alloc(size_t size) {
   memory_free frees the block which "ptr" points to.
 */
 int memory_free(void* ptr) {
-  size_t i;
   struct memory_map_block* block;
 
-  for (i = 0; i < memory_map.reserved->size; ++i) {
+  for (size_t i = 0; i < memory_map.reserved->size; ++i) {
     block = &memory_map.reserved->blocks[i];
 
     if (block->begin == (uint32_t)ptr) {
