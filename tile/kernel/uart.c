@@ -96,15 +96,60 @@ int uart_puts(const char* s) {
 int uart_printf(const char *format, ...) {
   va_list args;
   size_t i = 0;
+  int length = LM_NONE;
+
   va_start(args, format);
+
   while (format[i]) {
     char c = format[i];
+
     if (c == '%') {
       ++i;
+
+      switch (format[i]) {
+        case 'h': {
+         length = LM_SHORT;
+          ++i;
+
+          if (format[i] == 'h') {
+            length = LM_CHAR;
+            ++i;
+          }
+
+          break;
+        }
+        case 'l': {
+         length = LM_LONG;
+         ++i;
+
+          if (format[i] == 'l') {
+            length = LM_LONG_LONG;
+            ++i;
+          }
+
+          break;
+        }
+      }
+
       switch (format[i]) {
         case 'd':
         case 'i': {
-          uart_put_signed_integer(va_arg(args, int));
+          switch (length) {
+            case LM_LONG: {
+              uart_put_signed_integer(va_arg(args, long));
+              break;
+            }
+            case LM_LONG_LONG: {
+              uart_put_signed_integer(va_arg(args, long long));
+              break;
+            }
+            case LM_CHAR:
+            case LM_SHORT:
+            default: {
+              uart_put_signed_integer(va_arg(args, int));
+              break;
+            }
+          }
           break;
         }
         case 'x': {
@@ -116,7 +161,22 @@ int uart_printf(const char *format, ...) {
           break;
         }
         case 'u': {
-          uart_put_unsigned_integer(va_arg(args, unsigned int));
+          switch (length) {
+            case LM_LONG: {
+              uart_put_unsigned_integer(va_arg(args, long));
+              break;
+            }
+            case LM_LONG_LONG: {
+              uart_put_unsigned_integer(va_arg(args, unsigned long long));
+              break;
+            }
+            case LM_CHAR:
+            case LM_SHORT:
+            default: {
+              uart_put_unsigned_integer(va_arg(args, unsigned int));
+              break;
+            }
+          }
           break;
         }
         default: {
@@ -128,8 +188,10 @@ int uart_printf(const char *format, ...) {
     else {
       uart_putchar(c);
     }
+
     ++i;
   }
+
   return i;
 }
 

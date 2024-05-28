@@ -39,6 +39,14 @@ struct uart_registers {
   uint32_t dmacr;
 };
 
+enum length_modifier {
+  LM_NONE,
+  LM_CHAR,
+  LM_SHORT,
+  LM_LONG,
+  LM_LONG_LONG
+};
+
 void uart_init();
 
 void uart_put_signed_integer(long long a);
