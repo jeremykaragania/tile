@@ -50,9 +50,7 @@ enum length_modifier {
 void uart_init();
 
 void uart_put_signed_integer(long long a);
-void uart_put_unsigned_integer(unsigned long long a);
-
-void uart_puthex(unsigned int a, const char format);
+void uart_put_unsigned_integer(unsigned long long a, const char format);
 
 int uart_putchar(const int c);
 int uart_puts(const char* s);

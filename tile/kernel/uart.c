@@ -21,59 +21,55 @@ void uart_put_signed_integer(long long a) {
     uart_putchar('-');
     a *= -1;
   }
-  uart_put_unsigned_integer(a);
+  uart_put_unsigned_integer(a, 'd');
 }
 
-void uart_put_unsigned_integer(unsigned long long a) {
+void uart_put_unsigned_integer(unsigned long long a, const char format) {
   if (a == 0) {
     uart_putchar('0');
   }
   else {
+    unsigned int base;
+    unsigned int offsets[2] = {48, 0};
     size_t i = 0;
-    const unsigned short ascii_offset = 48;
+
+    switch (format) {
+      case 'x': {
+        offsets[1] = 87;
+        base = 16;
+        break;
+      }
+      case 'X': {
+        offsets[1] = 55;
+        base = 16;
+        break;
+      }
+      default : {
+        base = 10;
+        break;
+      }
+    }
 
     while (a) {
-      char d = (a % 10) + ascii_offset;
-
+      char d = (a % base);
+      if (d > 9) {
+        d += offsets[1];
+      }
+      else {
+        d += offsets[0];
+      }
       uart_buf[i] = d;
-      a /= 10;
+      a /= base;
       ++i;
     }
 
+    if (format == 'x' || format == 'X') {
+      uart_putchar('0');
+      uart_putchar(format);
+    }
     for (size_t j = 0; j < i; ++j) {
       uart_putchar(uart_buf[i-j-1]);
     }
-  }
-}
-
-void uart_puthex(unsigned int a, const char format) {
-  size_t i = 0;
-  if (a == 0) {
-    ++i;
-    uart_buf[0] = '0';
-  }
-  else {
-    while (a) {
-      unsigned int ascii_offset = 48;
-      char d = a % 16;
-      if (d > 9) {
-        if (format == 'x') {
-          ascii_offset = 87;
-        }
-        else {
-          ascii_offset = 55;
-        }
-      }
-      d += ascii_offset;
-      uart_buf[i] = d;
-      a /= 16;
-      ++i;
-    }
-  }
-  uart_putchar('0');
-  uart_putchar(format);
-  for (size_t j = 0; j < i; ++j) {
-    uart_putchar(uart_buf[i-j-1]);
   }
 }
 
@@ -153,27 +149,57 @@ int uart_printf(const char *format, ...) {
           break;
         }
         case 'x': {
-          uart_puthex(va_arg(args, unsigned int), 'x');
-          break;
-        }
-        case 'X': {
-          uart_puthex(va_arg(args, unsigned int), 'X');
-          break;
-        }
-        case 'u': {
           switch (length) {
             case LM_LONG: {
-              uart_put_unsigned_integer(va_arg(args, long));
+              uart_put_unsigned_integer(va_arg(args, unsigned long), 'x');
               break;
             }
             case LM_LONG_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long long));
+              uart_put_unsigned_integer(va_arg(args, unsigned long long), 'x');
               break;
             }
             case LM_CHAR:
             case LM_SHORT:
             default: {
-              uart_put_unsigned_integer(va_arg(args, unsigned int));
+              uart_put_unsigned_integer(va_arg(args, unsigned int), 'x');
+              break;
+            }
+          }
+          break;
+        }
+        case 'X': {
+          switch (length) {
+            case LM_LONG: {
+              uart_put_unsigned_integer(va_arg(args, unsigned long), 'X');
+              break;
+            }
+            case LM_LONG_LONG: {
+              uart_put_unsigned_integer(va_arg(args, unsigned long long), 'X');
+              break;
+            }
+            case LM_CHAR:
+            case LM_SHORT:
+            default: {
+              uart_put_unsigned_integer(va_arg(args, unsigned int), 'X');
+              break;
+            }
+          }
+          break;
+        }
+        case 'u': {
+          switch (length) {
+            case LM_LONG: {
+              uart_put_unsigned_integer(va_arg(args, unsigned long), 'd');
+              break;
+            }
+            case LM_LONG_LONG: {
+              uart_put_unsigned_integer(va_arg(args, unsigned long long), 'd');
+              break;
+            }
+            case LM_CHAR:
+            case LM_SHORT:
+            default: {
+              uart_put_unsigned_integer(va_arg(args, unsigned int), 'd');
               break;
             }
           }
