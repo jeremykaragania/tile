@@ -90,7 +90,7 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
   memory_map_insert_block inserts a block into "group" at "pos". The block is
   specified by "begin" and "size".
 */
-void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t begin, uint32_t size) {
+void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t begin, uint64_t size) {
   struct memory_map_block* block = &group->blocks[pos];
 
   memmove(block + 1, block, (group->size - pos) * sizeof(*block));
@@ -104,9 +104,9 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t b
   "begin" and "size". The block is added such that the blocks in "group" remain
   sorted by their beginning.
 */
-void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size) {
+void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64_t size) {
   struct memory_map_block *b;
-  uint32_t b_end;
+  uint64_t b_end;
   size_t pos = group->size;
   size_t overlap = 0;
 

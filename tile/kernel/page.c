@@ -41,7 +41,7 @@ uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr) {
   specified by which physical address "p_addr" it maps to which virtual address
   "v_addr". If a page already exists it is replaced.
 */
-void pte_insert(uint32_t* pte, uint32_t v_addr, uint32_t p_addr) {
+void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr) {
   uint32_t* offset;
   offset = pte_offset(pte, v_addr);
   *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
