@@ -25,6 +25,8 @@ extern uint32_t phys_to_virt(uint32_t x);
 extern struct memory_map memory_map;
 extern struct memory_manager memory_manager;
 
+extern uint32_t high_memory;
+
 /*
   enum memory_map_block_flags represents the attribute of a memory region.
 */

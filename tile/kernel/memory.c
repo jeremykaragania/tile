@@ -19,6 +19,8 @@ struct memory_map memory_map = {
 
 struct memory_manager memory_manager;
 
+uint32_t high_memory;
+
 /*
   init_memory_map initializes the kernel's memory map.
 */

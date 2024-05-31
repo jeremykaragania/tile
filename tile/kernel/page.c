@@ -50,12 +50,33 @@ void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr) {
 
 void init_paging() {
   struct memory_map_block* b;
-  uint32_t b_end;
+  uint64_t b_end;
+  uint64_t vmalloc_begin_paddr = virt_to_phys(VMALLOC_BEGIN_VADDR);
+  uint32_t lowmem_end = 0;
 
   for (size_t i = 0; i < memory_map.memory->size; ++i) {
     b = &memory_map.memory->blocks[i];
+
     if (!IS_ALIGNED(b->begin, PAGE_SIZE)) {
       memory_map_mask_block(b, BLOCK_RESERVED, 1);
     }
   }
+
+  for (size_t i = 0; i < memory_map.memory->size; ++i) {
+    b_end = b->begin + b->size;
+
+    if (!(b->flags & BLOCK_RESERVED)) {
+      if (b->begin < vmalloc_begin_paddr) {
+        if (b_end > vmalloc_begin_paddr) {
+          lowmem_end = vmalloc_begin_paddr;
+        }
+        else {
+          lowmem_end = b_end;
+        }
+      }
+    }
+  }
+
+  high_memory = lowmem_end;
+  lowmem_end -= 1;
 }
