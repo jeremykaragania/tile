@@ -18,10 +18,10 @@ void map_smc() {
 void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process);
-  init_memory_map();
   init_memory_manager((uint32_t*)PG_DIR_PADDR, &text_begin, &text_end, &data_begin, &data_end);
+  update_memory_map();
+  init_memory_map();
   map_smc();
   uart_init();
   uart_printf(tile_banner);
-  init_paging();
 }

@@ -42,6 +42,39 @@ void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* d
   memory_manager.data_end = phys_to_virt((uint32_t)data_end);
 }
 
+void update_memory_map() {
+  struct memory_map_block* b;
+  uint64_t b_end;
+  uint64_t vmalloc_begin_paddr = virt_to_phys(VMALLOC_BEGIN_VADDR);
+  uint32_t lowmem_end = 0;
+
+  for (size_t i = 0; i < memory_map.memory->size; ++i) {
+    b = &memory_map.memory->blocks[i];
+
+    if (!IS_ALIGNED(b->begin, PAGE_SIZE)) {
+      memory_map_mask_block(b, BLOCK_RESERVED, 1);
+    }
+  }
+
+  for (size_t i = 0; i < memory_map.memory->size; ++i) {
+    b_end = b->begin + b->size;
+
+    if (!(b->flags & BLOCK_RESERVED)) {
+      if (b->begin < vmalloc_begin_paddr) {
+        if (b_end > vmalloc_begin_paddr) {
+          lowmem_end = vmalloc_begin_paddr;
+        }
+        else {
+          lowmem_end = b_end;
+        }
+      }
+    }
+  }
+
+  high_memory = lowmem_end;
+  lowmem_end -= 1;
+}
+
 /*
   memory_map_mask_block sets a flag "flag" to "mask" in "block".
 */

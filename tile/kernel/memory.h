@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#define VMALLOC_BEGIN_VADDR 0xf0000000
+#define VMALLOC_END_VADDR 0xff800000
+
 #define MEMORY_MAP_GROUP_LENGTH 128
 
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
@@ -73,6 +76,8 @@ struct memory_manager {
 
 void init_memory_map();
 void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
+
+void update_memory_map();
 
 void memory_map_mask_block(struct memory_map_block* block, int flag, int mask);
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end);
