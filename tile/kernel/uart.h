@@ -47,6 +47,8 @@ enum length_modifier {
   LM_LONG_LONG
 };
 
+extern volatile struct uart_registers* uart_0;
+
 void uart_init();
 
 void uart_put_signed_integer(long long a);

@@ -11,6 +11,8 @@ char tile_banner[] = "Tile\n";
 
 void map_smc() {
   uint32_t* pte;
+
+  uart_0 = (volatile struct uart_registers*)0xffc00000;
   pte = pte_alloc(&memory_manager, 0Xffc00000);
   pte_insert(pte, 0xffc00000, 0x1c090000);
 }

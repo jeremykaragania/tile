@@ -76,6 +76,19 @@ map_kernel:
   ldr r2, =KERNEL_SPACE_PADDR
   ldr r3, =KERNEL_SPACE_PADDR + 0x30000000
   bl new_sections
+/*
+  map_smc maps the static memory controller. It creates a
+  SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
+*/
+map_smc:
+  ldr r0, =#0xffc00000
+  bl pgd_index
+  ldr r1, =PG_DIR_PADDR
+  add r0, r0, r1
+  ldr r1, =#0x402
+  ldr r2, =SMC_PADDR
+  ldr r3, =SMC_PADDR + 0x100000
+  bl new_sections
 enable_mmu:
   ldr r0, =PG_DIR_PADDR
   mcr p15, 0, r0, c2, c0, 0 // Set translation table base 0 address.
