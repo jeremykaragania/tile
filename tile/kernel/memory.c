@@ -93,7 +93,7 @@ void memory_map_mask_block(struct memory_map_block* block, int flag, int mask) {
 void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end) {
   size_t merged = 0;
   struct memory_map_block* a = &group->blocks[begin];
-  struct memory_map_block* b = &group->blocks[begin+1];
+  struct memory_map_block* b;
   size_t a_end;
   size_t b_end;
 
@@ -102,20 +102,22 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
     "b": the block after "a".
   */
   for (size_t i = begin+1; i < end; ++i) {
+    b = &group->blocks[i];
     a_end = a->begin + a->size - 1;
     b_end = b->begin + b->size - 1;
 
-    if (a_end >= b->begin-1) {
-      if (a_end <= b_end) {
-        a->size = b_end - a->begin + 1;
+    if (a_end > b->begin) {
+      if (a_end < b_end) {
+        a->size = b_end - a->begin;
       }
 
-      b = &group->blocks[i+1];
+      group->blocks[i] = group->blocks[i+1];
       ++merged;
     }
     else {
-      a = &group->blocks[i];
+      a = b;
     }
+
   }
 
   group->size -= merged;
@@ -188,8 +190,6 @@ void* memory_alloc(size_t size) {
   uint32_t r_end;
   size_t rs = memory_map.reserved->size;
 
-  size = ALIGN(size, PAGE_SIZE);
-
   /*
     We allocate a block with the constraints: "a" is the block which we are
     trying to allocate; "m" is the block where we can allocate; and "r" is the
@@ -216,7 +216,7 @@ void* memory_alloc(size_t size) {
 
   /* We try to allocate after the ending reserved block. */
   a_begin = memory_map.reserved->blocks[rs-1].begin + memory_map.reserved->blocks[rs-1].size;
-  a_end = a_begin + size;
+  a_end = a_begin + size - 1;
 
   if (a_end < m_end) {
     memory_map_add_block(memory_map.reserved, a_begin, size);
