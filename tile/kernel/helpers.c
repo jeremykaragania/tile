@@ -38,7 +38,7 @@ static struct unsigned_divide_return unsigned_divide(unsigned long long numerato
 
     if (udr.remainder >= denominator) {
       udr.remainder -= denominator;
-      udr.quotient |= 1 << i;
+      udr.quotient |= 1ull << i;
     }
   }
 
