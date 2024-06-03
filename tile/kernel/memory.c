@@ -13,6 +13,7 @@ static struct memory_map_group memory_map_reserved_group = {
 };
 
 struct memory_map memory_map = {
+  0xffffffffull,
   &memory_map_memory_group,
   &memory_map_reserved_group
 };
@@ -177,6 +178,10 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
   memory_map_merge_blocks(group, pos, group->size);
 }
 
+void memory_set_limit(uint64_t limit) {
+  memory_map.limit = limit;
+}
+
 /*
   memory_alloc allocates a block of "size" bytes aligned to PAGE_SIZE and
   returns a pointer to it. Memory is allocated adjacent to reserved memory.
@@ -200,6 +205,10 @@ void* memory_alloc(size_t size) {
     m_end = m->begin + memory_map.memory->blocks[i].size - 1;
     a_begin = m->begin;
     a_end = a_begin + size - 1;
+
+    if (a_end > memory_map.limit) {
+      return NULL;
+    }
 
     for (size_t j = 0; j < memory_map.reserved->size; ++j) {
       r = &memory_map.reserved->blocks[j];
