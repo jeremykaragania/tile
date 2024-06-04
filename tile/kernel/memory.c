@@ -13,7 +13,7 @@ static struct memory_map_group memory_map_reserved_group = {
 };
 
 struct memory_map memory_map = {
-  0xffffffffull,
+  0xffffffffffffffffull,
   &memory_map_memory_group,
   &memory_map_reserved_group
 };
