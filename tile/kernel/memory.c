@@ -189,12 +189,12 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
   returns a pointer to it. Memory is allocated adjacent to reserved memory.
 */
 void* memory_alloc(size_t size) {
-  uint32_t a_begin;
-  uint32_t a_end;
+  uint64_t a_begin;
+  uint64_t a_end;
   struct memory_map_block* m;
-  uint32_t m_end;
+  uint64_t m_end;
   struct memory_map_block* r;
-  uint32_t r_end;
+  uint64_t r_end;
   size_t rs = memory_map.reserved->size;
 
   /*
@@ -209,7 +209,7 @@ void* memory_alloc(size_t size) {
     a_end = a_begin + size - 1;
 
     if (a_end > memory_map.limit) {
-      return NULL;
+      break;
     }
 
     for (size_t j = 0; j < memory_map.reserved->size; ++j) {
