@@ -43,6 +43,11 @@ void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* d
   memory_manager.data_end = phys_to_virt((uint32_t)data_end);
 }
 
+/*
+  update_memory_map iterates over the memory map and invalidates blocks for
+  memory allocation. It then finds the new bounds of low memory and high
+  memory, which should be interpreted under the Linux meaning.
+*/
 void update_memory_map() {
   struct memory_map_block* b;
   uint64_t b_end;
@@ -73,6 +78,7 @@ void update_memory_map() {
   }
 
   high_memory = lowmem_end;
+  memory_map.limit = lowmem_end;
   lowmem_end -= 1;
 }
 
@@ -176,10 +182,6 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
 
   pos -= overlap;
   memory_map_merge_blocks(group, pos, group->size);
-}
-
-void memory_set_limit(uint64_t limit) {
-  memory_map.limit = limit;
 }
 
 /*

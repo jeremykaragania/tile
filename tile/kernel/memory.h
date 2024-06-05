@@ -85,7 +85,6 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
 void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t begin, uint64_t size);
 void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64_t size);
 
-void memory_set_limit(uint64_t limit);
 void* memory_alloc(size_t size);
 int memory_free(void* ptr);
 
