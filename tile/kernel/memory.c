@@ -185,6 +185,35 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
 }
 
 /*
+  memory_map_split tries to split a block in "group" at "begin" into two
+  discrete blocks.
+*/
+int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
+  struct memory_map_block* a;
+  uint64_t a_end;
+
+  for (size_t i = 0; i < group->size; ++i) {
+    a = &group->blocks[i];
+    a_end = a->begin + a->size;
+
+    if (begin >= a_end) {
+      break;
+    }
+
+    if (begin > a->begin) {
+      uint64_t new_end;
+
+      a->size = begin - a->begin;
+      new_end = a->begin + a->size;
+      memory_map_add_block(group, new_end, a_end - new_end);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/*
   memory_alloc allocates a block of "size" bytes aligned to PAGE_SIZE and
   returns a pointer to it. Memory is allocated adjacent to reserved memory.
 */
