@@ -196,11 +196,7 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
     a = &group->blocks[i];
     a_end = a->begin + a->size;
 
-    if (begin >= a_end) {
-      break;
-    }
-
-    if (begin > a->begin) {
+    if (begin > a->begin && begin < a_end) {
       uint64_t new_end;
 
       a->size = begin - a->begin;
