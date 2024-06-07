@@ -79,6 +79,7 @@ void update_memory_map() {
 
   high_memory = lowmem_end;
   memory_map.limit = lowmem_end;
+  memory_map_split_block(memory_map.memory, memory_map.limit);
   lowmem_end -= 1;
 }
 
