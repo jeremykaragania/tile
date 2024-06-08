@@ -15,15 +15,15 @@
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
+const extern uint32_t* PHYS_OFFSET;
+const extern uint32_t* VIRT_OFFSET;
+
 const extern uint32_t* text_begin;
 const extern uint32_t* text_end;
 const extern uint32_t* data_begin;
 const extern uint32_t* data_end;
 const extern uint32_t* bss_begin;
 const extern uint32_t* bss_end;
-
-extern uint32_t virt_to_phys(uint32_t x);
-extern uint32_t phys_to_virt(uint32_t x);
 
 extern struct memory_map memory_map;
 extern struct memory_manager memory_manager;
@@ -74,6 +74,9 @@ struct memory_manager {
   uint32_t data_begin;
   uint32_t data_end;
 };
+
+uint64_t virt_to_phys(uint32_t x);
+uint32_t phys_to_virt(uint64_t x);
 
 void init_memory_map();
 void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);

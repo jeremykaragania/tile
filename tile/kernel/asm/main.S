@@ -13,6 +13,15 @@ vector_table:
   b do_fiq_interrupt
 .section .text
 /*
+  phys_to_virt returns a virtual address from a physical address "x".
+*/
+phys_to_virt:
+  ldr r4, =VIRT_OFFSET
+  ldr r5, =PHYS_OFFSET
+  sub r4, r4, r5
+  add r0, r0, r4
+  bx lr
+/*
   enable_interrupts enables the I and F bits in the Current Program Status
   Register (CPSR).
 */
