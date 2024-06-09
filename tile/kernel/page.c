@@ -1,6 +1,25 @@
 #include <page.h>
 
 /*
+  init_paging initializes the kernel's paging and maps required memory regions.
+*/
+void init_paging() {
+  map_smc();
+}
+
+/*
+  map_smc maps the static memory controller. It allocates a page table entry
+  and maps the UART from 0x1c090000 to 0xffc00000.
+*/
+void map_smc() {
+  uint32_t* pte;
+
+  uart_0 = (volatile struct uart_registers*)0xffc00000;
+  pte = pte_alloc(&memory_manager, 0xffc00000);
+  pte_insert(pte, 0xffc00000, 0x1c090000);
+}
+
+/*
   pgd_offset returns the address of a page table entry from a virtual address
   "addr", and the base address of a page global directory "pgd". In ARMv7-A
   parlance, it returns the address of a page table first-level descriptor from
@@ -29,11 +48,24 @@ uint32_t* pte_offset(uint32_t* pte, uint32_t addr) {
 uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr) {
   uint32_t* pte;
   uint32_t* offset;
+
   pte = memory_alloc(PAGE_SIZE);
   offset = pgd_offset(mm->pg_dir, addr);
   *offset = ((uint32_t)pte & 0xfffffc00) | 0x1;
   invalidate_entire_tlb();
   return pte;
+}
+
+/*
+  pte_clear clears a page table entry from a virtual address "addr" in the page
+  global directory specified by the memory manager "mm".
+*/
+void pte_clear(struct memory_manager* mm, uint32_t addr) {
+  uint32_t* offset;
+
+  offset = pgd_offset(mm->pg_dir, addr);
+  *offset = 0x1;
+  invalidate_entire_tlb();
 }
 
 /*
@@ -43,6 +75,7 @@ uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr) {
 */
 void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr) {
   uint32_t* offset;
+
   offset = pte_offset(pte, v_addr);
   *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
   invalidate_entire_tlb();
