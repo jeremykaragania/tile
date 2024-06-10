@@ -11,6 +11,14 @@ vector_table:
   b .
   b do_irq_interrupt
   b do_fiq_interrupt
+.section .turn_mmu_on, "x"
+turn_mmu_on:
+  mrc p15, #0x0, r0, c1, c0, #0x0
+  orr r0, r0, #0x1
+  mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
+  ldr r0, =mmap_switched
+  bl phys_to_virt
+  bx r0
 .section .text
 /*
   phys_to_virt returns a virtual address from a physical address "x".
@@ -104,13 +112,6 @@ enable_mmu:
   mov r0, #0x1
   mcr p15, 0, r0, c3, c0, 0 // Set domain access permision.
   b turn_mmu_on
-turn_mmu_on:
-  mrc p15, #0x0, r0, c1, c0, #0x0
-  orr r0, r0, #0x1
-  mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
-  ldr r0, =mmap_switched
-  bl phys_to_virt
-  bx r0
 mmap_switched:
   ldr r0, =vector_table_begin
   bl phys_to_virt

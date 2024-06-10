@@ -20,6 +20,11 @@ SECTIONS {
       main.o(.text)
       *(.text)
     }
+    . = ALIGN(PAGE_SIZE);
+    .turn_mmu_on : {
+      asm/main.o(.turn_mmu_on)
+      . = ALIGN(0x100000);
+    }
     text_end = .;
 
     /*
