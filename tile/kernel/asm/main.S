@@ -1,4 +1,5 @@
 #include <asm/memory.h>
+#include <asm/page.h>
 
 .section .vector_table, "x"
 .global vector_table
@@ -17,7 +18,6 @@ turn_mmu_on:
   orr r0, r0, #0x1
   mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
   ldr r0, =mmap_switched
-  bl phys_to_virt
   bx r0
 .section .text
 /*
@@ -28,6 +28,15 @@ phys_to_virt:
   ldr r5, =PHYS_OFFSET
   sub r4, r4, r5
   add r0, r0, r4
+  bx lr
+/*
+  virt_to_phys returns a virtual address from a physical address.
+*/
+virt_to_phys:
+  ldr r4, =VIRT_OFFSET
+  ldr r5, =PHYS_OFFSET
+  sub r4, r4, r5
+  sub r0, r0, r4
   bx lr
 /*
   enable_interrupts enables the I and F bits in the Current Program Status
@@ -67,17 +76,15 @@ new_sections:
   which spans 1MB.
 */
 map_turn_mmu_on:
-  ldr r1, =#0x402 // Read/write, only at PL1.
   ldr r0, =turn_mmu_on
-  lsr r0, r0, #20
-  mov r4, #0x4
-  mul r0, r0, r4
-  ldr r4, =PG_DIR_PADDR
-  add r0, r0, r4
-  ldr r2, =turn_mmu_on
-  lsr r2, r2, #19
-  lsl r2, r2, #19
-  ldr r3, =turn_mmu_on + 0x100000
+  bl virt_to_phys
+  mov r4, r0
+  bl pgd_index
+  ldr r1, =PG_DIR_PADDR
+  add r0, r0, r1
+  ldr r1, =#0x402 // Read/write, only at PL1.
+  mov r2, r4
+  add r3, r4, #0x100000
   bl new_sections
 /*
   map_kernel maps the kernel space. It creates a
@@ -114,10 +121,8 @@ enable_mmu:
   b turn_mmu_on
 mmap_switched:
   ldr r0, =vector_table_begin
-  bl phys_to_virt
   mcr p15, 0, r0, c12, c0, 0 // Set vector base address.
   ldr r0, =init_process_end - 0x8
-  bl phys_to_virt
   mov sp, r0
   bl start_kernel
 4:

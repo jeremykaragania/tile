@@ -7,39 +7,41 @@ PAGE_SIZE = 0x00001000;
 ENTRY(_start)
 
 SECTIONS {
-    . = PHYS_OFFSET;
+    . = VIRT_OFFSET;
     . += TEXT_OFFSET;
+
+    /*
+      Head text section.
+    */
+    .head.text ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.head.text) - VIRT_OFFSET) {
+      asm/main.o(.text)
+    }
+    .turn_mmu_on ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.turn_mmu_on) - VIRT_OFFSET) {
+      asm/main.o(.turn_mmu_on)
+      . = ALIGN(0x100000);
+    }
 
     /*
       Text section.
     */
-    text_begin = .;
-    . = ALIGN(PAGE_SIZE);
-    .text : {
-      asm/main.o(.text)
+    .text ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.text) - VIRT_OFFSET) {
+      text_begin = .;
       main.o(.text)
       *(.text)
+      text_end = .;
     }
-    . = ALIGN(PAGE_SIZE);
-    .turn_mmu_on : {
-      asm/main.o(.turn_mmu_on)
-      . = ALIGN(0x100000);
-    }
-    text_end = .;
 
     /*
       Data section.
     */
-    data_begin = .;
-    . = ALIGN(PAGE_SIZE);
-    .rodata : {
+    .rodata ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.rodata) - VIRT_OFFSET) {
+      data_begin = .;
       rodata_begin = .;
       *(.rodata)
       rodata_end = .;
     }
 
-    .init_process : {
-      . = ALIGN(THREAD_SIZE);
+    .init_process ALIGN(THREAD_SIZE) : AT(PHYS_OFFSET + ADDR(.init_process) - VIRT_OFFSET) {
       init_process_begin = .;
       init_process_stack = .;
       *(.init_process)
@@ -47,32 +49,30 @@ SECTIONS {
       init_process_end = .;
     }
 
-    .data : {
-      . = ALIGN(PAGE_SIZE);
+    .data ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.data) - VIRT_OFFSET) {
       asm/main.o(.data)
       main.o(.data)
       *(.data)
+      data_end = .;
     }
-    data_end = .;
 
     /*
       Interrupt vector table.
     */
-    .vector_table : {
-      . = ALIGN(PAGE_SIZE);
+    .vector_table ALIGN(PAGE_SIZE) : AT(ADDR(.vector_table) - VIRT_OFFSET) {
       vector_table_begin = .;
       asm/main.o(.vector_table)
+      vector_table_end = .;
     }
-    vector_table_end = .;
 
     /*
       Block starting symbol section.
     */
-    bss_begin = .;
-    .bss : {
+    .bss ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.bss) - VIRT_OFFSET) {
+      bss_begin = .;
       *(.bss)
       *(COMMON)
+      . = ALIGN(PAGE_SIZE);
+      bss_end = .;
     }
-    . = ALIGN(PAGE_SIZE);
-    bss_end = .;
 }
