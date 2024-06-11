@@ -41,20 +41,19 @@ uint32_t phys_to_virt(uint64_t x) {
 */
 void init_memory_map() {
   memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
-  memory_map_add_block(memory_map.reserved, 0x80000000, 0x8000);
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
-  memory_map_add_block(memory_map.reserved, (uint32_t)&text_begin, (uint32_t)&bss_end - (uint32_t)&text_begin);
+  memory_map_add_block(memory_map.reserved, virt_to_phys((uint32_t)&text_begin), (uint32_t)&bss_end - (uint32_t)&text_begin);
 }
 
 /*
   init_memory_manager initializes the kernel's memory manager.
 */
-void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end) {
-  memory_manager.pg_dir = (uint32_t*)phys_to_virt((uint32_t)pg_dir);
-  memory_manager.text_begin = phys_to_virt((uint32_t)text_begin);
-  memory_manager.text_end = phys_to_virt((uint32_t)text_end);
-  memory_manager.data_begin = phys_to_virt((uint32_t)data_begin);
-  memory_manager.data_end = phys_to_virt((uint32_t)data_end);
+void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end) {
+  memory_manager.pgd= (uint32_t*)(uint32_t)pgd;
+  memory_manager.text_begin = (uint32_t)text_begin;
+  memory_manager.text_end = (uint32_t)text_end;
+  memory_manager.data_begin = (uint32_t)data_begin;
+  memory_manager.data_end = (uint32_t)data_end;
 }
 
 /*
@@ -226,9 +225,10 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
 
 /*
   memory_alloc allocates a block of "size" bytes aligned to PAGE_SIZE and
-  returns a pointer to it. Memory is allocated adjacent to reserved memory.
+  returns a pointer to its physical address. Memory is allocated adjacent to
+  reserved memory.
 */
-void* memory_alloc(size_t size) {
+void* memory_phys_alloc(size_t size) {
   uint64_t a_begin;
   uint64_t a_end;
   struct memory_map_block* m;
@@ -258,7 +258,7 @@ void* memory_alloc(size_t size) {
 
       if (a_begin < r->begin && a_end < r_end) {
         memory_map_add_block(memory_map.reserved, a_begin, size);
-        return (uint32_t*)a_begin;
+        return (uint64_t*)(uint32_t)a_begin;
       }
 
       a_begin = r_end + 1;
@@ -271,10 +271,19 @@ void* memory_alloc(size_t size) {
 
   if (a_end < m_end) {
     memory_map_add_block(memory_map.reserved, a_begin, size);
-    return (uint32_t*)a_begin;
+    return (uint64_t*)(uint32_t)a_begin;
   }
 
   return NULL;
+}
+
+/*
+  memory_alloc allocates a block of "size" bytes aligned to PAGE_SIZE and
+  returns a pointer to its virtual address. Memory is allocated adjacent to
+  reserved memory.
+*/
+void* memory_alloc(size_t size) {
+  return (uint32_t*)phys_to_virt((uint32_t)memory_phys_alloc(size));
 }
 
 /*

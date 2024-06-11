@@ -50,8 +50,8 @@ uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr) {
   uint32_t* offset;
 
   pte = memory_alloc(PAGE_SIZE);
-  offset = pgd_offset(mm->pg_dir, addr);
-  *offset = ((uint32_t)pte & 0xfffffc00) | 0x1;
+  offset = pgd_offset(mm->pgd, addr);
+  *offset = ((uint32_t)virt_to_phys((uint32_t)pte) & 0xfffffc00) | 0x1;
   invalidate_entire_tlb();
   return pte;
 }
@@ -63,7 +63,7 @@ uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr) {
 void pte_clear(struct memory_manager* mm, uint32_t addr) {
   uint32_t* offset;
 
-  offset = pgd_offset(mm->pg_dir, addr);
+  offset = pgd_offset(mm->pgd, addr);
   *offset = 0x1;
   invalidate_entire_tlb();
 }

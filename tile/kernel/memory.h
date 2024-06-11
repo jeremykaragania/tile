@@ -68,7 +68,7 @@ struct memory_map {
   struct memory_manager represents the virtual memory information of a process.
 */
 struct memory_manager {
-  uint32_t* pg_dir;
+  uint32_t* pgd;
   uint32_t text_begin;
   uint32_t text_end;
   uint32_t data_begin;
@@ -79,7 +79,7 @@ uint64_t virt_to_phys(uint32_t x);
 uint32_t phys_to_virt(uint64_t x);
 
 void init_memory_map();
-void init_memory_manager(void* pg_dir, void* text_begin, void* text_end, void* data_begin, void* data_end);
+void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end);
 
 void update_memory_map();
 
@@ -89,6 +89,7 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t b
 void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64_t size);
 int memory_map_split_block(struct memory_map_group* group, uint64_t begin);
 
+void* memory_phys_alloc(size_t size);
 void* memory_alloc(size_t size);
 int memory_free(void* ptr);
 
