@@ -41,6 +41,7 @@ uint32_t phys_to_virt(uint64_t x) {
 */
 void init_memory_map() {
   memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
+  memory_map_add_block(memory_map.reserved, 0x80000000, 0x8000);
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
   memory_map_add_block(memory_map.reserved, virt_to_phys((uint32_t)&text_begin), (uint32_t)&bss_end - (uint32_t)&text_begin);
 }
@@ -166,7 +167,6 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
   struct memory_map_block *b;
   uint64_t b_end;
   size_t pos = group->size;
-  size_t overlap = 0;
 
   if (group->size == 0) {
     memory_map_insert_block(group, pos, begin, size);
@@ -185,17 +185,12 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
 
         break;
       }
-
-      if (begin - 1 <= b_end) {
-        ++overlap;
-      }
     }
 
     memory_map_insert_block(group, pos, begin, size);
   }
 
-  pos -= overlap;
-  memory_map_merge_blocks(group, pos, group->size);
+  memory_map_merge_blocks(group, 0, group->size);
 }
 
 /*
