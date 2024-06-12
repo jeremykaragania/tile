@@ -65,7 +65,7 @@ void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data
 void update_memory_map() {
   struct memory_map_block* b;
   uint64_t b_end;
-  uint64_t vmalloc_begin_paddr = virt_to_phys(VMALLOC_BEGIN_VADDR);
+  uint64_t vmalloc_min_paddr = virt_to_phys(VMALLOC_MIN_VADDR);
   uint32_t lowmem_end = 0;
 
   for (size_t i = 0; i < memory_map.memory->size; ++i) {
@@ -80,9 +80,9 @@ void update_memory_map() {
     b_end = b->begin + b->size;
 
     if (!(b->flags & BLOCK_RESERVED)) {
-      if (b->begin < vmalloc_begin_paddr) {
-        if (b_end > vmalloc_begin_paddr) {
-          lowmem_end = vmalloc_begin_paddr;
+      if (b->begin < vmalloc_min_paddr) {
+        if (b_end > vmalloc_min_paddr) {
+          lowmem_end = vmalloc_min_paddr;
         }
         else {
           lowmem_end = b_end;
@@ -91,7 +91,7 @@ void update_memory_map() {
     }
   }
 
-  high_memory = lowmem_end;
+  high_memory = phys_to_virt(lowmem_end);
   memory_map.limit = lowmem_end;
   memory_map_split_block(memory_map.memory, memory_map.limit);
   lowmem_end -= 1;
