@@ -10,6 +10,7 @@ extern uint32_t pte_index(uint32_t addr);
 extern void invalidate_entire_tlb();
 
 void init_paging();
+void init_pgd();
 
 void map_smc();
 

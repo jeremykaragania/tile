@@ -4,7 +4,24 @@
   init_paging initializes the kernel's paging and maps required memory regions.
 */
 void init_paging() {
+  init_pgd();
   map_smc();
+}
+
+/*
+  init_pgd initializes the page global directory by clearing all the page table
+  entries which are not used by the kernel.
+*/
+void init_pgd() {
+  /* Clear page table entries below the kernel. */
+  for (size_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PTE_SIZE) {
+    pte_clear(&memory_manager, i);
+  }
+
+  /* Clear page table entries above the kernel. */
+  for (size_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PTE_SIZE) {
+    pte_clear(&memory_manager, i);
+  }
 }
 
 /*
