@@ -195,7 +195,8 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
 
 /*
   memory_map_split tries to split a block in "group" at "begin" into two
-  discrete blocks.
+  discrete blocks: a left block and a right block. It returns the index of the
+  left block in the group if succesful.
 */
 int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
   struct memory_map_block* a;
@@ -211,11 +212,11 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
       a->size = begin - a->begin;
       new_end = a->begin + a->size;
       memory_map_add_block(group, new_end, a_end - new_end);
-      return 1;
+      return i;
     }
   }
 
-  return 0;
+  return -1;
 }
 
 /*
