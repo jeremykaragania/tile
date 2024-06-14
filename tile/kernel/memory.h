@@ -33,15 +33,24 @@ extern struct memory_manager memory_manager;
 extern uint32_t high_memory;
 
 /*
-  enum memory_map_block_flags represents the attribute of a memory region.
+  enum memory_flags represents the attributes of a memory region.
 */
-enum memory_map_block_flags {
-  BLOCK_NONE = 0x0,
-  BLOCK_RESERVED = 0x1
+enum memory_flags {
+  BLOCK_RWX = 0x0,
+  BLOCK_RW = 0x1,
+  BLOCK_RO = 0x2
 };
 
 /*
-  struct memory_map_block represents the bounds of a memory region.
+  enum memory_map_block_flags represents the attribute of a memory block.
+*/
+enum memory_map_block_flags {
+  BLOCK_NONE = 0x0,
+  BLOCK_RESERVED = 0x1,
+};
+
+/*
+  struct memory_map_block represents the bounds of a memory block.
 */
 struct memory_map_block {
   uint64_t begin;
@@ -50,7 +59,7 @@ struct memory_map_block {
 };
 
 /*
-  struct memory_map_group represents a group of memory regions.
+  struct memory_map_group represents a group of memory blocks.
 */
 struct memory_map_group {
   size_t size;
