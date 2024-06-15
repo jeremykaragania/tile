@@ -5,6 +5,7 @@
 */
 void init_paging() {
   init_pgd();
+  map_kernel();
   map_smc();
 }
 
@@ -21,6 +22,30 @@ void init_pgd() {
   /* Clear page table entries above the kernel. */
   for (size_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PTE_SIZE) {
     pte_clear(&memory_manager, i);
+  }
+}
+
+/*
+  map_kernel maps the kernel. It sets the appropriate attributes for the kernel
+  memory sections.
+*/
+void map_kernel() {
+  uint32_t kernel_begin = ALIGN(phys_to_virt(KERNEL_SPACE_PADDR), PTE_SIZE);
+  uint32_t kernel_end = ALIGN(memory_manager.bss_end, PTE_SIZE);
+  uint32_t kernel_text_begin = ALIGN(memory_manager.text_begin, PTE_SIZE);
+  uint32_t kernel_text_end = ALIGN(memory_manager.text_end, PTE_SIZE);
+  uint32_t* offset;
+
+  /* Marks the memory before the ".text" section as RW memory. */
+  for (size_t i = kernel_begin; i < kernel_text_begin; i += PTE_SIZE) {
+    offset = pgd_offset(memory_manager.pgd, i);
+    *offset |= 1 << 4;
+  }
+
+  /* Marks the memory in the ".data" and ".bss" sections as RW memory. */
+  for (size_t i = kernel_text_end; i < kernel_end; i += PTE_SIZE) {
+    offset = pgd_offset(memory_manager.pgd, i);
+    *offset |= 1 << 4;
   }
 }
 

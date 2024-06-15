@@ -13,6 +13,7 @@ void init_paging();
 void init_pgd();
 
 void map_smc();
+void map_kernel();
 
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr);
 uint32_t* pte_offset(uint32_t* pte, uint32_t addr);
