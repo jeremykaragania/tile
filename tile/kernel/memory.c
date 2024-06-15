@@ -49,12 +49,14 @@ void init_memory_map() {
 /*
   init_memory_manager initializes the kernel's memory manager.
 */
-void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end) {
+void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end) {
   memory_manager.pgd= (uint32_t*)(uint32_t)pgd;
   memory_manager.text_begin = (uint32_t)text_begin;
   memory_manager.text_end = (uint32_t)text_end;
   memory_manager.data_begin = (uint32_t)data_begin;
   memory_manager.data_end = (uint32_t)data_end;
+  memory_manager.bss_begin = (uint32_t)bss_begin;
+  memory_manager.bss_end = (uint32_t)bss_end;
 }
 
 /*

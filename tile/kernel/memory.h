@@ -84,13 +84,15 @@ struct memory_manager {
   uint32_t text_end;
   uint32_t data_begin;
   uint32_t data_end;
+  uint32_t bss_begin;
+  uint32_t bss_end;
 };
 
 uint64_t virt_to_phys(uint32_t x);
 uint32_t phys_to_virt(uint64_t x);
 
 void init_memory_map();
-void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end);
+void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
 
 void update_memory_map();
 
