@@ -7,11 +7,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#define VMALLOC_OFFSET 0x800000
-#define VMALLOC_MIN_VADDR 0xf0000000
-#define VMALLOC_BEGIN_VADDR high_memory + VMALLOC_OFFSET
-#define VMALLOC_END_VADDR 0xff800000
-
 #define MEMORY_MAP_GROUP_LENGTH 128
 
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
