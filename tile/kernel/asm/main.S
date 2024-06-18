@@ -1,7 +1,7 @@
 #include <asm/memory.h>
 #include <asm/page.h>
 
-.section .vector_table, "x"
+.section .vector_table, "ax"
 .global vector_table
 vector_table:
   b do_reset
@@ -12,7 +12,7 @@ vector_table:
   b .
   b do_irq_interrupt
   b do_fiq_interrupt
-.section .turn_mmu_on, "x"
+.section .turn_mmu_on, "ax"
 turn_mmu_on:
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x1
