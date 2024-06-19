@@ -61,8 +61,11 @@ SECTIONS {
     */
     .vector_table ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.vector_table) - VIRT_OFFSET) {
       vector_table_begin = .;
-      asm/main.o(.vector_table)
+      *(.vector_table)
       vector_table_end = .;
+      interrupts_begin = .;
+      *(.interrupts)
+      interrupts_end = .;
     }
 
     /*

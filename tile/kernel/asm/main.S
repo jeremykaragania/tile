@@ -1,17 +1,6 @@
 #include <asm/memory.h>
 #include <asm/page.h>
 
-.section .vector_table, "ax"
-.global vector_table
-vector_table:
-  b do_reset
-  b do_undefined_instruction
-  b do_supervisor_call
-  b do_prefetch_abort
-  b do_data_abort
-  b .
-  b do_irq_interrupt
-  b do_fiq_interrupt
 .section .turn_mmu_on, "ax"
 turn_mmu_on:
   mrc p15, #0x0, r0, c1, c0, #0x0
