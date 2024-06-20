@@ -7,6 +7,7 @@ void init_paging() {
   init_pgd();
   map_kernel();
   map_smc();
+  invalidate_entire_tlb();
 }
 
 /*
@@ -94,7 +95,6 @@ uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr) {
   pte = memory_alloc(PAGE_SIZE);
   offset = pgd_offset(mm->pgd, addr);
   *offset = ((uint32_t)virt_to_phys((uint32_t)pte) & 0xfffffc00) | 0x1;
-  invalidate_entire_tlb();
   return pte;
 }
 
@@ -107,7 +107,6 @@ void pte_clear(struct memory_manager* mm, uint32_t addr) {
 
   offset = pgd_offset(mm->pgd, addr);
   *offset = 0x1;
-  invalidate_entire_tlb();
 }
 
 /*
@@ -120,7 +119,6 @@ void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr) {
 
   offset = pte_offset(pte, v_addr);
   *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
-  invalidate_entire_tlb();
 }
 
 int pte_is_page_table(uint32_t* pte) {
