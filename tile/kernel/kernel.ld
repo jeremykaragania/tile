@@ -7,8 +7,7 @@ PAGE_SIZE = 0x00001000;
 ENTRY(_start)
 
 SECTIONS {
-    . = VIRT_OFFSET;
-    . += TEXT_OFFSET;
+    . = VIRT_OFFSET + TEXT_OFFSET;
 
     /*
       Head text section.
@@ -18,8 +17,9 @@ SECTIONS {
     }
     .turn_mmu_on ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.turn_mmu_on) - VIRT_OFFSET) {
       asm/main.o(.turn_mmu_on)
-      . = ALIGN(0x100000);
     }
+
+    /*. = ALIGN(0x100000);*/
 
     /*
       Text section.

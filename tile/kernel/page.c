@@ -31,23 +31,12 @@ void init_pgd() {
   memory sections.
 */
 void map_kernel() {
-  uint32_t kernel_begin = ALIGN(phys_to_virt(KERNEL_SPACE_PADDR), PTE_SIZE);
-  uint32_t kernel_end = ALIGN(memory_manager.bss_end, PTE_SIZE);
-  uint32_t kernel_text_begin = ALIGN(memory_manager.text_begin, PTE_SIZE);
-  uint32_t kernel_text_end = ALIGN(memory_manager.text_end, PTE_SIZE);
-  uint32_t* offset;
-
-  /* Marks the memory before the ".text" section as RW memory. */
-  for (size_t i = kernel_begin; i < kernel_text_begin; i += PTE_SIZE) {
-    offset = pgd_offset(memory_manager.pgd, i);
-    *offset |= 1 << 4;
-  }
-
-  /* Marks the memory in the ".data" and ".bss" sections as RW memory. */
-  for (size_t i = kernel_text_end; i < kernel_end; i += PTE_SIZE) {
-    offset = pgd_offset(memory_manager.pgd, i);
-    *offset |= 1 << 4;
-  }
+  /* Map the memory before the ".text" section. */
+  create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR));
+  /* Map the memory in the ".text" section. */
+  create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin);
+  /*Map the memory after the ".text" section. */
+  create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin);
 }
 
 /*
@@ -60,6 +49,36 @@ void map_smc() {
   uart_0 = (volatile struct uart_registers*)0xffc00000;
   pte = pte_alloc(&memory_manager, 0xffc00000);
   pte_insert(pte, 0xffc00000, 0x1c090000);
+}
+
+/*
+  create_mapping creates a linear mapping from the virtual address "v_addr" to
+  the physical address "p_addr" spanning "size" bytes.
+*/
+void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size) {
+  uint32_t* pte;
+
+  for (size_t i = v_addr; i < v_addr + size; i += PTE_SIZE) {
+    pte = pgd_offset(memory_manager.pgd, i);
+
+    /* Use many PAGE_SIZE entries. */
+    if (!IS_ALIGNED(i, PTE_SIZE) || i + PTE_SIZE > v_addr + size) {
+      if (!pte_is_page_table(pte)) {
+        pte = pte_alloc(&memory_manager, i);
+      }
+      else {
+        pte = pte_to_page_table(pte);
+      }
+
+      for (size_t j = i; j < v_addr + size; j += PAGE_SIZE, p_addr += PAGE_SIZE) {
+        pte_insert(pte, j, p_addr);
+      }
+    }
+    /* Use one PTE_SIZE entry. */
+    else {
+      *pte = i | 0x402;
+    }
+  }
 }
 
 /*
@@ -121,10 +140,18 @@ void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr) {
   *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
 }
 
+/*
+  pte_is_page_table returns a positive integer if the page table entry "pte" is
+  a page table.
+*/
 int pte_is_page_table(uint32_t* pte) {
   return *pte & 1;
 }
 
+/*
+  pte_to_page_table returns the page table address of a page table entry "pte"
+  if there's one.
+*/
 uint32_t* pte_to_page_table(uint32_t* pte) {
   if (pte_is_page_table(pte)) {
     return (uint32_t*)phys_to_virt(*pte & 0xfffff000);
