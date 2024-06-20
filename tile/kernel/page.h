@@ -12,13 +12,16 @@ extern void invalidate_entire_tlb();
 void init_paging();
 void init_pgd();
 
-void map_smc();
 void map_kernel();
+void map_smc();
 
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr);
 uint32_t* pte_offset(uint32_t* pte, uint32_t addr);
 uint32_t* pte_alloc(struct memory_manager* mm, uint32_t addr);
 void pte_clear(struct memory_manager* mm, uint32_t addr);
 void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr);
+
+uint32_t* pte_to_page_table(uint32_t* pte);
+int pte_is_page_table(uint32_t* pte);
 
 #endif

@@ -122,3 +122,14 @@ void pte_insert(uint32_t* pte, uint32_t v_addr, uint64_t p_addr) {
   *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
   invalidate_entire_tlb();
 }
+
+int pte_is_page_table(uint32_t* pte) {
+  return *pte & 1;
+}
+
+uint32_t* pte_to_page_table(uint32_t* pte) {
+  if (pte_is_page_table(pte)) {
+    return (uint32_t*)phys_to_virt(*pte & 0xfffff000);
+  }
+  return NULL;
+}
