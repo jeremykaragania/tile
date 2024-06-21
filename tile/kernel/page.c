@@ -66,9 +66,6 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size) {
       if (!pmd_is_page_table(pmd)) {
         pmd = pmd_alloc(&memory_manager, i);
       }
-      else {
-        pmd = pmd_to_page_table(pmd);
-      }
 
       for (size_t j = i; j < v_addr + size; j += PAGE_SIZE, p_addr += PAGE_SIZE) {
         pmd_insert(pmd, j, p_addr);
@@ -99,6 +96,7 @@ uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
   a virtual address, "addr" and a page table base address, "pmd".
 */
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
+  pmd = pmd_to_page_table(pmd);
   return (uint32_t*)((uint32_t)pmd + (uint32_t)pmd_index(addr));
 }
 
@@ -115,7 +113,7 @@ uint32_t* pmd_alloc(struct memory_manager* mm, uint32_t addr) {
   pmd = memory_alloc(PAGE_SIZE);
   offset = pgd_offset(mm->pgd, addr);
   *offset = ((uint32_t)virt_to_phys((uint32_t)pmd) & 0xfffffc00) | 0x1;
-  return pmd;
+  return offset;
 }
 
 /*
