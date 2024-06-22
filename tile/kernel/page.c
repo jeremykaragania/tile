@@ -112,7 +112,7 @@ uint32_t* pmd_alloc(struct memory_manager* mm, uint32_t addr) {
 
   pmd = memory_alloc(PAGE_SIZE);
   offset = pgd_offset(mm->pgd, addr);
-  *offset = ((uint32_t)virt_to_phys((uint32_t)pmd) & 0xfffffc00) | 0x1;
+  *offset = create_pmd(pmd);
   return offset;
 }
 
@@ -137,7 +137,7 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr) {
   uint32_t* offset;
 
   offset = pmd_offset(pmd, v_addr);
-  *offset = ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
+  *offset = create_pte(p_addr);
 }
 
 /*
@@ -157,4 +157,12 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
     return (uint32_t*)phys_to_virt(*pmd & 0xfffff000);
   }
   return NULL;
+}
+
+uint32_t create_pmd(uint32_t* page_table) {
+  return ((uint32_t)virt_to_phys((uint32_t)page_table) & 0xfffffc00) | 0x1;
+}
+
+uint32_t create_pte(uint64_t p_addr) {
+  return ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
 }
