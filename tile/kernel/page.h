@@ -26,7 +26,8 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr);
 int pmd_is_page_table(uint32_t* pmd);
 uint32_t* pmd_to_page_table(uint32_t* pmd);
 
-uint32_t create_pmd(uint32_t* page_table);
+uint32_t create_pmd_section(uint64_t p_addr);
+uint32_t create_pmd_page_table(uint32_t* page_table);
 uint32_t create_pte(uint64_t p_addr);
 
 #endif

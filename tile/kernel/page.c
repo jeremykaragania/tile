@@ -73,7 +73,7 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size) {
     }
     /* Page middle directory has one entry. */
     else {
-      *pmd = i | 0x402;
+      *pmd = create_pmd_section(virt_to_phys(i));
     }
   }
 }
@@ -112,7 +112,7 @@ uint32_t* pmd_alloc(struct memory_manager* mm, uint32_t addr) {
 
   pmd = memory_alloc(PAGE_SIZE);
   offset = pgd_offset(mm->pgd, addr);
-  *offset = create_pmd(pmd);
+  *offset = create_pmd_page_table(pmd);
   return offset;
 }
 
@@ -159,7 +159,11 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
   return NULL;
 }
 
-uint32_t create_pmd(uint32_t* page_table) {
+uint32_t create_pmd_section(uint64_t p_addr) {
+  return (p_addr & 0xfffffc00ull) | 0x402;
+}
+
+uint32_t create_pmd_page_table(uint32_t* page_table) {
   return ((uint32_t)virt_to_phys((uint32_t)page_table) & 0xfffffc00) | 0x1;
 }
 
