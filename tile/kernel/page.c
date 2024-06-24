@@ -32,11 +32,11 @@ void init_pgd() {
 */
 void map_kernel() {
   /* Map the memory before the ".text" section. */
-  create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR));
+  create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR), BLOCK_RW);
   /* Map the memory in the ".text" section. */
-  create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin);
+  create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
   /*Map the memory after the ".text" section. */
-  create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin);
+  create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin, BLOCK_RW);
 }
 
 /*
@@ -48,14 +48,15 @@ void map_smc() {
 
   uart_0 = (volatile struct uart_registers*)0xffc00000;
   pmd = pmd_alloc(&memory_manager, 0xffc00000);
-  pmd_insert(pmd, 0xffc00000, 0x1c090000);
+  pmd_insert(pmd, 0xffc00000, 0x1c090000, BLOCK_RW);
 }
 
 /*
   create_mapping creates a linear mapping from the virtual address "v_addr" to
-  the physical address "p_addr" spanning "size" bytes.
+  the physical address "p_addr" spanning "size" bytes with the memory flags
+  "flags".
 */
-void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size) {
+void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
 
   for (size_t i = v_addr; i < v_addr + size; i += PTE_SIZE) {
@@ -68,12 +69,12 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size) {
       }
 
       for (size_t j = i; j < v_addr + size; j += PAGE_SIZE, p_addr += PAGE_SIZE) {
-        pmd_insert(pmd, j, p_addr);
+        pmd_insert(pmd, j, p_addr, flags);
       }
     }
     /* Page middle directory has one entry. */
     else {
-      *pmd = create_pmd_section(virt_to_phys(i));
+      *pmd = create_pmd_section(virt_to_phys(i), flags);
     }
   }
 }
@@ -130,14 +131,14 @@ void pmd_clear(struct memory_manager* mm, uint32_t addr) {
 /*
   pmd_insert inserts a page table entry into a page middle directory "pmd". The
   page table entry is specified by which physical address "p_addr" it maps to
-  which virtual address "v_addr". If a page table entry already exists it is
-  replaced.
+  which virtual address "v_addr" and its memory flags "flags". If a page table
+  entry already exists it is replaced.
 */
-void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr) {
+void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags) {
   uint32_t* offset;
 
   offset = pmd_offset(pmd, v_addr);
-  *offset = create_pte(p_addr);
+  *offset = create_pte(p_addr, flags);
 }
 
 /*
@@ -156,17 +157,56 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
   if (pmd_is_page_table(pmd)) {
     return (uint32_t*)phys_to_virt(*pmd & 0xfffff000);
   }
+
   return NULL;
 }
 
-uint32_t create_pmd_section(uint64_t p_addr) {
-  return (p_addr & 0xfffffc00ull) | 0x402;
+uint32_t create_pmd_section(uint64_t p_addr, int flags) {
+  uint32_t pte = (p_addr & 0xfffffc00ull) | 1 << 1;
+
+  switch (flags) {
+    case BLOCK_RWX: {
+      pte |= 1 << 10;
+      break;
+    }
+    case BLOCK_RW:
+      pte |= 1 << 4;
+      pte |= 1 << 10;
+      break;
+    case BLOCK_RO: {
+      pte |= 1 << 4;
+      pte |= 1 << 10;
+      pte |= 1 << 15;
+      break;
+    }
+  }
+
+  return pte;
 }
 
 uint32_t create_pmd_page_table(uint32_t* page_table) {
-  return ((uint32_t)virt_to_phys((uint32_t)page_table) & 0xfffffc00) | 0x1;
+  return ((uint32_t)virt_to_phys((uint32_t)page_table) & 0xfffffc00) | 1;
 }
 
-uint32_t create_pte(uint64_t p_addr) {
-  return ((uint32_t)p_addr & 0xfffff000) | 0x1 << 0x4 | 0x1 << 0x1;
+uint32_t create_pte(uint64_t p_addr, int flags) {
+  uint32_t pte = ((uint32_t)p_addr & 0xfffff000) | 1 << 1;
+
+  switch (flags) {
+    case BLOCK_RWX: {
+      pte |= 1 << 4;
+      break;
+    }
+    case BLOCK_RW:
+      pte |= 1;
+      pte |= 1 << 4;
+      break;
+    case BLOCK_RO: {
+      pte |= 1;
+      pte |= 1 << 4;
+      pte |= 1 << 9;
+      break;
+    }
+  }
+
+  return pte;
 }

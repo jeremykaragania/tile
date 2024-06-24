@@ -31,9 +31,9 @@ extern uint32_t high_memory;
   enum memory_flags represents the attributes of a memory region.
 */
 enum memory_flags {
-  BLOCK_RWX = 0x0,
-  BLOCK_RW = 0x1,
-  BLOCK_RO = 0x2
+  BLOCK_RWX,
+  BLOCK_RW,
+  BLOCK_RO
 };
 
 /*
