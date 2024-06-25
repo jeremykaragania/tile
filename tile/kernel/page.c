@@ -161,6 +161,11 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
   return NULL;
 }
 
+/*
+  create_pmd_section creates and returns a page middle directory entry for a
+  section entry. The entry is specified by which physical address "p_addr" it
+  maps to, and with which flags "flags".
+*/
 uint32_t create_pmd_section(uint64_t p_addr, int flags) {
   uint32_t pte = (p_addr & 0xfffffc00ull) | 1 << 1;
 
@@ -184,10 +189,20 @@ uint32_t create_pmd_section(uint64_t p_addr, int flags) {
   return pte;
 }
 
+/*
+  create_pmd_page_table creates and returns a page middle directory entry for a
+  page table. The entry is specified by the virtual address of the page table
+  "page_table".
+*/
 uint32_t create_pmd_page_table(uint32_t* page_table) {
   return ((uint32_t)virt_to_phys((uint32_t)page_table) & 0xfffffc00) | 1;
 }
 
+/*
+  create_pte creates and returns a page table entry for a page table. The entry
+  is specified by which physical address "p_addr" it maps to, and with which
+  flags "flags".
+*/
 uint32_t create_pte(uint64_t p_addr, int flags) {
   uint32_t pte = ((uint32_t)p_addr & 0xfffff000) | 1 << 1;
 
