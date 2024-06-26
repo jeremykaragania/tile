@@ -9,8 +9,8 @@ pgd_index:
   mul r0, r0, r1
   bx lr
 
-.global pte_index
-pte_index:
+.global pmd_index
+pmd_index:
   ldr r1, =PAGE_MASK
   and r0, r0, r1
   ldr r1, =PAGE_SHIFT
