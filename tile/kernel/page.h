@@ -13,6 +13,7 @@ void init_paging();
 void init_pgd();
 
 void map_kernel();
+void map_vector_table();
 void map_smc();
 
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);

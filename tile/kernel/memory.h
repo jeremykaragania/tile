@@ -19,6 +19,10 @@ const extern uint32_t* text_begin;
 const extern uint32_t* text_end;
 const extern uint32_t* data_begin;
 const extern uint32_t* data_end;
+const extern uint32_t* vector_table_begin;
+const extern uint32_t* vector_table_end;
+const extern uint32_t* interrupts_begin;
+const extern uint32_t* interrupts_end;
 const extern uint32_t* bss_begin;
 const extern uint32_t* bss_end;
 

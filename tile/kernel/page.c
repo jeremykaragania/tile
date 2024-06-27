@@ -6,6 +6,7 @@
 void init_paging() {
   init_pgd();
   map_kernel();
+  map_vector_table();
   map_smc();
   invalidate_entire_tlb();
 }
@@ -37,6 +38,14 @@ void map_kernel() {
   create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
   /*Map the memory after the ".text" section. */
   create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin, BLOCK_RW);
+}
+
+/*
+  map_vector_table maps the interrupt vector table. All it really does is make
+  the memory executable.
+*/
+void map_vector_table() {
+  create_mapping((uint32_t)&vector_table_begin, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, BLOCK_RWX);
 }
 
 /*
