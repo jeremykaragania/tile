@@ -53,11 +53,8 @@ void map_vector_table() {
   directory and maps the UART from 0x1c090000 to 0xffc00000.
 */
 void map_smc() {
-  uint32_t* pmd;
-
   uart_0 = (volatile struct uart_registers*)0xffc00000;
-  pmd = pmd_alloc(&memory_manager, 0xffc00000);
-  pmd_insert(pmd, 0xffc00000, 0x1c090000, BLOCK_RW);
+  create_mapping(0xffc00000, 0x1c090000, PAGE_SIZE, BLOCK_RW);
 }
 
 /*
