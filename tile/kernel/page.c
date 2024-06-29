@@ -65,7 +65,7 @@ void map_smc() {
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
 
-  for (size_t i = v_addr; i < v_addr + size; i += PTE_SIZE) {
+  for (uint64_t i = v_addr; i < v_addr + size; i += PTE_SIZE) {
     pmd = pgd_offset(memory_manager.pgd, i);
 
     /* Page middle directory has many entries. */
