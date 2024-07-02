@@ -86,6 +86,21 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
 }
 
 /*
+  pgd_walk walks the page global directory as far as it can from the virtual
+  address "v_addr" and returns the entry where translation stops. It returns
+  either a section entry or a page entry.
+*/
+uint32_t pgd_walk(struct memory_manager* mm, uint32_t v_addr) {
+  uint32_t* entry = pgd_offset(mm->pgd, v_addr);
+
+  if (pmd_is_page_table(entry)) {
+    entry = pmd_offset(entry, v_addr);
+  }
+
+  return *entry;
+}
+
+/*
   pgd_offset returns the address of a page middle directory from a virtual
   address "addr", and the base address of a page global directory "pgd". In
   ARMv7-A parlance, it returns the address of a page table first-level

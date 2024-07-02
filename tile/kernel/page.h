@@ -18,6 +18,8 @@ void map_smc();
 
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 
+uint32_t pgd_walk(struct memory_manager* mm, uint32_t v_addr);
+
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr);
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr);
 uint32_t* pmd_alloc(struct memory_manager* mm, uint32_t addr);
