@@ -86,6 +86,29 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
 }
 
 /*
+  mapping_exists checks for the existance of a virtual address "v_addr" mapping
+  to the physical address "p_addr.
+*/
+int mapping_exists(struct memory_manager* mm, uint32_t v_addr, uint32_t p_addr) {
+  uint32_t entry = pgd_walk(mm, v_addr);
+  uint32_t* pmd = pgd_offset(mm->pgd, v_addr);
+  uint32_t addr_begin;
+  uint32_t addr_size;
+
+  if (pmd_is_page_table(pmd)) {
+    addr_begin = pte_to_addr(entry);
+    addr_size = PAGE_SIZE;
+  }
+  else {
+    addr_begin = pmd_section_to_addr(entry);
+    addr_size = PTE_SIZE;
+  }
+
+  p_addr = ALIGN(p_addr, addr_size);
+  return p_addr >= addr_begin && p_addr <= addr_begin + addr_size;
+}
+
+/*
   pgd_walk walks the page global directory as far as it can from the virtual
   address "v_addr" and returns the entry where translation stops. It returns
   either a section entry or a page entry.
@@ -208,6 +231,22 @@ uint32_t create_pmd_section(uint64_t p_addr, int flags) {
   }
 
   return pte;
+}
+
+/*
+  pmd_section_to_addr returns the physical address which the page middle
+  directory section "pmd" maps to.
+*/
+uint32_t pmd_section_to_addr(uint32_t pmd) {
+  return pmd & 0xfff00000;
+}
+
+/*
+  pte_to_addr returns the physical address which the page table entry "pte"
+  maps to.
+*/
+uint32_t pte_to_addr(uint32_t pte) {
+  return pte & 0xfffff000;
 }
 
 /*
