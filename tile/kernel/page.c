@@ -18,12 +18,12 @@ void init_paging() {
 void init_pgd() {
   /* Clear page table entries below the kernel. */
   for (size_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PTE_SIZE) {
-    pmd_clear(&memory_manager, i);
+    pmd_clear(memory_manager.pgd, i);
   }
 
   /* Clear page table entries above the kernel. */
   for (size_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PTE_SIZE) {
-    pmd_clear(&memory_manager, i);
+    pmd_clear(memory_manager.pgd, i);
   }
 }
 
@@ -71,7 +71,7 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
     /* Page middle directory has many entries. */
     if (!IS_ALIGNED(i, PTE_SIZE) || i + PTE_SIZE > v_addr + size) {
       if (!pmd_is_page_table(pmd)) {
-        pmd = pmd_alloc(&memory_manager, i);
+        pmd = pmd_alloc(memory_manager.pgd, i);
       }
 
       for (size_t j = i; j < v_addr + size; j += PAGE_SIZE, p_addr += PAGE_SIZE) {
@@ -89,9 +89,9 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
   mapping_exists checks for the existance of a virtual address "v_addr" mapping
   to the physical address "p_addr.
 */
-int mapping_exists(struct memory_manager* mm, uint32_t v_addr, uint32_t p_addr) {
-  uint32_t entry = pgd_walk(mm, v_addr);
-  uint32_t* pmd = pgd_offset(mm->pgd, v_addr);
+int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr) {
+  uint32_t entry = pgd_walk(pgd, v_addr);
+  uint32_t* pmd = pgd_offset(pgd, v_addr);
   uint32_t addr_begin;
   uint32_t addr_size;
 
@@ -113,8 +113,8 @@ int mapping_exists(struct memory_manager* mm, uint32_t v_addr, uint32_t p_addr) 
   address "v_addr" and returns the entry where translation stops. It returns
   either a section entry or a page entry.
 */
-uint32_t pgd_walk(struct memory_manager* mm, uint32_t v_addr) {
-  uint32_t* entry = pgd_offset(mm->pgd, v_addr);
+uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr) {
+  uint32_t* entry = pgd_offset(pgd, v_addr);
 
   if (pmd_is_page_table(entry)) {
     entry = pmd_offset(entry, v_addr);
@@ -148,27 +148,27 @@ uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
 /*
   pmd_alloc allocates a new page middle directory from a virtual address "addr"
   and returns a pointer to it. The appropriate index in the page global
-  directory specified by the memory manager "mm" is updated to point to the new
-  page middle directory.
+  directory specified by the page global directory "pgd" is updated to point to
+  the new page middle directory.
 */
-uint32_t* pmd_alloc(struct memory_manager* mm, uint32_t addr) {
+uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
   uint32_t* offset;
 
   pmd = memory_alloc(PAGE_SIZE);
-  offset = pgd_offset(mm->pgd, addr);
+  offset = pgd_offset(pgd, addr);
   *offset = create_pmd_page_table(pmd);
   return offset;
 }
 
 /*
   pmd_clear clears a page middle directory from a virtual address "addr" in the
-  page global directory specified by the memory manager "mm".
+  page global directory "pgd"
 */
-void pmd_clear(struct memory_manager* mm, uint32_t addr) {
+void pmd_clear(uint32_t* pgd, uint32_t addr) {
   uint32_t* offset;
 
-  offset = pgd_offset(mm->pgd, addr);
+  offset = pgd_offset(memory_manager.pgd, addr);
   *offset = 0x1;
 }
 
