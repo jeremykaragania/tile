@@ -17,12 +17,12 @@ void init_paging() {
 */
 void init_pgd() {
   /* Clear page table entries below the kernel. */
-  for (size_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PTE_SIZE) {
+  for (size_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
   }
 
   /* Clear page table entries above the kernel. */
-  for (size_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PTE_SIZE) {
+  for (size_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
   }
 }
@@ -65,11 +65,11 @@ void map_smc() {
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
 
-  for (uint64_t i = v_addr; i < v_addr + size; i += PTE_SIZE) {
+  for (uint64_t i = v_addr; i < v_addr + size; i += PMD_SIZE) {
     pmd = pgd_offset(memory_manager.pgd, i);
 
     /* Page middle directory has many entries. */
-    if (!IS_ALIGNED(i, PTE_SIZE) || i + PTE_SIZE > v_addr + size) {
+    if (!IS_ALIGNED(i, PMD_SIZE) || i + PMD_SIZE > v_addr + size) {
       if (!pmd_is_page_table(pmd)) {
         pmd = pmd_alloc(memory_manager.pgd, i);
       }
@@ -101,7 +101,7 @@ int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr) {
   }
   else {
     addr_begin = pmd_section_to_addr(entry);
-    addr_size = PTE_SIZE;
+    addr_size = PMD_SIZE;
   }
 
   p_addr = ALIGN(p_addr, addr_size);
@@ -155,7 +155,7 @@ uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
   uint32_t* offset;
 
-  pmd = memory_alloc(PAGE_SIZE);
+  pmd = memory_alloc(PAGE_TABLE_SIZE);
   offset = pgd_offset(pgd, addr);
   *offset = create_pmd_page_table(pmd);
   return offset;
@@ -199,7 +199,7 @@ int pmd_is_page_table(uint32_t* pmd) {
 */
 uint32_t* pmd_to_page_table(uint32_t* pmd) {
   if (pmd_is_page_table(pmd)) {
-    return (uint32_t*)phys_to_virt(*pmd & 0xfffff000);
+    return (uint32_t*)phys_to_virt(*pmd & 0xfffffc00);
   }
 
   return NULL;
