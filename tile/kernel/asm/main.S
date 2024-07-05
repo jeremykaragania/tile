@@ -109,8 +109,9 @@ enable_mmu:
   mcr p15, 0, r0, c3, c0, 0 // Set domain access permision.
   b turn_mmu_on
 mmap_switched:
-  ldr r0, =vector_table_begin
-  mcr p15, 0, r0, c12, c0, 0 // Set vector base address.
+  mrc p15, 0, r0, c1, c0, 0
+  orr r0, r0, #0x2000
+  mcr p15, 0, r0, c1, c0, 0 // Set vector base address.
   ldr r0, =init_process_end - 0x8
   mov sp, r0
   bl start_kernel
