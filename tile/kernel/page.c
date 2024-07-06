@@ -45,7 +45,7 @@ void map_kernel() {
   the memory executable.
 */
 void map_vector_table() {
-  create_mapping((uint32_t)&vector_table_begin, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, BLOCK_RWX);
+  create_mapping(0xffff0000, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, BLOCK_RWX);
 }
 
 /*
