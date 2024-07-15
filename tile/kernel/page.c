@@ -156,6 +156,12 @@ uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
   uint32_t* offset;
 
   pmd = memory_alloc(PAGE_TABLE_SIZE);
+
+  /* Sometimes the pointer to the newly allocated memory isn't mapped. */
+  if (!mapping_exists(pgd, (uint32_t)pmd, virt_to_phys((uint32_t)pmd))) {
+    create_mapping((uint32_t)pmd, virt_to_phys((uint32_t)pmd), PAGE_SIZE, BLOCK_RWX);
+  }
+
   offset = pgd_offset(pgd, addr);
   *offset = create_pmd_page_table(pmd);
   return offset;
