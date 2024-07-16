@@ -3,7 +3,7 @@
 
 #include <kernel/asm/memory.h>
 #include <kernel/asm/page.h>
-#include <kernel/string.h>
+#include <lib/string.h>
 #include <stddef.h>
 #include <stdint.h>
 
