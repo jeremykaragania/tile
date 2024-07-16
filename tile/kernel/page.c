@@ -1,4 +1,4 @@
-#include <page.h>
+#include <kernel/page.h>
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.

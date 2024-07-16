@@ -1,11 +1,11 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <asm/memory.h>
-#include <asm/page.h>
+#include <kernel/asm/memory.h>
+#include <kernel/asm/page.h>
+#include <kernel/string.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #define MEMORY_MAP_GROUP_LENGTH 128
 

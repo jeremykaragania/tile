@@ -13,10 +13,10 @@ SECTIONS {
       Head text section.
     */
     .head.text ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.head.text) - VIRT_OFFSET) {
-      asm/main.o(.text)
+      kernel/asm/main.o(.text)
     }
     .turn_mmu_on ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.turn_mmu_on) - VIRT_OFFSET) {
-      asm/main.o(.turn_mmu_on)
+      kernel/asm/main.o(.turn_mmu_on)
     }
 
     /*. = ALIGN(0x100000);*/
@@ -26,7 +26,7 @@ SECTIONS {
     */
     .text ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.text) - VIRT_OFFSET) {
       text_begin = .;
-      main.o(.text)
+      kernel/main.o(.text)
       *(.text)
       text_end = .;
     }
@@ -50,8 +50,8 @@ SECTIONS {
     }
 
     .data ALIGN(PAGE_SIZE) : AT(PHYS_OFFSET + ADDR(.data) - VIRT_OFFSET) {
-      asm/main.o(.data)
-      main.o(.data)
+      kernel/asm/main.o(.data)
+      kernel/main.o(.data)
       *(.data)
       data_end = .;
     }

@@ -1,9 +1,9 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <kernel/memory.h>
+#include <kernel/uart.h>
 #include <stdint.h>
-#include <memory.h>
-#include <uart.h>
 
 extern uint32_t pgd_index(uint32_t addr);
 extern uint32_t pmd_index(uint32_t addr);

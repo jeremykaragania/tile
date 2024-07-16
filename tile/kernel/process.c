@@ -1,4 +1,4 @@
-#include <process.h>
+#include <kernel/process.h>
 
 struct process init_process __attribute__((section(".init_process"))) = {
   0,

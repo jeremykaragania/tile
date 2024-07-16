@@ -1,4 +1,4 @@
-#include <memory.h>
+#include <kernel/memory.h>
 
 static struct memory_map_block memory_map_memory_blocks[MEMORY_MAP_GROUP_LENGTH];
 static struct memory_map_group memory_map_memory_group = {

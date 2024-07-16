@@ -1,4 +1,4 @@
-#include <interrupts.h>
+#include <kernel/interrupts.h>
 
 void do_reset() {}
 

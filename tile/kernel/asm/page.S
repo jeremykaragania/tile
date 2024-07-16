@@ -1,4 +1,4 @@
-#include <asm/page.h>
+#include <kernel/asm/page.h>
 
 .section .text
 .global pgd_index

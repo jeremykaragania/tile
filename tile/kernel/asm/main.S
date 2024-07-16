@@ -1,5 +1,5 @@
-#include <asm/memory.h>
-#include <asm/page.h>
+#include <kernel/asm/memory.h>
+#include <kernel/asm/page.h>
 
 .section .turn_mmu_on, "ax"
 turn_mmu_on:

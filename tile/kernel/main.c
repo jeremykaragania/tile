@@ -1,8 +1,9 @@
-#include <asm/memory.h>
-#include <memory.h>
-#include <page.h>
-#include <process.h>
-#include <uart.h>
+#include <kernel/asm/memory.h>
+#include <kernel/interrupts.h>
+#include <kernel/memory.h>
+#include <kernel/page.h>
+#include <kernel/process.h>
+#include <kernel/uart.h>
 
 extern void enable_interrupts();
 extern void disable_interrupts();

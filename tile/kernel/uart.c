@@ -1,4 +1,4 @@
-#include <uart.h>
+#include <kernel/uart.h>
 
 volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc90000;
 
