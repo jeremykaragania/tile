@@ -8,9 +8,9 @@ git clone https://github.com/jeremykaragania/tile.git
 ```
 ## Usage
 ```bash
-cd tile/kernel
+cd tile
 make
-qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -kernel kernel -nographic
+qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -kernel tile -nographic
 ```
 
 ## License
