@@ -1,6 +1,7 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <lib/string.h>
 #include <stddef.h>
 
 enum connection_status {
@@ -22,5 +23,7 @@ struct directory_entry {
   char* filename;
   struct inode* inode;
 };
+
+struct inode* lookup_inode(const char* name);
 
 #endif
