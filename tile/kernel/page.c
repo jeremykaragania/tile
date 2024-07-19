@@ -175,7 +175,7 @@ void pmd_clear(uint32_t* pgd, uint32_t addr) {
   uint32_t* offset;
 
   offset = pgd_offset(memory_manager.pgd, addr);
-  *offset = 0x1;
+  *offset = 0x0;
 }
 
 /*
