@@ -65,7 +65,7 @@ void map_smc() {
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
 
-  for (uint64_t i = v_addr; i < v_addr + size; i += PMD_SIZE) {
+  for (uint64_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
     pmd = pgd_offset(memory_manager.pgd, i);
 
     /* Page middle directory has many entries. */
@@ -74,13 +74,13 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
         pmd = pmd_alloc(memory_manager.pgd, i);
       }
 
-      for (size_t j = i; j < v_addr + size; j += PAGE_SIZE, p_addr += PAGE_SIZE) {
-        pmd_insert(pmd, j, p_addr, flags);
+      for (size_t k = i; k < v_addr + size; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
+        pmd_insert(pmd, k, p_addr, flags);
       }
     }
     /* Page middle directory has one entry. */
     else {
-      *pmd = create_pmd_section(virt_to_phys(i), flags);
+      *pmd = create_pmd_section(j, flags);
     }
   }
 }
