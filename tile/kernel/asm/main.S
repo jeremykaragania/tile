@@ -91,7 +91,7 @@ map_kernel:
   bl new_sections
 /*
   map_smc maps the static memory controller. It creates a
-  SMC_PADDR-to-0xffc00000 mapping which spans 1MB.
+  SMC_CS3_PADDR-to-0xffc00000 mapping which spans 1MB.
 */
 map_smc:
   ldr r0, =#0xffc00000
@@ -99,8 +99,8 @@ map_smc:
   ldr r1, =PG_DIR_PADDR
   add r0, r0, r1
   ldr r1, =#0x402
-  ldr r2, =SMC_PADDR
-  ldr r3, =SMC_PADDR + 0x100000
+  ldr r2, =SMC_CS3_PADDR
+  ldr r3, =SMC_CS3_PADDR + 0x100000
   bl new_sections
 enable_mmu:
   ldr r0, =PG_DIR_PADDR
