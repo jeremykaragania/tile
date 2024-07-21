@@ -50,11 +50,12 @@ void map_vector_table() {
 
 /*
   map_smc maps the static memory controller. It allocates a page middle
-  directory and maps the UART from 0x1c090000 to 0xffc00000.
+  directory and maps the MCI and the UART.
 */
 void map_smc() {
   uart_0 = (volatile struct uart_registers*)0xffc00000;
-  create_mapping(0xffc00000, 0x1c090000, PAGE_SIZE, BLOCK_RW);
+  create_mapping((uint32_t)mci, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
+  create_mapping((uint32_t)uart_0, 0x1c090000, PAGE_SIZE, BLOCK_RW);
 }
 
 /*

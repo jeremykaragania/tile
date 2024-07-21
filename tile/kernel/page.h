@@ -1,6 +1,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <kernel/mci.h>
 #include <kernel/memory.h>
 #include <kernel/uart.h>
 #include <stdint.h>
