@@ -4,6 +4,8 @@
 #include <kernel/asm/memory.h>
 #include <stdint.h>
 
+#define MCI_POWER_CTRL 0x3
+
 extern volatile struct mci_registers* mci;
 
 struct mci_registers {
@@ -28,5 +30,7 @@ struct mci_registers {
   uint32_t periph_id[4];
   uint32_t p_cell_d[4];
 };
+
+void mci_init();
 
 #endif
