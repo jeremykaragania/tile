@@ -6,6 +6,12 @@
 
 #define MCI_POWER_CTRL 0x3
 
+#define MCI_COMMAND_RESPONSE 1 << 6
+#define MCI_COMMAND_LONG_RSP 1 << 7
+#define MCI_COMMAND_INTERRUPT 1 << 8
+#define MCI_COMMAND_PENDING 1 << 9
+#define MCI_COMMAND_ENABLE 1 << 10
+
 extern volatile struct mci_registers* mci;
 
 struct mci_registers {
@@ -32,5 +38,7 @@ struct mci_registers {
 };
 
 void mci_init();
+
+void mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg);
 
 #endif
