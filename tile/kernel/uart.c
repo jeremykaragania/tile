@@ -4,6 +4,9 @@ volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc9
 
 char uart_buf[256];
 
+/*
+  uart_init initializes the UART.
+*/
 void uart_init() {
   uart_0->cr &= ~CR_UARTEN;
   while (uart_0->fr & FR_BUSY);
@@ -16,6 +19,10 @@ void uart_init() {
   uart_0->cr |= CR_UARTEN;
 }
 
+/*
+  uart_put_signed_integer converts a signed integer "a" into a string and
+  writes it to the UART data register.
+*/
 void uart_put_signed_integer(long long a) {
   if (a < 0) {
     uart_putchar('-');
@@ -24,6 +31,10 @@ void uart_put_signed_integer(long long a) {
   uart_put_unsigned_integer(a, 'd');
 }
 
+/*
+  uart_put_unsigned_integer converts an unsigned integer "a" into a string
+  depending on a format "format" and writes it to the UART data register.
+*/
 void uart_put_unsigned_integer(unsigned long long a, const char format) {
   if (a == 0) {
     uart_putchar('0');
@@ -73,12 +84,19 @@ void uart_put_unsigned_integer(unsigned long long a, const char format) {
   }
 }
 
+/*
+  uart_putchar writes a byte "c" to the UART data register.
+*/
 int uart_putchar(const int c) {
   while(uart_0->fr & FR_TXFF);
   uart_0->dr = c;
   return c;
 }
 
+/*
+  uart_puts writes a string "s" followed by a newline character to the UART
+  data register.
+*/
 int uart_puts(const char* s) {
   size_t i = 0;
   while (s[i]) {
@@ -89,6 +107,9 @@ int uart_puts(const char* s) {
   return 0;
 }
 
+/*
+  uart_printf writes formatted data "format" to the UART data register.
+*/
 int uart_printf(const char *format, ...) {
   va_list args;
   size_t i = 0;
@@ -221,6 +242,10 @@ int uart_printf(const char *format, ...) {
   return i;
 }
 
+/*
+  uart_getchar reads a byte from the UART data register. It returns the read
+  byte on success or -1 on failure.
+*/
 int uart_getchar() {
   if (uart_0->fr & FR_RXFE) {
     return -1;
