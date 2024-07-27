@@ -16,11 +16,17 @@ void mci_init() {
   path state machine, and a command argument "cmd_arg" which specifies an
   argument for the command.
 */
-void mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg) {
+int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg) {
   uint32_t command = 0;
+
+  if (cmd_index > 63) {
+    return 0;
+  }
 
   command |= cmd_index;
   command |= cmd_type;
   mci->argument = cmd_arg;
   mci->command = command;
+
+  return 1;
 }

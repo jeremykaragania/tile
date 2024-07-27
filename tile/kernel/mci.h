@@ -39,6 +39,6 @@ struct mci_registers {
 
 void mci_init();
 
-void mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg);
+int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg);
 
 #endif
