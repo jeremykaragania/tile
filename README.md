@@ -10,7 +10,7 @@ git clone https://github.com/jeremykaragania/tile.git
 ```bash
 cd tile
 make
-qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -kernel tile -nographic
+qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -sd file -kernel tile -nographic
 ```
 
 ## License
