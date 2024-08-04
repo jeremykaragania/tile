@@ -7,8 +7,7 @@ volatile struct mci_registers* mci = (volatile struct mci_registers*)(SMC_CS3_PA
 */
 void mci_init() {
   mci->power = MCI_POWER_CTRL;
-  mci_send_command(0, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
-  mci_send_command(1, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
+  mci_send_command(0, MCI_COMMAND_ENABLE, 0);
 }
 
 /*
