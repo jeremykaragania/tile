@@ -4,8 +4,6 @@
 #include <kernel/asm/memory.h>
 #include <stdint.h>
 
-#define MCI_POWER_CTRL 0x3
-
 #define MCI_COMMAND_RESPONSE 1 << 6
 #define MCI_COMMAND_LONG_RSP 1 << 7
 #define MCI_COMMAND_INTERRUPT 1 << 8
