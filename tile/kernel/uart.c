@@ -94,15 +94,23 @@ int uart_putchar(const int c) {
 }
 
 /*
-  uart_puts writes a string "s" followed by a newline character to the UART
-  data register.
+  uart_putstring writes a string "s" to the UART data register.
 */
-int uart_puts(const char* s) {
+int uart_putstring(const char* s) {
   size_t i = 0;
   while (s[i]) {
     uart_putchar(s[i]);
     ++i;
   }
+  return 0;
+}
+
+/*
+  uart_puts writes a string "s" followed by a newline character to the UART
+  data register.
+*/
+int uart_puts(const char* s) {
+  uart_putstring(s);
   uart_putchar('\n');
   return 0;
 }
@@ -149,6 +157,14 @@ int uart_printf(const char *format, ...) {
       }
 
       switch (format[i]) {
+        case 'c': {
+          uart_putchar(va_arg(args, int));
+          break;
+        }
+        case 's': {
+          uart_putstring(va_arg(args, char*));
+          break;
+        }
         case 'd':
         case 'i': {
           switch (length) {
