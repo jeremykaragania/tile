@@ -9,7 +9,6 @@ void mci_init() {
   mci_send_command(0, MCI_COMMAND_ENABLE, 0);
   mci_send_command(55, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
   mci_send_command(41, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0x7fffff);
-  mci_send_command(11, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
   mci_send_command(2, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE | MCI_COMMAND_LONG_RSP, 0);
   mci_send_command(3, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
 }
