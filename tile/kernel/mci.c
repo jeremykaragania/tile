@@ -11,6 +11,20 @@ void mci_init() {
   mci_send_command(41, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0x7fffff);
   mci_send_command(2, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE | MCI_COMMAND_LONG_RSP, 0);
   mci_send_command(3, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
+  mci_send_command(7, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, mci->response[0]);
+  mci_send_command(16, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 1);
+}
+
+/*
+  mci_getchar reads a byte from the SD card at the address "addr". It returns
+  the read byte.
+*/
+char mci_getchar(uint32_t addr) {
+  mci->data_length = 1;
+  mci->data_ctrl |= 0x3;
+  mci_send_command(17, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
+  while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
+  return ((char*)mci->fifo)[0];
 }
 
 /*

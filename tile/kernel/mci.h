@@ -10,6 +10,8 @@
 #define MCI_COMMAND_PENDING 1 << 9
 #define MCI_COMMAND_ENABLE 1 << 10
 
+#define MCI_STATUS_DATA_BLOCK_END 1 << 10
+
 extern volatile struct mci_registers* mci;
 
 struct mci_registers {
@@ -36,6 +38,8 @@ struct mci_registers {
 };
 
 void mci_init();
+
+char mci_getchar(uint32_t addr);
 
 int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg);
 
