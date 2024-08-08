@@ -16,6 +16,18 @@ void mci_init() {
 }
 
 /*
+  mci_read reads "count" bytes from the SD card at the address "addr" and
+  stores them in the buffer "buf". The number of bytes read is returned.
+*/
+size_t mci_read(uint32_t addr, void* buf, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    ((char*)buf)[i] = mci_getchar(addr + i);
+  }
+
+  return count;
+}
+
+/*
   mci_getchar reads a byte from the SD card at the address "addr". It returns
   the read byte.
 */

@@ -2,6 +2,7 @@
 #define MCI_H
 
 #include <kernel/asm/memory.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define MCI_COMMAND_RESPONSE 1 << 6
@@ -38,6 +39,8 @@ struct mci_registers {
 };
 
 void mci_init();
+
+size_t mci_read(uint32_t addr, void* buf, size_t count);
 
 char mci_getchar(uint32_t addr);
 
