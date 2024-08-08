@@ -28,6 +28,17 @@ size_t mci_read(uint32_t addr, void* buf, size_t count) {
 }
 
 /*
+  mci_write writes "count" bytes from the buffer "buf" to the SD card at the
+  address "addr". The number of bytes written is returned.
+*/
+size_t mci_write(uint32_t addr, const void* buf, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    mci_putchar(addr + i, ((char*)buf)[i]);
+  }
+  return count;
+}
+
+/*
   mci_getchar reads a byte from the SD card at the address "addr". It returns
   the read byte.
 */
@@ -37,6 +48,18 @@ char mci_getchar(uint32_t addr) {
   mci_send_command(17, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
   while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
   return ((char*)mci->fifo)[0];
+}
+
+/*
+  mci_putchar writes a byte "c" to the SD card at the address "addr".
+*/
+int mci_putchar(uint32_t addr, const int c) {
+  mci->data_length = 1;
+  mci->data_ctrl |= 0x1;
+  mci_send_command(24, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
+  ((char*)mci->fifo)[0] = c;
+  while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
+  return c;
 }
 
 /*
