@@ -14,7 +14,7 @@ struct file_info_entry* lookup_file_info(const char* filename) {
     if (entry.type == FT_DIRECTORY) {
       char block[FILE_BLOCK_SIZE];
 
-      mci_read(entry.blocks[0], block, 512);
+      mci_read_block(entry.blocks[0], block);
 
       for (size_t j = (uint32_t)block; j < (uint32_t)block + entry.size; j += 16) {
         size_t number = *(uint16_t*)((char*)j);

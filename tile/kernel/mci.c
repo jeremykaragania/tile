@@ -19,56 +19,44 @@ void mci_init() {
   /* SELECT/DESELECT_CARD */
   mci_send_command(7, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, mci->response[0]);
   /* SET_BLOCKLEN */
-  mci_send_command(16, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 1);
+  mci_send_command(16, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, FILE_BLOCK_SIZE);
 }
 
 /*
-  mci_read reads "count" bytes from the SD card at the address "addr" and
-  stores them in the buffer "buf". The number of bytes read is returned.
+  mci_read_block reads FILE_BLOCK_SIZE bytes from the SD card at the address
+  "addr" and stores them in the buffer "buf". The number of bytes read is
+  returned.
 */
-size_t mci_read(uint32_t addr, void* buf, size_t count) {
-  for (size_t i = 0; i < count; ++i) {
-    ((char*)buf)[i] = mci_getchar(addr + i);
-  }
-
-  return count;
-}
-
-/*
-  mci_write writes "count" bytes from the buffer "buf" to the SD card at the
-  address "addr". The number of bytes written is returned.
-*/
-size_t mci_write(uint32_t addr, const void* buf, size_t count) {
-  for (size_t i = 0; i < count; ++i) {
-    mci_putchar(addr + i, ((char*)buf)[i]);
-  }
-  return count;
-}
-
-/*
-  mci_getchar reads a byte from the SD card at the address "addr". It returns
-  the read byte.
-*/
-char mci_getchar(uint32_t addr) {
-  mci->data_length = 1;
-  mci->data_ctrl |= 0x3;
+size_t mci_read_block(uint32_t addr, void* buf) {
   /* READ_SINGLE_BLOCK */
   mci_send_command(17, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
-  while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
-  return ((char*)mci->fifo)[0];
+  mci->data_length = FILE_BLOCK_SIZE;
+  mci->data_ctrl |= 0x3;
+
+  for (size_t i = 0; i < FILE_BLOCK_SIZE / 4; ++i) {
+    while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
+    ((uint32_t*)buf)[i] = mci->fifo[0];
+  }
+
+  return FILE_BLOCK_SIZE;
 }
 
 /*
-  mci_putchar writes a byte "c" to the SD card at the address "addr".
+  mci_write_block writes FILE_BLOCK_SIZE bytes from the buffer "buf" to the SD
+  card at the address "addr". The number of bytes written is returned.
 */
-int mci_putchar(uint32_t addr, const int c) {
-  mci->data_length = 1;
+size_t mci_write_block(uint32_t addr, const void* buf) {
+  mci->data_length = FILE_BLOCK_SIZE;
   mci->data_ctrl |= 0x1;
   /* WRITE_BLOCK */
   mci_send_command(24, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
-  ((char*)mci->fifo)[0] = c;
-  while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
-  return c;
+
+  for (size_t i = 0; i < FILE_BLOCK_SIZE / 4; ++i) {
+    while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
+    mci->fifo[0] = ((uint32_t*)buf)[i];
+  }
+
+  return FILE_BLOCK_SIZE;
 }
 
 /*

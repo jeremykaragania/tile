@@ -1,6 +1,7 @@
 #ifndef MCI_H
 #define MCI_H
 
+#include <kernel/asm/file.h>
 #include <kernel/asm/memory.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -44,11 +45,8 @@ struct mci_registers {
 
 void mci_init();
 
-size_t mci_read(uint32_t addr, void* buf, size_t count);
-size_t mci_write(uint32_t addr, const void* buf, size_t count);
-
-char mci_getchar(uint32_t addr);
-int mci_putchar(uint32_t addr, const int c);
+size_t mci_read_block(uint32_t addr, void* buf);
+size_t mci_write_block(uint32_t addr, const void* buf);
 
 int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg);
 

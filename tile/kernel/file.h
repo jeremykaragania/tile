@@ -1,6 +1,7 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <kernel/asm/file.h>
 #include <kernel/mci.h>
 #include <lib/string.h>
 #include <stddef.h>
@@ -8,7 +9,6 @@
 
 #define FILE_TABLE_SIZE 32
 #define FILE_INFO_TABLE_SIZE 32
-#define FILE_BLOCK_SIZE 512
 
 /*
   enum file_status represents the status of an operation on a file.
