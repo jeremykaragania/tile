@@ -10,11 +10,17 @@
 #define FILE_INFO_TABLE_SIZE 32
 #define FILE_BLOCK_SIZE 512
 
+/*
+  enum file_status represents the status of an operation on a file.
+*/
 enum file_status {
   FS_READ,
   FS_WRITE
 };
 
+/*
+  enum file_type represents the type of a file.
+*/
 enum file_type {
   FT_REGULAR,
   FT_DIRECTORY,
@@ -23,11 +29,18 @@ enum file_type {
   FT_FIFO
 };
 
+/*
+  struct file_entry represents the information of a file which is currently
+  being accessed.
+*/
 struct file_entry {
   int status;
   size_t offset;
 };
 
+/*
+  struct file_info_entry represents the metadata of a file.
+*/
 struct file_info_entry {
   uint32_t blocks[15];
   int type;

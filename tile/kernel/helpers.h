@@ -3,11 +3,19 @@
 
 extern void value_in_regs();
 
+/*
+  struct signed_divide_return represents the return result of a signed integer
+  division.
+*/
 struct signed_divide_return {
   long long quotient;
   long long remainder;
 };
 
+/*
+  struct unsigned_divide_return represents the return result of an unsigned
+  integer division.
+*/
 struct unsigned_divide_return {
   unsigned long long quotient;
   unsigned long long remainder;

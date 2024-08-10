@@ -13,6 +13,9 @@ extern void* init_process_stack;
 extern struct process init_process;
 extern uint32_t current_stack_pointer();
 
+/*
+  enum process_state represents the state of a process.
+*/
 enum process_state  {
   CREATED,
   READY,
@@ -21,6 +24,9 @@ enum process_state  {
   TERMINATED
 };
 
+/*
+  struct process represents a process.
+*/
 struct process {
   int id;
   int state;

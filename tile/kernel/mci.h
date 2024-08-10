@@ -15,6 +15,10 @@
 
 extern volatile struct mci_registers* mci;
 
+/*
+  struct uart_registers represents the registers of the ARM PrimeCell
+  Multimedia Card Interface (PL181).
+*/
 struct mci_registers {
   uint32_t power;
   uint32_t clock;

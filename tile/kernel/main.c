@@ -10,6 +10,9 @@ extern void disable_interrupts();
 
 char tile_banner[] = "Tile\n";
 
+/*
+  start_kernel sets up the kernel.
+*/
 void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process);

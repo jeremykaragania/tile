@@ -6,12 +6,19 @@ volatile struct mci_registers* mci = (volatile struct mci_registers*)(SMC_CS3_PA
   mci_init initializes the multimedia card interface.
 */
 void mci_init() {
+  /* GO_IDLE_STATE */
   mci_send_command(0, MCI_COMMAND_ENABLE, 0);
+  /* APP_CMD */
   mci_send_command(55, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
+  /* SD_SEND_OP_COND */
   mci_send_command(41, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0x7fffff);
+  /* ALL_SEND_CID */
   mci_send_command(2, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE | MCI_COMMAND_LONG_RSP, 0);
+  /* SEND_RELATIVE_ADDR */
   mci_send_command(3, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
+  /* SELECT/DESELECT_CARD */
   mci_send_command(7, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, mci->response[0]);
+  /* SET_BLOCKLEN */
   mci_send_command(16, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 1);
 }
 
@@ -45,6 +52,7 @@ size_t mci_write(uint32_t addr, const void* buf, size_t count) {
 char mci_getchar(uint32_t addr) {
   mci->data_length = 1;
   mci->data_ctrl |= 0x3;
+  /* READ_SINGLE_BLOCK */
   mci_send_command(17, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
   while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
   return ((char*)mci->fifo)[0];
@@ -56,6 +64,7 @@ char mci_getchar(uint32_t addr) {
 int mci_putchar(uint32_t addr, const int c) {
   mci->data_length = 1;
   mci->data_ctrl |= 0x1;
+  /* WRITE_BLOCK */
   mci_send_command(24, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
   ((char*)mci->fifo)[0] = c;
   while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));

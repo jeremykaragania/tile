@@ -20,6 +20,9 @@
 #define CR_TXE 1 << 8
 #define CR_UARTEN 1 << 0
 
+/*
+  struct uart_registers represents the registers of the PrimeCell UART (PL011).
+*/
 struct uart_registers {
   uint32_t dr;
   uint32_t rsr_ecr;
@@ -39,6 +42,9 @@ struct uart_registers {
   uint32_t dmacr;
 };
 
+/*
+  enum length_modifier represents a format string's length modifiers.
+*/
 enum length_modifier {
   LM_NONE,
   LM_CHAR,
