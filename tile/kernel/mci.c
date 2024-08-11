@@ -23,11 +23,10 @@ void mci_init() {
 }
 
 /*
-  mci_read_block reads FILE_BLOCK_SIZE bytes from the SD card at the address
-  "addr" and stores them in the buffer "buf". The number of bytes read is
-  returned.
+  mci_read reads FILE_BLOCK_SIZE bytes from the SD card at the address "addr"
+  and stores them in the buffer "buf". The number of bytes read is returned.
 */
-size_t mci_read_block(uint32_t addr, void* buf) {
+size_t mci_read(uint32_t addr, void* buf) {
   /* READ_SINGLE_BLOCK */
   mci_send_command(17, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
   mci->data_length = FILE_BLOCK_SIZE;
@@ -42,10 +41,10 @@ size_t mci_read_block(uint32_t addr, void* buf) {
 }
 
 /*
-  mci_write_block writes FILE_BLOCK_SIZE bytes from the buffer "buf" to the SD
-  card at the address "addr". The number of bytes written is returned.
+  mci_write writes FILE_BLOCK_SIZE bytes from the buffer "buf" to the SD card
+  at the address "addr". The number of bytes written is returned.
 */
-size_t mci_write_block(uint32_t addr, const void* buf) {
+size_t mci_write(uint32_t addr, const void* buf) {
   mci->data_length = FILE_BLOCK_SIZE;
   mci->data_ctrl |= 0x1;
   /* WRITE_BLOCK */
