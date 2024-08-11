@@ -15,4 +15,4 @@ tile: $(KERNEL_OBJS) $(LIB_OBJS)
 
 .PHONY: clean
 clean:
-	rm tile $(KERNEL_OBJS)
+	rm tile $(KERNEL_OBJS) $(LIB_OBJS)
