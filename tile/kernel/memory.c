@@ -222,9 +222,8 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
 }
 
 /*
-  memory_alloc allocates a block of "size" bytes aligned to PAGE_SIZE and
-  returns a pointer to its physical address. Memory is allocated adjacent to
-  reserved memory.
+  memory_phys_alloc allocates a block of "size" bytes and returns a pointer to
+  its physical address. Memory is allocated adjacent to reserved memory.
 */
 void* memory_phys_alloc(size_t size) {
   uint64_t a_begin;
@@ -276,9 +275,8 @@ void* memory_phys_alloc(size_t size) {
 }
 
 /*
-  memory_alloc allocates a block of "size" bytes aligned to PAGE_SIZE and
-  returns a pointer to its virtual address. Memory is allocated adjacent to
-  reserved memory.
+  memory_alloc allocates a block of "size" bytes and returns a pointer to its
+  virtual address. Memory is allocated adjacent to reserved memory.
 */
 void* memory_alloc(size_t size) {
   return (uint32_t*)phys_to_virt((uint32_t)memory_phys_alloc(size));
@@ -293,7 +291,7 @@ int memory_free(void* ptr) {
   for (size_t i = 0; i < memory_map.reserved->size; ++i) {
     block = &memory_map.reserved->blocks[i];
 
-    if (block->begin == (uint32_t)ptr) {
+    if (block->begin == virt_to_phys((uint32_t)ptr)) {
       memmove(block, block + 1, (memory_map.reserved->size - i) * sizeof(*block));
       --memory_map.reserved->size;
       return 1;
