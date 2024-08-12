@@ -30,6 +30,20 @@ enum file_type {
 };
 
 /*
+  struct filesystem_info represents the information of a filesystem. It tracks
+  blocks and file information.
+*/
+struct filesystem_info {
+  uint32_t size;
+  uint32_t free_blocks_size;
+  uint32_t free_blocks[32];
+  uint8_t next_free_block;
+  uint32_t free_file_infos_size;
+  uint32_t free_file_infos[32];
+  uint8_t next_free_file_info;
+};
+
+/*
   struct file_entry represents the information of a file which is currently
   being accessed.
 */

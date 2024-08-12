@@ -2,6 +2,7 @@
 
 struct file_entry file_table[FILE_TABLE_SIZE];
 struct file_info_entry file_info_table[FILE_INFO_TABLE_SIZE];
+struct filesystem_info filesystem_info;
 
 /*
   lookup_file_info searches the file information table "file_info_table" by a
