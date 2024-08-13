@@ -5,6 +5,22 @@ struct file_info_entry file_info_table[FILE_INFO_TABLE_SIZE];
 struct filesystem_info filesystem_info;
 
 /*
+  filesystem_init initializes the filesystem. It assumes that the filesystem
+  begins at the beginning address of the SD card.
+*/
+void filesystem_init() {
+  char* block = memory_alloc(FILE_BLOCK_SIZE);
+
+  /*
+    The first block contains information about the filesystem. The memory
+    layout is specified by struct filesystem_info.
+  */
+  mci_read(0, block);
+  filesystem_info = *(struct filesystem_info*)block;
+  memory_free(block);
+}
+
+/*
   lookup_file_info searches the file information table "file_info_table" by a
   filename and returns the file's information.
 */

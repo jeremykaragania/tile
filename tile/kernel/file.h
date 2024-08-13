@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <kernel/asm/file.h>
+#include <kernel/memory.h>
 #include <kernel/mci.h>
 #include <lib/string.h>
 #include <stddef.h>
@@ -60,6 +61,8 @@ struct file_info_entry {
   int type;
   size_t size;
 };
+
+void filesystem_init();
 
 struct file_info_entry* lookup_file_info(const char* name);
 
