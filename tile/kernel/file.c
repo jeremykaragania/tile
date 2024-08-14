@@ -31,7 +31,7 @@ struct file_info_entry* lookup_file_info(const char* filename) {
     if (entry.type == FT_DIRECTORY) {
       char block[FILE_BLOCK_SIZE];
 
-      mci_read(entry.blocks[0] * FILE_BLOCK_SIZE, block);
+      mci_read(FILE_BLOCK_SIZE + entry.blocks[0] * FILE_BLOCK_SIZE, block);
 
       for (size_t j = (uint32_t)block; j < (uint32_t)block + entry.size; j += 16) {
         size_t number = *(uint16_t*)((char*)j);
@@ -45,4 +45,19 @@ struct file_info_entry* lookup_file_info(const char* filename) {
   }
 
   return NULL;
+}
+
+/*
+  file_info_get returns file information from a file information number
+  "file_info_num".
+*/
+struct file_info_entry* file_info_get(uint32_t file_info_num) {
+  char block[FILE_BLOCK_SIZE];
+  struct file_info_entry* ret = memory_alloc(sizeof(struct file_info_entry));
+  uint32_t block_num = file_info_num / FILE_INFO_PER_BLOCK;
+  uint32_t block_offset = sizeof(struct file_info_entry) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
+
+  mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
+  *ret = *(struct file_info_entry*)(block + block_offset);
+  return ret;
 }
