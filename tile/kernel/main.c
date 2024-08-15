@@ -1,5 +1,7 @@
 #include <kernel/asm/memory.h>
 #include <kernel/interrupts.h>
+#include <kernel/file.h>
+#include <kernel/mci.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
 #include <kernel/process.h>
@@ -21,5 +23,7 @@ void start_kernel() {
   update_memory_map();
   init_paging();
   uart_init();
+  mci_init();
+  filesystem_init();
   uart_printf(tile_banner);
 }
