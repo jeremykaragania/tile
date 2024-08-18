@@ -7,18 +7,18 @@
 
 #define UART_CLK 24000000
 #define BAUD_RATE 460800
-#define DR_DATA 255 << 0
-#define FR_TXFE 1 << 7
-#define FR_RXFF 1 << 6
-#define FR_TXFF 1 << 5
-#define FR_RXFE 1 << 4
-#define FR_BUSY 1 << 3
-#define LCR_H_WLEN 3 << 5
-#define LCR_H_FEN 1 << 4
-#define LCR_H_STP2 1 << 3
-#define CR_RXE 1 << 9
-#define CR_TXE 1 << 8
-#define CR_UARTEN 1 << 0
+#define DR_DATA (255 << 0)
+#define FR_TXFE (1 << 7)
+#define FR_RXFF (1 << 6)
+#define FR_TXFF (1 << 5)
+#define FR_RXFE (1 << 4)
+#define FR_BUSY (1 << 3)
+#define LCR_H_WLEN (3 << 5)
+#define LCR_H_FEN (1 << 4)
+#define LCR_H_STP2 (1 << 3)
+#define CR_RXE (1 << 9)
+#define CR_TXE (1 << 8)
+#define CR_UARTEN (1 << 0)
 
 /*
   struct uart_registers represents the registers of the PrimeCell UART (PL011).

@@ -6,13 +6,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MCI_COMMAND_RESPONSE 1 << 6
-#define MCI_COMMAND_LONG_RSP 1 << 7
-#define MCI_COMMAND_INTERRUPT 1 << 8
-#define MCI_COMMAND_PENDING 1 << 9
-#define MCI_COMMAND_ENABLE 1 << 10
+#define MCI_COMMAND_RESPONSE (1 << 6)
+#define MCI_COMMAND_LONG_RSP (1 << 7)
+#define MCI_COMMAND_INTERRUPT (1 << 8)
+#define MCI_COMMAND_PENDING (1 << 9)
+#define MCI_COMMAND_ENABLE (1 << 10)
 
-#define MCI_STATUS_DATA_BLOCK_END 1 << 10
+#define MCI_STATUS_DATA_BLOCK_END (1 << 10)
 
 extern volatile struct mci_registers* mci;
 
