@@ -52,11 +52,23 @@ struct file_info_entry* lookup_file_info(const char* filename) {
   "file_info_num".
 */
 struct file_info_entry* file_info_get(uint32_t file_info_num) {
-  char* block = memory_alloc(FILE_BLOCK_SIZE);
-  struct file_info_entry* ret = memory_alloc(sizeof(struct file_info_entry));
-  uint32_t block_num = file_info_num / FILE_INFO_PER_BLOCK;
+  char* block = NULL;
+  struct file_info_entry* ret = NULL;
+  uint32_t block_num = (file_info_num - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_entry) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
 
+  for (size_t i = 0; i < FILE_INFO_TABLE_SIZE; ++i) {
+    if (!file_info_table[i].type) {
+      ret = &file_info_table[i];
+      break;
+    }
+  }
+
+  if (ret == NULL) {
+    return NULL;
+  }
+
+  block = memory_alloc(FILE_BLOCK_SIZE);
   mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
   *ret = *(struct file_info_entry*)(block + block_offset);
   memory_free(block);

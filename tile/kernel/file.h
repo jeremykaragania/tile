@@ -27,7 +27,7 @@ enum file_status {
   enum file_type represents the type of a file.
 */
 enum file_type {
-  FT_REGULAR,
+  FT_REGULAR = 1,
   FT_DIRECTORY,
   FT_CHARACTER,
   FT_BLOCK,
