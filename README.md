@@ -11,7 +11,7 @@ git clone https://github.com/jeremykaragania/tile.git
 cd tile
 qemu-img create file 2M
 make
-qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -sd file -kernel tile -nographic
+qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -drive if=sd,driver=file,filename=file -kernel tile -nographic
 ```
 
 ## License
