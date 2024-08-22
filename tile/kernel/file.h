@@ -10,7 +10,7 @@
 
 #define FILE_TABLE_SIZE 32
 #define FILE_INFO_TABLE_SIZE 32
-#define FILE_INFO_PER_BLOCK FILE_BLOCK_SIZE / sizeof(struct file_info_entry)
+#define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_entry))
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 
 extern struct filesystem_info filesystem_info;
