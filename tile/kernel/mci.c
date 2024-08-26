@@ -30,7 +30,7 @@ size_t mci_read(uint32_t addr, void* buf) {
   /* READ_SINGLE_BLOCK */
   mci_send_command(17, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
   mci->data_length = FILE_BLOCK_SIZE;
-  mci->data_ctrl |= 0x3;
+  mci->data_ctrl = 0x3;
 
   for (size_t i = 0; i < FILE_BLOCK_SIZE / 4; ++i) {
     while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
@@ -45,15 +45,14 @@ size_t mci_read(uint32_t addr, void* buf) {
   at the address "addr". The number of bytes written is returned.
 */
 size_t mci_write(uint32_t addr, const void* buf) {
-  mci->data_length = FILE_BLOCK_SIZE;
-  mci->data_ctrl |= 0x1;
   /* WRITE_BLOCK */
   mci_send_command(24, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, addr);
+  mci->data_length = FILE_BLOCK_SIZE;
+  mci->data_ctrl = 0x1;
 
   for (size_t i = 0; i < FILE_BLOCK_SIZE / 4; ++i) {
     while (!(mci->status & MCI_STATUS_DATA_BLOCK_END));
-    mci->fifo[15] = ((uint32_t*)buf)[i];
-    mci->fifo[0];
+    mci->fifo[0] = ((uint32_t*)buf)[i];
   }
 
   return FILE_BLOCK_SIZE;
