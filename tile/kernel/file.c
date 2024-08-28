@@ -74,3 +74,18 @@ struct file_info_entry* file_info_get(uint32_t file_info_num) {
   memory_free(block);
   return ret;
 }
+
+/*
+  file_info put writes the file information "file_info" to the SD card.
+*/
+void file_info_put(const struct file_info_entry* file_info) {
+  char* block = NULL;
+  uint32_t block_num = (file_info->number - 1) / FILE_INFO_PER_BLOCK;
+  uint32_t block_offset = sizeof(struct file_info_entry) * ((file_info->number - 1) % FILE_INFO_PER_BLOCK);
+
+  block = memory_alloc(FILE_BLOCK_SIZE);
+  mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
+  *(struct file_info_entry*)(block + block_offset) = *file_info;
+  mci_write(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
+  memory_free(block);
+}

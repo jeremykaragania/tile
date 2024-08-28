@@ -63,6 +63,7 @@ struct file_entry {
   struct file_info_entry represents the metadata of a file.
 */
 struct file_info_entry {
+  uint32_t number;
   uint32_t blocks[15];
   int type;
   size_t size;
@@ -73,5 +74,6 @@ void filesystem_init();
 struct file_info_entry* lookup_file_info(const char* name);
 
 struct file_info_entry* file_info_get(uint32_t num);
+void file_info_put(const struct file_info_entry* entry);
 
 #endif
