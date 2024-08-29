@@ -8,9 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define FILE_TABLE_SIZE 32
-#define FILE_INFO_TABLE_SIZE 32
-#define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_entry))
+#define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 
 extern struct filesystem_info filesystem_info;
@@ -36,7 +34,7 @@ enum file_type {
 
 /*
   struct filesystem_info represents the information of a filesystem. It is
-  always the first block of the filesystem and tracks blocks and file
+  always the first block of the filesystem and tracks blocks and external file
   information.
 */
 struct filesystem_info {
@@ -51,29 +49,31 @@ struct filesystem_info {
 };
 
 /*
-  struct file_entry represents the information of a file which is currently
-  being accessed.
+  struct file_info_ext represents external file information for file
+  information that is in secondary memory.
 */
-struct file_entry {
-  int status;
-  size_t offset;
-};
-
-/*
-  struct file_info_entry represents the metadata of a file.
-*/
-struct file_info_entry {
-  uint32_t number;
+struct file_info_ext {
+  uint32_t num;
   uint32_t blocks[15];
   int type;
   size_t size;
 };
 
+/*
+  struct file_info_int represents internal file information for file
+  information that is in primary memory.
+*/
+struct file_info_int {
+  struct file_info_ext ext;
+  int status;
+  size_t offset;
+  struct file_info_int* next;
+  struct file_info_int* prev;
+};
+
 void filesystem_init();
 
-struct file_info_entry* lookup_file_info(const char* name);
-
-struct file_info_entry* file_info_get(uint32_t num);
-void file_info_put(const struct file_info_entry* entry);
+struct file_info_int* file_info_get(uint32_t file_info_num);
+void file_info_put(const struct file_info_int* file_info);
 
 #endif
