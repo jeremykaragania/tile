@@ -54,7 +54,7 @@ struct file_info_entry* lookup_file_info(const char* filename) {
 struct file_info_entry* file_info_get(uint32_t file_info_num) {
   char* block = NULL;
   struct file_info_entry* ret = NULL;
-  uint32_t block_num = (file_info_num - 1) / FILE_INFO_PER_BLOCK;
+  uint32_t block_num = 1 + (file_info_num - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_entry) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
 
   for (size_t i = 0; i < FILE_INFO_TABLE_SIZE; ++i) {
@@ -80,7 +80,7 @@ struct file_info_entry* file_info_get(uint32_t file_info_num) {
 */
 void file_info_put(const struct file_info_entry* file_info) {
   char* block = NULL;
-  uint32_t block_num = (file_info->number - 1) / FILE_INFO_PER_BLOCK;
+  uint32_t block_num = 1 + (file_info->number - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_entry) * ((file_info->number - 1) % FILE_INFO_PER_BLOCK);
 
   block = memory_alloc(FILE_BLOCK_SIZE);
