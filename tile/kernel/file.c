@@ -1,13 +1,17 @@
 #include <kernel/file.h>
 
 struct filesystem_info filesystem_info;
+struct file_info_int* file_info_cache;
+struct file_info_int free_file_infos;
 
 /*
-  filesystem_init initializes the filesystem. It assumes that the filesystem
-  begins at the beginning address of the SD card.
+  filesystem_init initializes the filesystem and the relevant structures used
+  by the kernel. It assumes that the filesystem begins at the beginning address
+  of the SD card.
 */
 void filesystem_init() {
   char* block = memory_alloc(FILE_BLOCK_SIZE);
+  struct file_info_int* curr;
 
   /*
     The first block contains information about the filesystem. The memory
@@ -16,6 +20,27 @@ void filesystem_init() {
   mci_read(0, block);
   filesystem_info = *(struct filesystem_info*)block;
   memory_free(block);
+
+  /*
+    Initialize the file information cache and the free file information list.
+  */
+  file_info_cache = memory_alloc(FILE_INFO_CACHE_SIZE);
+  free_file_infos.next = &file_info_cache[0];
+  free_file_infos.prev = &file_info_cache[FILE_INFO_CACHE_SIZE - 1];
+
+  curr = free_file_infos.next;
+
+  for (size_t i = 0; i < FILE_INFO_CACHE_SIZE; ++i) {
+    if (i == FILE_INFO_CACHE_SIZE - 1) {
+      curr->next = &free_file_infos;
+    }
+    else {
+      curr->next = &file_info_cache[i + 1];
+    }
+
+    curr->prev = &file_info_cache[i - 1];
+    curr = curr->next;
+  }
 }
 
 /*

@@ -9,9 +9,22 @@
 #include <stdint.h>
 
 #define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
+#define FILE_INFO_CACHE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 
 extern struct filesystem_info filesystem_info;
+
+/*
+  "file_info_cache" is a cache for internal file information. It is the memory
+  backing all internal file information read from secondary memory.
+*/
+extern struct file_info_int* file_info_cache;
+
+/*
+  "free_file_infos" is a doubly linked list which stores the internal file
+  information in "file_info_cache" which are not being used.
+*/
+extern struct file_info_int free_file_infos;
 
 /*
   enum file_status represents the status of an operation on a file.
