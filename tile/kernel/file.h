@@ -63,7 +63,7 @@ struct filesystem_info {
 
 /*
   struct file_info_ext represents external file information for file
-  information that is in secondary memory.
+  information that is in secondary memory. They are like UNIX disk inodes.
 */
 struct file_info_ext {
   uint32_t num;
@@ -74,7 +74,7 @@ struct file_info_ext {
 
 /*
   struct file_info_int represents internal file information for file
-  information that is in primary memory.
+  information that is in primary memory. They are like UNIX in-core inodes.
 */
 struct file_info_int {
   struct file_info_ext ext;
