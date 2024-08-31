@@ -19,8 +19,6 @@ SECTIONS {
       kernel/asm/main.o(.turn_mmu_on)
     }
 
-    /*. = ALIGN(0x100000);*/
-
     /*
       Text section.
     */
