@@ -6,8 +6,9 @@
 #include <kernel/uart.h>
 #include <stdint.h>
 
-extern uint32_t pgd_index(uint32_t addr);
-extern uint32_t pmd_index(uint32_t addr);
+#define pgd_index(addr) (4 * (addr >> PG_DIR_SHIFT))
+#define pmd_index(addr) (4 * ((addr & PAGE_MASK) >> PAGE_SHIFT))
+
 extern void invalidate_entire_tlb();
 
 void init_paging();

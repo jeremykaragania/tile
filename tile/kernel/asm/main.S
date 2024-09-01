@@ -9,6 +9,12 @@ turn_mmu_on:
   ldr r0, =mmap_switched
   bx r0
 .section .text
+pgd_index:
+  ldr r1, =PG_DIR_SHIFT
+  lsr r0, r0, r1
+  mov r1, #0x4
+  mul r0, r0, r1
+  bx lr
 /*
   phys_to_virt returns a virtual address from a physical address "x".
 */
