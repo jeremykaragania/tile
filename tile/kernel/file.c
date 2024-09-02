@@ -76,3 +76,30 @@ void file_info_put(const struct file_info_int* file_info) {
   mci_write(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
   memory_free(block);
 }
+
+/*
+  free_file_infos_push adds an element "file_info" to the free file information
+  list.
+*/
+void free_file_infos_push(struct file_info_int* file_info) {
+  file_info->next = free_file_infos.next;
+  file_info->prev = &free_file_infos;
+  free_file_infos.next->prev = file_info;
+  free_file_infos.next = file_info;
+}
+
+/*
+  free_file_infos_pop removes the first element of the free file information
+  list and returns it.
+*/
+struct file_info_int* free_file_infos_pop() {
+  struct file_info_int* ret = free_file_infos.next;
+
+  if (ret == &free_file_infos) {
+    return NULL;
+  }
+
+  free_file_infos.next = ret->next;
+  ret->next->prev = &free_file_infos;
+  return ret;
+}

@@ -89,4 +89,7 @@ void filesystem_init();
 struct file_info_int* file_info_get(uint32_t file_info_num);
 void file_info_put(const struct file_info_int* file_info);
 
+void free_file_infos_push(struct file_info_int* file_info);
+struct file_info_int* free_file_infos_pop();
+
 #endif
