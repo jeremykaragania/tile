@@ -54,7 +54,12 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
   uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
 
   block = memory_alloc(FILE_BLOCK_SIZE);
-  ret = memory_alloc(sizeof(struct file_info_int));
+  ret = free_file_infos_pop();
+
+  if (ret == NULL) {
+    return NULL;
+  }
+
   mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
   ret->ext = *(struct file_info_ext*)(block + block_offset);
   memory_free(block);
