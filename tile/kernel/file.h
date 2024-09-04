@@ -46,6 +46,15 @@ enum file_type {
 };
 
 /*
+  enum_file_access represents the access permissions of a file.
+*/
+enum file_access {
+  F_READ,
+  F_WRITE,
+  F_EXECUTE
+};
+
+/*
   struct filesystem_info represents the information of a filesystem. It is
   always the first block of the filesystem and tracks blocks and external file
   information.
