@@ -9,8 +9,8 @@ git clone https://github.com/jeremykaragania/tile.git
 ## Usage
 ```bash
 cd tile
-qemu-img create file 2M
 make
+./mkfs file 4096
 qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -drive if=sd,driver=file,filename=file -kernel tile -nographic
 ```
 
