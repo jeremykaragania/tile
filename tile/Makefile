@@ -1,17 +1,28 @@
 HOST = arm-none-eabi
-CC = $(HOST)-gcc
-CFLAGS = -std=c99 -ffreestanding -Wpedantic -Wall -I.
-AS = $(HOST)-as
-ASFLAGS = -mcpu=cortex-a15 -I.
-LD = $(HOST)-ld
-LDFLAGS = -Ttile.ld
+CC = gcc
+CFLAGS = -std=c99 -Wpedantic -Wall -I.
+AS = as
+ASFLAGS = -I.
+LD = ld
+
+tile lib: CC := $(HOST)-$(CC)
+tile lib: CFLAGS := $(CFLAGS) -ffreestanding
+tile lib: AS := $(HOST)-$(AS)
+tile lib: ASFLAGS := $(ASFLAGS) -mcpu=cortex-a15
+tile lib: LD := $(HOST)-$(LD)
+tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld
+
+%: CFLAGS := $(CFLAGS)
+
 KERNEL_DIR = kernel
 LIB_DIR = lib
+TOOLS_DIR = tools
 KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o file.o helpers.o interrupts.o main.o mci.o memory.o page.o process.o uart.o)
 LIB_OBJS = $(addprefix $(LIB_DIR)/, string.o)
+TOOLS_OBJS = mkfs
 
 .PHONY: all
-all: tile lib
+all: tile lib tools
 
 tile: $(KERNEL_OBJS) $(LIB_OBJS)
 	$(LD) $^ -o$@ $(LDFLAGS)
@@ -19,6 +30,12 @@ tile: $(KERNEL_OBJS) $(LIB_OBJS)
 .PHONY: lib
 lib: $(LIB_OBJS)
 
+.PHONY: tools
+tools: $(TOOLS_OBJS)
+
+%: $(TOOLS_DIR)/%/main.c
+	$(CC) $^ -o$@ $(CFLAGS)
+
 .PHONY: clean
 clean:
-	rm tile $(KERNEL_OBJS) $(LIB_OBJS)
+	rm tile $(KERNEL_OBJS) $(LIB_OBJS) $(TOOLS_OBJS)
