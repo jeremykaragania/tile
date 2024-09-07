@@ -77,8 +77,8 @@ struct filesystem_info {
 struct file_info_ext {
   uint32_t num;
   uint32_t blocks[15];
-  int type;
-  size_t size;
+  int32_t type;
+  uint32_t size;
 };
 
 /*
