@@ -28,7 +28,6 @@ void map_vector_table();
 void map_smc();
 
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
-
 int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr);
 uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr);
 
@@ -37,6 +36,7 @@ uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr);
 uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr);
 void pmd_clear(uint32_t* pgd, uint32_t addr);
 void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags);
+void page_bitmap_insert(uint32_t v_addr, uint32_t size);
 
 int pmd_is_page_table(uint32_t* pmd);
 uint32_t* pmd_to_page_table(uint32_t* pmd);

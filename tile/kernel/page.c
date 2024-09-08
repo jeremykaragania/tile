@@ -34,12 +34,12 @@ void init_pgd() {
   memory sections.
 */
 void map_kernel() {
+  /*Map the memory after the ".text" section. */
+  create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin, BLOCK_RW);
   /* Map the memory before the ".text" section. */
   create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR), BLOCK_RW);
   /* Map the memory in the ".text" section. */
   create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
-  /*Map the memory after the ".text" section. */
-  create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin, BLOCK_RW);
 }
 
 /*
@@ -86,6 +86,8 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
       *pmd = create_pmd_section(j, flags);
     }
   }
+
+  page_bitmap_insert(v_addr, size);
 }
 
 /*
@@ -192,6 +194,16 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags) {
 
   offset = pmd_offset(pmd, v_addr);
   *offset = create_pte(p_addr, flags);
+}
+
+/*
+  page_bitmap_insert inserts a mapping from the virtual address "v_addr"
+  spanning "size" bytes into the page bitmap.
+*/
+void page_bitmap_insert(uint32_t v_addr, uint32_t size) {
+  for (uint32_t i = v_addr; i < v_addr + size; i += PAGE_SIZE) {
+    page_bitmap[page_bitmap_index(i)] |= 1 << page_bitmap_index_index(i);
+  }
 }
 
 /*
