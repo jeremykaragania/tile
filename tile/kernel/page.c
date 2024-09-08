@@ -1,5 +1,7 @@
 #include <kernel/page.h>
 
+uint32_t page_bitmap[PAGE_BITMAP_SIZE];
+
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
 */

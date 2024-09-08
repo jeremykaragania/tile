@@ -6,8 +6,17 @@
 #include <kernel/uart.h>
 #include <stdint.h>
 
-#define pgd_index(addr) (4 * (addr >> PG_DIR_SHIFT))
-#define pmd_index(addr) (4 * ((addr & PAGE_MASK) >> PAGE_SHIFT))
+#define PAGE_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
+
+#define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
+#define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
+#define pgd_index(addr) (4 * pgd_index_abs(addr))
+#define pmd_index(addr) (4 * pmd_index_abs(addr))
+#define page_index(addr) (pgd_index_abs(addr) * PAGE_SIZE + pmd_index_abs(addr))
+#define page_bitmap_index(addr) (page_index(addr) / 32)
+#define page_bitmap_index_index(addr) (pmd_index_abs(addr) % 32)
+
+extern uint32_t page_bitmap[PAGE_BITMAP_SIZE];
 
 extern void invalidate_entire_tlb();
 
