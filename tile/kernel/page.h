@@ -15,6 +15,7 @@
 #define page_index(addr) (pgd_index_abs(addr) * PAGES_PER_PAGE_TABLE + pmd_index_abs(addr))
 #define page_bitmap_index(addr) (page_index(addr) / 32)
 #define page_bitmap_index_index(addr) (pmd_index_abs(addr) % 32)
+#define page_bitmap_to_addr(i, j) (i * PAGE_SIZE * 32 + PAGE_SIZE * j)
 
 extern uint32_t page_bitmap[PAGE_BITMAP_SIZE];
 
@@ -26,6 +27,9 @@ void init_pgd();
 void map_kernel();
 void map_vector_table();
 void map_smc();
+
+uint32_t* page_alloc(int flags);
+int page_free(uint32_t* addr);
 
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr);

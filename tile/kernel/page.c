@@ -61,6 +61,37 @@ void map_smc() {
 }
 
 /*
+  page_alloc allocates a page in kernel space with the flags "flags" and
+  returns a pointer to it.
+*/
+uint32_t* page_alloc(int flags) {
+  uint32_t* addr = NULL;
+
+  /* We begin seaching in kernel space. */
+  for (size_t i = page_bitmap_index(phys_to_virt(KERNEL_SPACE_PADDR)); i < PAGE_BITMAP_SIZE; ++i) {
+    for (size_t j = 0; j < 32; ++j) {
+      /* The page is free. */
+      if (!(page_bitmap[i] & (1 << j))) {
+        addr = (uint32_t*)page_bitmap_to_addr(i, j);
+        create_mapping((uint32_t)addr, virt_to_phys((uint32_t)addr), PAGE_SIZE, flags);
+        return addr;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/*
+  page_free unmaps the page which "addr" points to.
+*/
+int page_free(uint32_t* addr) {
+  page_bitmap[page_bitmap_index((uint32_t)addr)] &= ~(1 << page_bitmap_index_index((uint32_t)addr));
+  pte_clear(pgd_offset(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
+  return 1;
+}
+
+/*
   create_mapping creates a linear mapping from the virtual address "v_addr" to
   the physical address "p_addr" spanning "size" bytes with the memory flags
   "flags".
