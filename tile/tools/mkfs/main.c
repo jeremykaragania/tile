@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   info.free_blocks_size = FILESYSTEM_INFO_CACHE_SIZE;
   memset(info.free_blocks_cache, 0, sizeof(info.free_blocks_cache[0]) * FILESYSTEM_INFO_CACHE_SIZE);
   info.next_free_block = 0;
-  info.file_infos_size = 0;
+  info.file_infos_size = (blocks_count - 1) / 2 * FILE_INFO_PER_BLOCK;
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
   memset(info.free_file_infos_cache, 0, sizeof(info.free_file_infos_cache[0]) * FILESYSTEM_INFO_CACHE_SIZE);
   info.next_free_file_info = 0;
