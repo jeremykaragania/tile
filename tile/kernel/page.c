@@ -86,7 +86,7 @@ uint32_t* page_alloc(int flags) {
   page_free unmaps the page which "addr" points to.
 */
 int page_free(uint32_t* addr) {
-  page_bitmap[page_bitmap_index((uint32_t)addr)] &= ~(1 << page_bitmap_index_index((uint32_t)addr));
+  page_bitmap_clear(addr);
   pte_clear(pgd_offset(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
   return 1;
 }
@@ -223,6 +223,14 @@ void pte_clear(uint32_t* pmd, uint32_t addr) {
 
   offset = pmd_offset(pmd, addr);
   *offset = 0x0;
+}
+
+/*
+  page_bitmap_clear clears a page table entry from a virtual address "addr" in the
+  page bitmap.
+*/
+void page_bitmap_clear(uint32_t* addr) {
+  page_bitmap[page_bitmap_index((uint32_t)addr)] &= ~(1 << page_bitmap_index_index((uint32_t)addr));
 }
 
 /*
