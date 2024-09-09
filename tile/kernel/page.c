@@ -184,6 +184,17 @@ void pmd_clear(uint32_t* pgd, uint32_t addr) {
 }
 
 /*
+  pte_clear clears a page table entry from a virtual address "addr" in the page
+  middle directory "pmd".
+*/
+void pte_clear(uint32_t* pmd, uint32_t addr) {
+  uint32_t* offset;
+
+  offset = pmd_offset(pmd, addr);
+  *offset = 0x0;
+}
+
+/*
   pmd_insert inserts a page table entry into a page middle directory "pmd". The
   page table entry is specified by which physical address "p_addr" it maps to
   which virtual address "v_addr" and its memory flags "flags". If a page table
