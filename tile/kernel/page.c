@@ -18,14 +18,21 @@ void init_paging() {
   entries which are not used by the kernel.
 */
 void init_pgd() {
+  /* Reserve all the pages in the page bitmap. */
+  for (size_t i = 0; i < PAGE_BITMAP_SIZE; ++i) {
+    page_bitmap[i] = 0xffffffff;
+  }
+
   /* Clear page table entries below the kernel. */
-  for (size_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
+  for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
+    page_bitmap_clear((uint32_t*)i);
   }
 
   /* Clear page table entries above the kernel. */
-  for (size_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
+  for (uint32_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
+    page_bitmap_clear((uint32_t*)i);
   }
 }
 
