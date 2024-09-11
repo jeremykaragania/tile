@@ -129,41 +129,11 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
 }
 
 /*
-  mapping_exists checks for the existance of a virtual address "v_addr" mapping
-  to the physical address "p_addr.
+  addr_is_mapped checks if the the virtual address "addr" is mapped to a
+  physical address.
 */
-int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr) {
-  uint32_t entry = pgd_walk(pgd, v_addr);
-  uint32_t* pmd = pgd_offset(pgd, v_addr);
-  uint32_t addr_begin;
-  uint32_t addr_size;
-
-  if (pmd_is_page_table(pmd)) {
-    addr_begin = pte_to_addr(entry);
-    addr_size = PAGE_SIZE;
-  }
-  else {
-    addr_begin = pmd_section_to_addr(entry);
-    addr_size = PMD_SIZE;
-  }
-
-  p_addr = ALIGN(p_addr, addr_size);
-  return p_addr >= addr_begin && p_addr <= addr_begin + addr_size;
-}
-
-/*
-  pgd_walk walks the page global directory as far as it can from the virtual
-  address "v_addr" and returns the entry where translation stops. It returns
-  either a section entry or a page entry.
-*/
-uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr) {
-  uint32_t* entry = pgd_offset(pgd, v_addr);
-
-  if (pmd_is_page_table(entry)) {
-    entry = pmd_offset(entry, v_addr);
-  }
-
-  return *entry;
+int addr_is_mapped(uint32_t* addr) {
+  return (page_bitmap[page_bitmap_index((uint32_t)addr)] & 1 << page_bitmap_index_index((uint32_t)addr)) != 0;
 }
 
 /*
@@ -201,7 +171,7 @@ uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
   pmd = memory_alloc(PAGE_TABLE_SIZE);
 
   /* Sometimes the pointer to the newly allocated memory isn't mapped. */
-  if (!mapping_exists(pgd, (uint32_t)pmd, virt_to_phys((uint32_t)pmd))) {
+  if (!addr_is_mapped(pgd)) {
     create_mapping((uint32_t)pmd, virt_to_phys((uint32_t)pmd), PAGE_SIZE, BLOCK_RWX);
   }
 

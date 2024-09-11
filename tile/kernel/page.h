@@ -32,8 +32,7 @@ uint32_t* page_alloc(int flags);
 int page_free(uint32_t* addr);
 
 void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
-int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr);
-uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr);
+int addr_is_mapped(uint32_t* addr);
 
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr);
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr);
