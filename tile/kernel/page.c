@@ -171,7 +171,7 @@ uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
   pmd = memory_alloc(PAGE_TABLE_SIZE);
 
   /* Sometimes the pointer to the newly allocated memory isn't mapped. */
-  if (!addr_is_mapped(pgd)) {
+  if (!addr_is_mapped(pmd)) {
     create_mapping((uint32_t)pmd, virt_to_phys((uint32_t)pmd), PAGE_SIZE, BLOCK_RWX);
   }
 
