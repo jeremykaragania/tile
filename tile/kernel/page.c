@@ -4,6 +4,8 @@ uint32_t page_bitmap[PAGE_BITMAP_SIZE];
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
+  Currently the kernel is mapped using 1MB sections. These sections are
+  replaced with 4KB small pages where required.
 */
 void init_paging() {
   init_pgd();
@@ -138,10 +140,9 @@ int addr_is_mapped(uint32_t* addr) {
 
 /*
   pgd_offset returns the address of a page middle directory from a virtual
-  address "addr", and the base address of a page global directory "pgd". In
-  ARMv7-A parlance, it returns the address of a page table first-level
-  descriptor from a virtual address "addr", and a translation table base,
-  "pgd".
+  address "addr", and the base address of a page global directory "pgd". It
+  returns the address of a page table first-level descriptor from a virtual
+  address "addr", and a translation table base, "pgd".
 */
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
   return (uint32_t*)((uint32_t)pgd + (uint32_t)pgd_index(addr));
@@ -149,9 +150,9 @@ uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
 
 /*
   pmd_offset returns the address of a page table entry from a virtual address
-  "addr", and the base address of a page middle directory "pmd". In ARMv7-A
-  parlance, it returns the address of a small page second-level descriptor from
-  a virtual address, "addr" and a page table base address, "pmd".
+  "addr", and the base address of a page middle directory "pmd". It returns the
+  address of a small page second-level descriptor from a virtual address,
+  "addr" and a page table base address, "pmd".
 */
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
   pmd = pmd_to_page_table(pmd);
