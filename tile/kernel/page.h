@@ -39,7 +39,7 @@ uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr);
 uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr);
 void pmd_clear(uint32_t* pgd, uint32_t addr);
 void pte_clear(uint32_t* pmd, uint32_t addr);
-void page_bitmap_clear(uint32_t* addr);
+void page_bitmap_clear(uint32_t addr);
 void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags);
 void page_bitmap_insert(uint32_t v_addr, uint32_t size);
 
