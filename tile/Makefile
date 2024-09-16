@@ -17,7 +17,7 @@ tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld
 KERNEL_DIR = kernel
 LIB_DIR = lib
 TOOLS_DIR = tools
-KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o file.o helpers.o interrupts.o main.o mci.o memory.o page.o process.o uart.o)
+KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o buffer.o file.o helpers.o interrupts.o main.o mci.o memory.o page.o process.o uart.o)
 LIB_OBJS = $(addprefix $(LIB_DIR)/, string.o)
 TOOLS_OBJS = mkfs
 
