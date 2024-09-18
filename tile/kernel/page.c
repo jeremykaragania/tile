@@ -1,6 +1,6 @@
 #include <kernel/page.h>
 
-uint32_t virt_bitmap[PAGE_BITMAP_SIZE];
+uint32_t virt_bitmap[VIRT_BITMAP_SIZE];
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
@@ -21,7 +21,7 @@ void init_paging() {
 */
 void init_pgd() {
   /* Reserve all the pages in the virtual bitmap. */
-  for (size_t i = 0; i < PAGE_BITMAP_SIZE; ++i) {
+  for (size_t i = 0; i < VIRT_BITMAP_SIZE; ++i) {
     virt_bitmap[i] = 0xffffffff;
   }
 
@@ -77,7 +77,7 @@ uint32_t* page_alloc(int flags) {
   uint32_t* addr = NULL;
 
   /* We begin seaching in kernel space. */
-  for (size_t i = virt_bitmap_index(phys_to_virt(KERNEL_SPACE_PADDR)); i < PAGE_BITMAP_SIZE; ++i) {
+  for (size_t i = virt_bitmap_index(phys_to_virt(KERNEL_SPACE_PADDR)); i < VIRT_BITMAP_SIZE; ++i) {
     for (size_t j = 0; j < 32; ++j) {
       /* The page is free. */
       if (!(virt_bitmap[i] & (1 << j))) {

@@ -6,7 +6,7 @@
 #include <kernel/uart.h>
 #include <stdint.h>
 
-#define PAGE_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
+#define VIRT_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
 
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
@@ -17,7 +17,7 @@
 #define virt_bitmap_index_index(addr) (pmd_index_abs(addr) % 32)
 #define virt_bitmap_to_addr(i, j) (i * PAGE_SIZE * 32 + PAGE_SIZE * j)
 
-extern uint32_t virt_bitmap[PAGE_BITMAP_SIZE];
+extern uint32_t virt_bitmap[VIRT_BITMAP_SIZE];
 
 extern void invalidate_entire_tlb();
 
