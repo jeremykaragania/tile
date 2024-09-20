@@ -32,7 +32,7 @@ void init_pgd() {
   }
 
   /* Clear page table entries above the kernel. */
-  for (uint32_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
+  for (uint32_t i = ALIGN(memory_manager.bss_end, PMD_SIZE); i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
     virt_bitmap_clear(i);
   }
