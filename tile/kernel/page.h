@@ -12,10 +12,6 @@
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
-#define page_index(addr) (pgd_index_abs(addr) * PAGES_PER_PAGE_TABLE + pmd_index_abs(addr))
-#define virt_bitmap_index(addr) (page_index(addr) / 32)
-#define virt_bitmap_index_index(addr) (pmd_index_abs(addr) % 32)
-#define virt_bitmap_to_addr(i, j) (i * PAGE_SIZE * 32 + PAGE_SIZE * j)
 
 extern uint32_t virt_bitmap[VIRT_BITMAP_SIZE];
 

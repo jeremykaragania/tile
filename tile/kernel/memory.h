@@ -11,6 +11,9 @@
 
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
+#define bitmap_index(addr) (addr / PAGE_SIZE / 32)
+#define bitmap_index_index(addr) (addr / PAGE_SIZE % 32)
+#define bitmap_to_addr(i, j) (i * PAGE_SIZE * 32 + PAGE_SIZE * j)
 
 const extern uint32_t* PHYS_OFFSET;
 const extern uint32_t* VIRT_OFFSET;
