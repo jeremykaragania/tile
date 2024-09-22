@@ -112,6 +112,42 @@ void memory_map_mask_block(struct memory_map_block* block, int flag, int mask) {
 }
 
 /*
+  memory_map_merge_blocks merges the blocks in "group" from "begin" to "end".
+*/
+void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end) {
+  size_t merged = 0;
+  struct memory_map_block* a = &group->blocks[begin];
+  struct memory_map_block* b;
+  size_t a_end;
+  size_t b_end;
+
+  /*
+    We have two blocks to consider: "a": the block we try to merge into; and
+    "b": the block after "a".
+  */
+  for (size_t i = begin+1; i < end; ++i) {
+    b = &group->blocks[i];
+    a_end = a->begin + a->size - 1;
+    b_end = b->begin + b->size - 1;
+
+    if (a_end > b->begin) {
+      if (a_end < b_end) {
+        a->size = b_end - a->begin;
+      }
+
+      group->blocks[i] = group->blocks[i+1];
+      ++merged;
+    }
+    else {
+      a = b;
+    }
+
+  }
+
+  group->size -= merged;
+}
+
+/*
   memory_map_insert_block inserts a block into "group" at "pos". The block is
   specified by "begin" and "size".
 */
@@ -155,6 +191,8 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
 
     memory_map_insert_block(group, pos, begin, size);
   }
+
+  memory_map_merge_blocks(group, 0, group->size);
 }
 
 /*
