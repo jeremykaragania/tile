@@ -253,12 +253,13 @@ void* memory_phys_alloc(size_t size) {
       r = &memory_map.reserved->blocks[j];
       r_end = r->begin + r->size - 1;
 
-      if (a_begin < r->begin && a_end < r_end) {
+      if (a_end < r->begin) {
         memory_map_add_block(memory_map.reserved, a_begin, size);
         return (uint64_t*)(uint32_t)a_begin;
       }
 
       a_begin = r_end + 1;
+      a_end = a_begin + size - 1;
     }
   }
 
