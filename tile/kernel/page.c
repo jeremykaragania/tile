@@ -33,7 +33,7 @@ void init_pgd() {
 
   /* Clear virtual bitmap entries below the kernel. */
   for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PAGE_SIZE) {
-    virt_bitmap_clear(i);
+    bitmap_clear(virt_bitmap, i);
   }
 
   /* Clear page table entries above the kernel. */
@@ -43,7 +43,7 @@ void init_pgd() {
 
   /* Clear virtual bitmap entries above the kernel. */
   for (uint32_t i = memory_manager.bss_end; i < VMALLOC_BEGIN_VADDR; i += PAGE_SIZE) {
-    virt_bitmap_clear(i);
+    bitmap_clear(virt_bitmap, i);
   }
 }
 
@@ -104,7 +104,7 @@ uint32_t* page_alloc(int flags) {
   page_free unmaps the page which "addr" points to.
 */
 int page_free(uint32_t* addr) {
-  virt_bitmap_clear((uint32_t)addr);
+  bitmap_clear(virt_bitmap, (uint32_t)addr);
   pte_clear(pgd_offset(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
   return 1;
 }
@@ -136,7 +136,7 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
     }
   }
 
-  virt_bitmap_insert(v_addr, size);
+  bitmap_insert(virt_bitmap, v_addr, size);
 }
 
 /*
@@ -213,14 +213,6 @@ void pte_clear(uint32_t* pmd, uint32_t addr) {
 }
 
 /*
-  virt_bitmap_clear clears a page table entry from a virtual address "addr" in the
-  virtual bitmap.
-*/
-void virt_bitmap_clear(uint32_t addr) {
-  virt_bitmap[bitmap_index(addr)] &= ~(1 << bitmap_index_index(addr));
-}
-
-/*
   pmd_insert inserts a page table entry into a page middle directory "pmd". The
   page table entry is specified by which physical address "p_addr" it maps to
   which virtual address "v_addr" and its memory flags "flags". If a page table
@@ -231,16 +223,6 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags) {
 
   offset = pmd_offset(pmd, v_addr);
   *offset = create_pte(p_addr, flags);
-}
-
-/*
-  virt_bitmap_insert inserts a mapping from the virtual address "v_addr"
-  spanning "size" bytes into the virtual bitmap.
-*/
-void virt_bitmap_insert(uint32_t v_addr, uint32_t size) {
-  for (uint32_t i = v_addr; i < v_addr + size; i += PAGE_SIZE) {
-    virt_bitmap[bitmap_index(i)] |= 1 << bitmap_index_index(i);
-  }
 }
 
 /*

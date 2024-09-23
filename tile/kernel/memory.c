@@ -222,6 +222,23 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
 }
 
 /*
+  bitmap_insert inserts pages from the address "addr" spanning "size" bytes in
+  the bitmap "bitmap".
+*/
+void bitmap_insert(uint32_t* bitmap, uint32_t addr, uint32_t size) {
+  for (uint32_t i = addr; i < addr + size; i += PAGE_SIZE) {
+    bitmap[bitmap_index(i)] |= 1 << bitmap_index_index(i);
+  }
+}
+
+/*
+  bitmap_clear clears a page from the address "addr" in the bitmap "bitmap".
+*/
+void bitmap_clear(uint32_t* bitmap, uint32_t addr) {
+  bitmap[bitmap_index(addr)] &= ~(1 << bitmap_index_index(addr));
+}
+
+/*
   memory_phys_alloc allocates a block of "size" bytes and returns a pointer to
   its physical address. Memory is allocated adjacent to reserved memory.
 */
