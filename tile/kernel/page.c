@@ -1,6 +1,13 @@
 #include <kernel/page.h>
 
-uint32_t virt_bitmap[VIRT_BITMAP_SIZE];
+static uint32_t virt_bitmap_data[VIRT_BITMAP_SIZE];
+
+struct memory_bitmap virt_bitmap = {
+  virt_bitmap_data,
+  VIRT_BITMAP_SIZE,
+  0,
+  NULL
+};
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
@@ -21,8 +28,8 @@ void init_paging() {
 */
 void init_pgd() {
   /* Reserve all the pages in the virtual bitmap. */
-  for (size_t i = 0; i < VIRT_BITMAP_SIZE; ++i) {
-    virt_bitmap[i] = 0xffffffff;
+  for (size_t i = 0; i < virt_bitmap.size; ++i) {
+    virt_bitmap.data[i] = 0xffffffff;
   }
 
   /* Clear page table entries below the kernel. */
@@ -32,7 +39,7 @@ void init_pgd() {
 
   /* Clear virtual bitmap entries below the kernel. */
   for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PAGE_SIZE) {
-    bitmap_clear(virt_bitmap, i);
+    bitmap_clear(&virt_bitmap, i);
   }
 
   /* Clear page table entries above the kernel. */
@@ -42,7 +49,7 @@ void init_pgd() {
 
   /* Clear virtual bitmap entries above the kernel. */
   for (uint32_t i = memory_manager.bss_end; i < VMALLOC_BEGIN_VADDR; i += PAGE_SIZE) {
-    bitmap_clear(virt_bitmap, i);
+    bitmap_clear(&virt_bitmap, i);
   }
 }
 
@@ -95,7 +102,7 @@ uint32_t* page_alloc(int flags) {
   for (size_t i = bitmap_index(phys_to_virt(KERNEL_SPACE_PADDR)); i < VIRT_BITMAP_SIZE; ++i) {
     for (size_t j = 0; j < 32; ++j) {
       /* The page is free. */
-      if (!(virt_bitmap[i] & (1 << j))) {
+      if (!(virt_bitmap.data[i] & (1 << j))) {
         addr = (uint32_t*)bitmap_to_addr(i, j);
         create_mapping((uint32_t)addr, virt_to_phys((uint32_t)addr), PAGE_SIZE, flags);
         return addr;
@@ -110,7 +117,7 @@ uint32_t* page_alloc(int flags) {
   page_free unmaps the page which "addr" points to.
 */
 int page_free(uint32_t* addr) {
-  bitmap_clear(virt_bitmap, (uint32_t)addr);
+  bitmap_clear(&virt_bitmap, (uint32_t)addr);
   pte_clear(pgd_offset(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
   return 1;
 }
@@ -142,7 +149,7 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
     }
   }
 
-  bitmap_insert(virt_bitmap, v_addr, size);
+  bitmap_insert(&virt_bitmap, v_addr, size);
 }
 
 /*
@@ -150,7 +157,7 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
   physical address.
 */
 int addr_is_mapped(uint32_t* addr) {
-  return (virt_bitmap[bitmap_index((uint32_t)addr)] & 1 << bitmap_index_index((uint32_t)addr)) != 0;
+  return (virt_bitmap.data[bitmap_index((uint32_t)addr)] & 1 << bitmap_index_index((uint32_t)addr)) != 0;
 }
 
 /*

@@ -13,7 +13,7 @@
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
 
-extern uint32_t virt_bitmap[VIRT_BITMAP_SIZE];
+extern struct memory_bitmap virt_bitmap;
 
 extern void invalidate_entire_tlb();
 

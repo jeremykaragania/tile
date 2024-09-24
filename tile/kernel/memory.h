@@ -77,6 +77,14 @@ struct memory_map {
   struct memory_map_group* reserved;
 };
 
+/* struct memory_bitmap represents a page bitmap. */
+struct memory_bitmap {
+  uint32_t* data;
+  uint64_t size;
+  uint64_t offset;
+  struct memory_bitmap* next;
+};
+
 /*
   struct memory_manager represents the virtual memory information of a process.
 */
@@ -104,8 +112,8 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t b
 void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64_t size);
 int memory_map_split_block(struct memory_map_group* group, uint64_t begin);
 
-void bitmap_insert(uint32_t* bitmap, uint32_t addr, uint32_t size);
-void bitmap_clear(uint32_t* bitmap, uint32_t addr);
+void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size);
+void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr);
 
 void* memory_phys_alloc(size_t size);
 void* memory_alloc(size_t size);
