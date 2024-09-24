@@ -28,7 +28,6 @@ void init_pgd() {
   /* Clear page table entries below the kernel. */
   for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
-
   }
 
   /* Clear virtual bitmap entries below the kernel. */
@@ -58,6 +57,13 @@ void map_kernel() {
   create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR), BLOCK_RW);
   /* Map the memory in the ".text" section. */
   create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
+
+  /* Map the reserved memory blocks after the ".bss" section. */
+  for (size_t i = 0; i < memory_map.reserved->size; ++i) {
+    if (phys_to_virt(memory_map.reserved->blocks[i].begin) >= memory_manager.bss_end) {
+      create_mapping(phys_to_virt(memory_map.reserved->blocks[i].begin), memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size, BLOCK_RW);
+    }
+  }
 }
 
 /*
