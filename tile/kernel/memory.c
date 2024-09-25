@@ -20,6 +20,8 @@ struct memory_map memory_map = {
 
 struct memory_manager memory_manager;
 
+struct memory_bitmap phys_bitmaps;
+
 uint32_t high_memory;
 
 /*
@@ -40,10 +42,29 @@ uint32_t phys_to_virt(uint64_t x) {
   init_memory_map initializes the kernel's memory map.
 */
 void init_memory_map() {
+  struct memory_bitmap* curr;
+
   memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
   memory_map_add_block(memory_map.reserved, 0x80000000, 0x8000);
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
   memory_map_add_block(memory_map.reserved, virt_to_phys((uint32_t)&text_begin), (uint32_t)&bss_end - (uint32_t)&text_begin);
+
+  curr = &phys_bitmaps;
+
+  for (uint64_t i = 0; i < memory_map.memory->size; ++i) {
+    curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
+    curr->data = memory_alloc(curr->size);
+
+    for (uint64_t j = 0; j < curr->size; ++j) {
+      curr->data[j] = 0;
+    }
+
+    if (i + 1 > memory_map.memory->size) {
+      curr->next = memory_alloc(sizeof(struct memory_bitmap));
+    }
+
+    curr = curr->next;
+  }
 }
 
 /*
