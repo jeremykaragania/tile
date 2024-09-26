@@ -66,6 +66,15 @@ void init_memory_map() {
 
     curr = curr->next;
   }
+
+  curr = &phys_bitmaps;
+
+  for (uint64_t i = 0; i < memory_map.reserved->size; ++i) {
+    while (memory_map.reserved->blocks[i].begin > curr->offset + (curr->size * PAGE_SIZE * 32)) {
+      curr = curr->next;
+    }
+    bitmap_insert(curr, memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size);
+  }
 }
 
 /*
