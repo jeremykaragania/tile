@@ -99,11 +99,11 @@ uint32_t* page_alloc(int flags) {
   uint32_t* addr = NULL;
 
   /* We begin seaching in kernel space. */
-  for (size_t i = bitmap_index(phys_to_virt(KERNEL_SPACE_PADDR)); i < VIRT_BITMAP_SIZE; ++i) {
+  for (size_t i = bitmap_index(&virt_bitmap, phys_to_virt(KERNEL_SPACE_PADDR)); i < VIRT_BITMAP_SIZE; ++i) {
     for (size_t j = 0; j < 32; ++j) {
       /* The page is free. */
       if (!(virt_bitmap.data[i] & (1 << j))) {
-        addr = (uint32_t*)bitmap_to_addr(i, j);
+        addr = (uint32_t*)bitmap_to_addr(&virt_bitmap, i, j);
         create_mapping((uint32_t)addr, virt_to_phys((uint32_t)addr), PAGE_SIZE, flags);
         return addr;
       }
@@ -157,7 +157,7 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
   physical address.
 */
 int addr_is_mapped(uint32_t* addr) {
-  return (virt_bitmap.data[bitmap_index((uint32_t)addr)] & 1 << bitmap_index_index((uint32_t)addr)) != 0;
+  return (virt_bitmap.data[bitmap_index(&virt_bitmap, (uint32_t)addr)] & 1 << bitmap_index_index(&virt_bitmap, (uint32_t)addr)) != 0;
 }
 
 /*

@@ -54,6 +54,7 @@ void init_memory_map() {
   for (uint64_t i = 0; i < memory_map.memory->size; ++i) {
     curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
     curr->data = memory_alloc(curr->size);
+    curr->offset = memory_map.memory->blocks[i].begin;
 
     for (uint64_t j = 0; j < curr->size; ++j) {
       curr->data[j] = 0;
@@ -243,12 +244,36 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
 }
 
 /*
+  bitmap_index returns the bitmap entry index for the address "addr" in the
+  bitmap "bitmap".
+*/
+size_t bitmap_index(const struct memory_bitmap* bitmap, uint64_t addr) {
+  return (addr - bitmap->offset) / PAGE_SIZE / 32;
+}
+
+/*
+  bitmap_index_index returns the bit index for the address "addr" in a bitmap
+  entry in the bitmap "bitmap".
+*/
+size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint64_t addr) {
+  return (addr - bitmap->offset) / PAGE_SIZE % 32;
+}
+
+/*
+  bitmap_to_addr returns the address from a bitmap entry index "i" and a bit
+  index "j" in the bitmap "bitmap".
+*/
+uint64_t bitmap_to_addr(const struct memory_bitmap* bitmap, uint64_t i, uint64_t j) {
+  return bitmap->offset + (i * PAGE_SIZE * 32 + PAGE_SIZE * j);
+}
+
+/*
   bitmap_insert inserts pages from the address "addr" spanning "size" bytes in
   the bitmap "bitmap".
 */
 void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size) {
   for (uint32_t i = addr; i < addr + size; i += PAGE_SIZE) {
-    bitmap->data[bitmap_index(i)] |= 1 << bitmap_index_index(i);
+    bitmap->data[bitmap_index(bitmap, i)] |= 1 << bitmap_index_index(bitmap, i);
   }
 }
 
@@ -256,7 +281,7 @@ void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size) {
   bitmap_clear clears a page from the address "addr" in the bitmap "bitmap".
 */
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
-  bitmap->data[bitmap_index(addr)] &= ~(1 << bitmap_index_index(addr));
+  bitmap->data[bitmap_index(bitmap, addr)] &= ~(1 << bitmap_index_index(bitmap, addr));
 }
 
 /*

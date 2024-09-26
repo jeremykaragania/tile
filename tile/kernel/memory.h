@@ -11,9 +11,6 @@
 
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
-#define bitmap_index(addr) (addr / PAGE_SIZE / 32)
-#define bitmap_index_index(addr) (addr / PAGE_SIZE % 32)
-#define bitmap_to_addr(i, j) (i * PAGE_SIZE * 32 + PAGE_SIZE * j)
 
 const extern uint32_t* PHYS_OFFSET;
 const extern uint32_t* VIRT_OFFSET;
@@ -113,6 +110,9 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t b
 void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64_t size);
 int memory_map_split_block(struct memory_map_group* group, uint64_t begin);
 
+size_t bitmap_index(const struct memory_bitmap* bitmap, uint64_t addr);
+size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint64_t addr);
+uint64_t bitmap_to_addr(const struct memory_bitmap* bitmap, uint64_t i, uint64_t j);
 void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size);
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr);
 
