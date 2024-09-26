@@ -75,7 +75,12 @@ struct memory_map {
   struct memory_map_group* reserved;
 };
 
-/* struct memory_bitmap represents a page bitmap. */
+/*
+  struct memory_bitmap represents a page bitmap. Page bitmaps are linked into a
+  linked list with successive elements mapping higher addresses. Each page
+  bitmap contains the underlying bitmap data "data"; its size "size"; the first
+  address "offset"; and a pointer to the next page bitmap "next".
+*/
 struct memory_bitmap {
   uint32_t* data;
   uint64_t size;

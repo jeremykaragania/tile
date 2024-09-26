@@ -44,6 +44,11 @@ uint32_t phys_to_virt(uint64_t x) {
 void init_memory_map() {
   struct memory_bitmap* curr;
 
+  /*
+    We initialize the kernel's initial memory map using the system's memory
+    map; and the kernel's memory map from the linker. Eventually we won't need
+    this memory map, we just need it now to allocate the physical page bitmaps.
+  */
   memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
   memory_map_add_block(memory_map.reserved, 0x80000000, 0x8000);
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
@@ -51,6 +56,10 @@ void init_memory_map() {
 
   curr = &phys_bitmaps;
 
+  /*
+    For each memory block in the initial memory map's memory group, we allocate
+    a physical page bitmap to map that memory block.
+  */
   for (uint64_t i = 0; i < memory_map.memory->size; ++i) {
     curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
     curr->data = memory_alloc(curr->size);
@@ -69,10 +78,15 @@ void init_memory_map() {
 
   curr = &phys_bitmaps;
 
+  /*
+    For each memory block in the initial memory map's reserved group, we
+    reserve that memory block in the appropriate physical page bitmap.
+  */
   for (uint64_t i = 0; i < memory_map.reserved->size; ++i) {
     while (memory_map.reserved->blocks[i].begin > curr->offset + (curr->size * PAGE_SIZE * 32)) {
       curr = curr->next;
     }
+
     bitmap_insert(curr, memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size);
   }
 }
@@ -229,7 +243,7 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
 /*
   memory_map_split tries to split a block in "group" at "begin" into two
   discrete blocks: a left block and a right block. It returns the index of the
-  left block in the group if succesful.
+  left block in the group if successful.
 */
 int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
   struct memory_map_block* a;
