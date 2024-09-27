@@ -92,10 +92,10 @@ void map_smc() {
 }
 
 /*
-  page_alloc allocates a page in kernel space with the flags "flags" and
-  returns a pointer to it.
+  virt_page_alloc allocates a virtual page in kernel space with the flags
+  "flags" and returns a pointer to it.
 */
-uint32_t* page_alloc(int flags) {
+uint32_t* virt_page_alloc(int flags) {
   uint32_t* addr = NULL;
 
   /* We begin seaching in kernel space. */
@@ -114,9 +114,9 @@ uint32_t* page_alloc(int flags) {
 }
 
 /*
-  page_free unmaps the page which "addr" points to.
+  virt_page_free unmaps the virtual page which "addr" points to.
 */
-int page_free(uint32_t* addr) {
+int virt_page_free(uint32_t* addr) {
   bitmap_clear(&virt_bitmap, (uint32_t)addr);
   pte_clear(pgd_offset(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
   return 1;
