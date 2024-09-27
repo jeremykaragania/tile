@@ -13,7 +13,7 @@ static struct memory_map_group memory_map_reserved_group = {
 };
 
 struct memory_map memory_map = {
-  0xffffffffffffffffull,
+  0xffffffff,
   &memory_map_memory_group,
   &memory_map_reserved_group
 };
@@ -27,14 +27,14 @@ uint32_t high_memory;
 /*
   virt_to_phys returns a physical address from a virtual address "x".
 */
-uint64_t virt_to_phys(uint32_t x) {
+uint32_t virt_to_phys(uint32_t x) {
   return x - ((uint32_t)&VIRT_OFFSET - (uint32_t)&PHYS_OFFSET);
 }
 
 /*
   phys_to_virt returns a virtual address from a physical address "x".
 */
-uint32_t phys_to_virt(uint64_t x) {
+uint32_t phys_to_virt(uint32_t x) {
   return x + ((uint32_t)&VIRT_OFFSET - (uint32_t)&PHYS_OFFSET);
 }
 
@@ -60,12 +60,12 @@ void init_memory_map() {
     For each memory block in the initial memory map's memory group, we allocate
     a physical page bitmap to map that memory block.
   */
-  for (uint64_t i = 0; i < memory_map.memory->size; ++i) {
+  for (size_t i = 0; i < memory_map.memory->size; ++i) {
     curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
     curr->data = memory_alloc(curr->size);
     curr->offset = memory_map.memory->blocks[i].begin;
 
-    for (uint64_t j = 0; j < curr->size; ++j) {
+    for (size_t j = 0; j < curr->size; ++j) {
       curr->data[j] = 0;
     }
 
@@ -82,7 +82,7 @@ void init_memory_map() {
     For each memory block in the initial memory map's reserved group, we
     reserve that memory block in the appropriate physical page bitmap.
   */
-  for (uint64_t i = 0; i < memory_map.reserved->size; ++i) {
+  for (size_t i = 0; i < memory_map.reserved->size; ++i) {
     while (memory_map.reserved->blocks[i].begin > curr->offset + curr->size * PAGE_SIZE * 32 - 1) {
       curr = curr->next;
     }
@@ -111,8 +111,8 @@ void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data
 */
 void update_memory_map() {
   struct memory_map_block* b;
-  uint64_t b_end;
-  uint64_t vmalloc_min_paddr = virt_to_phys(VMALLOC_MIN_VADDR);
+  uint32_t b_end;
+  uint32_t vmalloc_min_paddr = virt_to_phys(VMALLOC_MIN_VADDR);
   uint32_t lowmem_end = 0;
 
   for (size_t i = 0; i < memory_map.memory->size; ++i) {
@@ -124,7 +124,7 @@ void update_memory_map() {
   }
 
   for (size_t i = 0; i < memory_map.memory->size; ++i) {
-    b_end = b->begin + b->size;
+    b_end = b->begin + b->size - 1;
 
     if (!(b->flags & BLOCK_RESERVED)) {
       if (b->begin < vmalloc_min_paddr) {
@@ -196,7 +196,7 @@ void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end)
   memory_map_insert_block inserts a block into "group" at "pos". The block is
   specified by "begin" and "size".
 */
-void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t begin, uint64_t size) {
+void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t begin, uint32_t size) {
   struct memory_map_block* block = &group->blocks[pos];
 
   memmove(block + 1, block, (group->size - pos) * sizeof(*block));
@@ -210,9 +210,9 @@ void memory_map_insert_block(struct memory_map_group* group, int pos, uint64_t b
   "begin" and "size". The block is added such that the blocks in "group" remain
   sorted by their beginning.
 */
-void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64_t size) {
+void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size) {
   struct memory_map_block *b;
-  uint64_t b_end;
+  uint32_t b_end;
   size_t pos = group->size;
 
   if (group->size == 0) {
@@ -245,20 +245,20 @@ void memory_map_add_block(struct memory_map_group* group, uint64_t begin, uint64
   discrete blocks: a left block and a right block. It returns the index of the
   left block in the group if successful.
 */
-int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
+int memory_map_split_block(struct memory_map_group* group, uint32_t begin) {
   struct memory_map_block* a;
-  uint64_t a_end;
+  uint32_t a_end;
 
   for (size_t i = 0; i < group->size; ++i) {
     a = &group->blocks[i];
-    a_end = a->begin + a->size;
+    a_end = a->begin + a->size - 1;
 
     if (begin > a->begin && begin < a_end) {
-      uint64_t new_end;
+      uint32_t new_end;
 
       a->size = begin - a->begin;
-      new_end = a->begin + a->size;
-      memory_map_add_block(group, new_end, a_end - new_end);
+      new_end = a->begin + a->size - 1;
+      memory_map_add_block(group, new_end + 1, a_end - new_end);
       return i;
     }
   }
@@ -312,12 +312,12 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
   its physical address. Memory is allocated adjacent to reserved memory.
 */
 void* memory_phys_alloc(size_t size) {
-  uint64_t a_begin;
-  uint64_t a_end;
+  uint32_t a_begin;
+  uint32_t a_end;
   struct memory_map_block* m;
-  uint64_t m_end;
+  uint32_t m_end;
   struct memory_map_block* r;
-  uint64_t r_end;
+  uint32_t r_end;
   size_t rs = memory_map.reserved->size;
 
   /*
@@ -341,7 +341,7 @@ void* memory_phys_alloc(size_t size) {
 
       if (a_end < r->begin) {
         memory_map_add_block(memory_map.reserved, a_begin, size);
-        return (uint64_t*)(uint32_t)a_begin;
+        return (uint32_t*)a_begin;
       }
 
       a_begin = r_end + 1;
@@ -355,7 +355,7 @@ void* memory_phys_alloc(size_t size) {
 
   if (a_end < m_end) {
     memory_map_add_block(memory_map.reserved, a_begin, size);
-    return (uint64_t*)(uint32_t)a_begin;
+    return (uint32_t*)a_begin;
   }
 
   return NULL;
