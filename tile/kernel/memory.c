@@ -83,7 +83,7 @@ void init_memory_map() {
     reserve that memory block in the appropriate physical page bitmap.
   */
   for (uint64_t i = 0; i < memory_map.reserved->size; ++i) {
-    while (memory_map.reserved->blocks[i].begin > curr->offset + (curr->size * PAGE_SIZE * 32)) {
+    while (memory_map.reserved->blocks[i].begin > curr->offset + curr->size * PAGE_SIZE * 32 - 1) {
       curr = curr->next;
     }
 
@@ -270,7 +270,7 @@ int memory_map_split_block(struct memory_map_group* group, uint64_t begin) {
   bitmap_index returns the bitmap entry index for the address "addr" in the
   bitmap "bitmap".
 */
-size_t bitmap_index(const struct memory_bitmap* bitmap, uint64_t addr) {
+size_t bitmap_index(const struct memory_bitmap* bitmap, uint32_t addr) {
   return (addr - bitmap->offset) / PAGE_SIZE / 32;
 }
 
@@ -278,7 +278,7 @@ size_t bitmap_index(const struct memory_bitmap* bitmap, uint64_t addr) {
   bitmap_index_index returns the bit index for the address "addr" in a bitmap
   entry in the bitmap "bitmap".
 */
-size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint64_t addr) {
+size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint32_t addr) {
   return (addr - bitmap->offset) / PAGE_SIZE % 32;
 }
 
@@ -286,7 +286,7 @@ size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint64_t addr) {
   bitmap_to_addr returns the address from a bitmap entry index "i" and a bit
   index "j" in the bitmap "bitmap".
 */
-uint64_t bitmap_to_addr(const struct memory_bitmap* bitmap, uint64_t i, uint64_t j) {
+uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j) {
   return bitmap->offset + (i * PAGE_SIZE * 32 + PAGE_SIZE * j);
 }
 
