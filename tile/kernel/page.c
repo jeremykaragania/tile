@@ -127,19 +127,19 @@ int virt_page_free(uint32_t* addr) {
   the physical address "p_addr" spanning "size" bytes with the memory flags
   "flags".
 */
-void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
+void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
 
-  for (uint64_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
+  for (uint32_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
     pmd = pgd_offset(memory_manager.pgd, i);
 
     /* Page middle directory has many entries. */
-    if (!IS_ALIGNED(i, PMD_SIZE) || i + PMD_SIZE > v_addr + size) {
+    if (!IS_ALIGNED(size, PMD_SIZE)) {
       if (!pmd_is_page_table(pmd)) {
         pmd = pmd_alloc(memory_manager.pgd, i);
       }
 
-      for (size_t k = i; k < v_addr + size; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
+      for (uint32_t k = i; k < v_addr + size; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
         pmd_insert(pmd, k, p_addr, flags);
       }
     }
@@ -147,9 +147,14 @@ void create_mapping(uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) 
     else {
       *pmd = create_pmd_section(j, flags);
     }
+
+    if (i > UINT_MAX - PMD_SIZE) {
+      break;
+    }
   }
 
   bitmap_insert(&virt_bitmap, v_addr, size);
+
 }
 
 /*
@@ -167,7 +172,7 @@ int addr_is_mapped(uint32_t* addr) {
   address "addr", and a translation table base, "pgd".
 */
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
-  return (uint32_t*)((uint32_t)pgd + (uint32_t)pgd_index(addr));
+  return (uint32_t*)((uint32_t)pgd + pgd_index(addr));
 }
 
 /*
@@ -178,7 +183,7 @@ uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
 */
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
   pmd = pmd_to_page_table(pmd);
-  return (uint32_t*)((uint32_t)pmd + (uint32_t)pmd_index(addr));
+  return (uint32_t*)((uint32_t)pmd + pmd_index(addr));
 }
 
 /*
@@ -231,7 +236,7 @@ void pte_clear(uint32_t* pmd, uint32_t addr) {
   which virtual address "v_addr" and its memory flags "flags". If a page table
   entry already exists it is replaced.
 */
-void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags) {
+void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
   uint32_t* offset;
 
   offset = pmd_offset(pmd, v_addr);
@@ -263,8 +268,8 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
   section entry. The entry is specified by which physical address "p_addr" it
   maps to, and with which flags "flags".
 */
-uint32_t create_pmd_section(uint64_t p_addr, int flags) {
-  uint32_t pte = (p_addr & 0xfffffc00ull) | 1 << 1;
+uint32_t create_pmd_section(uint32_t p_addr, int flags) {
+  uint32_t pte = (p_addr & 0xfffffc00) | 1 << 1;
 
   switch (flags) {
     case BLOCK_RWX: {
@@ -316,8 +321,8 @@ uint32_t create_pmd_page_table(uint32_t* page_table) {
   is specified by which physical address "p_addr" it maps to, and with which
   flags "flags".
 */
-uint32_t create_pte(uint64_t p_addr, int flags) {
-  uint32_t pte = ((uint32_t)p_addr & 0xfffff000) | 1 << 1;
+uint32_t create_pte(uint32_t p_addr, int flags) {
+  uint32_t pte = (p_addr & 0xfffff000) | 1 << 1;
 
   switch (flags) {
     case BLOCK_RWX: {
