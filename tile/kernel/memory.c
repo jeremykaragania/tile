@@ -308,6 +308,31 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
 }
 
 /*
+  bitmap_alloc allocates a page in the bitmap "bitmap" and returns a pointer to
+  it.
+*/
+uint32_t* bitmap_alloc(struct memory_bitmap* bitmap) {
+  uint32_t* addr = NULL;
+
+  while (bitmap) {
+    for (size_t i = 0; i < bitmap->size; ++i) {
+      for (size_t j = 0; j < 32; ++j) {
+        /* The page is free. */
+        if (!(bitmap->data[i] & (1 << j))) {
+          addr = (uint32_t*)bitmap_to_addr(bitmap, i, j);
+          bitmap_insert(bitmap, (uint32_t)addr, PAGE_SIZE);
+          return addr;
+        }
+      }
+    }
+
+    bitmap = bitmap->next;
+  }
+
+  return NULL;
+}
+
+/*
   memory_phys_alloc allocates a block of "size" bytes and returns a pointer to
   its physical address. Memory is allocated adjacent to reserved memory.
 */

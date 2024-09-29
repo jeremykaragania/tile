@@ -120,6 +120,7 @@ size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint32_t addr);
 uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j);
 void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size);
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr);
+uint32_t* bitmap_alloc(struct memory_bitmap* bitmap);
 
 void* memory_phys_alloc(size_t size);
 void* memory_alloc(size_t size);
