@@ -91,16 +91,18 @@ void map_smc() {
   "flags" and returns a pointer to it.
 */
 uint32_t* virt_page_alloc(int flags) {
-  uint32_t* addr = NULL;
+  uint32_t* p_addr = NULL;
+  uint32_t* v_addr = NULL;
 
-  addr = bitmap_alloc(&virt_bitmap);
+  p_addr = bitmap_alloc(&phys_bitmaps);
+  v_addr = bitmap_alloc(&virt_bitmap);
 
-  if (addr == NULL) {
+  if (!(v_addr && p_addr)) {
     return NULL;
   }
 
-  create_mapping((uint32_t)addr, virt_to_phys((uint32_t)addr), PAGE_SIZE, flags);
-  return addr;
+  create_mapping((uint32_t)v_addr, (uint32_t)p_addr, PAGE_SIZE, flags);
+  return v_addr;
 }
 
 /*
