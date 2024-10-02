@@ -94,13 +94,14 @@ uint32_t* virt_page_alloc(int flags) {
   uint32_t* p_addr = NULL;
   uint32_t* v_addr = NULL;
 
-  p_addr = bitmap_alloc(&phys_bitmaps);
   v_addr = bitmap_alloc(&virt_bitmap);
 
-  if (!(v_addr && p_addr)) {
+  if (!v_addr) {
     return NULL;
   }
 
+  p_addr = (uint32_t*)virt_to_phys((uint32_t)v_addr);
+  bitmap_insert(&phys_bitmaps, (uint32_t)p_addr, PAGE_SIZE);
   create_mapping((uint32_t)v_addr, (uint32_t)p_addr, PAGE_SIZE, flags);
   return v_addr;
 }
