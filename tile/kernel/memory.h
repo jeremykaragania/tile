@@ -89,6 +89,15 @@ struct memory_bitmap {
 };
 
 /*
+  struct memory_page_info represents the information of a page use for memory
+  allocation.
+*/
+struct memory_page_info {
+  void* data;
+  struct page_info* next;
+};
+
+/*
   struct memory_manager represents the virtual memory information of a process.
 */
 struct memory_manager {
