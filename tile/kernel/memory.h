@@ -94,7 +94,7 @@ struct memory_bitmap {
 */
 struct memory_page_info {
   void* data;
-  struct page_info* next;
+  struct memory_page_info* next;
 };
 
 /*
