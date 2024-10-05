@@ -62,7 +62,7 @@ void init_memory_map() {
   */
   for (size_t i = 0; i < memory_map.memory->size; ++i) {
     curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
-    curr->data = memory_alloc(curr->size);
+    curr->data = memory_map_alloc(curr->size);
     curr->offset = memory_map.memory->blocks[i].begin;
 
     for (size_t j = 0; j < curr->size; ++j) {
@@ -70,7 +70,7 @@ void init_memory_map() {
     }
 
     if (i + 1 > memory_map.memory->size) {
-      curr->next = memory_alloc(sizeof(struct memory_bitmap));
+      curr->next = memory_map_alloc(sizeof(struct memory_bitmap));
     }
 
     curr = curr->next;
@@ -333,10 +333,10 @@ uint32_t* bitmap_alloc(struct memory_bitmap* bitmap) {
 }
 
 /*
-  memory_phys_alloc allocates a block of "size" bytes and returns a pointer to
-  its physical address. Memory is allocated adjacent to reserved memory.
+  memory_map_phys_alloc allocates a block of "size" bytes and returns a pointer
+  to its physical address. Memory is allocated adjacent to reserved memory.
 */
-void* memory_phys_alloc(size_t size) {
+void* memory_map_phys_alloc(size_t size) {
   uint32_t a_begin;
   uint32_t a_end;
   struct memory_map_block* m;
@@ -387,17 +387,17 @@ void* memory_phys_alloc(size_t size) {
 }
 
 /*
-  memory_alloc allocates a block of "size" bytes and returns a pointer to its
-  virtual address. Memory is allocated adjacent to reserved memory.
+  memory_map_alloc allocates a block of "size" bytes and returns a pointer to
+  its virtual address. Memory is allocated adjacent to reserved memory.
 */
-void* memory_alloc(size_t size) {
-  return (uint32_t*)phys_to_virt((uint32_t)memory_phys_alloc(size));
+void* memory_map_alloc(size_t size) {
+  return (uint32_t*)phys_to_virt((uint32_t)memory_map_phys_alloc(size));
 }
 
 /*
-  memory_free frees the block which "ptr" points to.
+  memory_map_free frees the block which "ptr" points to.
 */
-int memory_free(void* ptr) {
+int memory_map_free(void* ptr) {
   struct memory_map_block* block;
 
   for (size_t i = 0; i < memory_map.reserved->size; ++i) {

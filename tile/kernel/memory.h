@@ -131,8 +131,8 @@ void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size);
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr);
 uint32_t* bitmap_alloc(struct memory_bitmap* bitmap);
 
-void* memory_phys_alloc(size_t size);
-void* memory_alloc(size_t size);
-int memory_free(void* ptr);
+void* memory_map_phys_alloc(size_t size);
+void* memory_map_alloc(size_t size);
+int memory_map_free(void* ptr);
 
 #endif

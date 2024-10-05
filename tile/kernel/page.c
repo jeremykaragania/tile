@@ -189,7 +189,7 @@ uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
   uint32_t* offset;
 
-  pmd = memory_alloc(PAGE_TABLE_SIZE);
+  pmd = memory_map_alloc(PAGE_TABLE_SIZE);
 
   /* Sometimes the pointer to the newly allocated memory isn't mapped. */
   if (!addr_is_mapped(pmd)) {
