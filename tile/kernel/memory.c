@@ -22,6 +22,11 @@ struct memory_manager memory_manager;
 
 struct memory_bitmap phys_bitmaps;
 
+struct memory_page_info memory_page_info_cache = {
+  NULL,
+  NULL
+};
+
 uint32_t high_memory;
 
 /*
@@ -411,4 +416,92 @@ int memory_map_free(void* ptr) {
   }
 
   return 0;
+}
+
+/*
+  memory_alloc_page allocates a block of "size" bytes aligned to "align" bytes
+  from the page information "page" and returns a pointer to it.
+*/
+void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align) {
+  struct memory_map_block* curr = (struct memory_map_block*)page->data;
+  uint32_t distance = 0;
+
+  while (curr) {
+    /* We allocate after the current block. */
+    if (!curr->next) {
+      curr->next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
+      curr->next->begin = (uint32_t)curr->next + sizeof(struct memory_map_block);
+      curr->next->size = size;
+      curr->next->next = NULL;
+      curr->next->prev = curr;
+      return (uint32_t*)curr->next->begin;
+    }
+
+    distance = (uint32_t)curr->next - (curr->begin + curr->size);
+
+    /* We allocate between the current block and the next block. */
+    if (distance >= size + sizeof(struct memory_map_block)) {
+      struct memory_map_block* next = curr->next;
+
+      curr->next = (struct memory_map_block*)(curr->begin + curr->size);
+      curr->next->begin = (uint32_t)curr->next + sizeof(struct memory_map_block);
+      curr->next->size = size;
+      curr->next->next = next;
+      curr->next->prev = curr;
+      return (uint32_t*)curr->next->begin;
+    }
+
+    curr = curr->next;
+  }
+
+  return NULL;
+}
+
+/*
+  memory_alloc allocates a block of size "size" bytes aligned to "align" bytes
+  and returns a pointer to it.
+*/
+void* memory_alloc(size_t size, size_t align) {
+  struct memory_page_info* curr = &memory_page_info_cache;
+  uint32_t* ret = NULL;
+
+  while (curr) {
+    if (!curr->data) {
+      struct memory_map_block block = {
+        sizeof(struct memory_map_block),
+        0,
+        0,
+        NULL,
+        NULL,
+      };
+
+      curr->data = (uint32_t*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps));
+      block.begin += (uint32_t)curr->data;
+      *(struct memory_map_block*)curr->data = block;
+    }
+
+    ret = memory_alloc_page(curr, size, align);
+
+    if (ret) {
+      return ret;
+    }
+
+    curr = curr->next;
+  }
+
+  return NULL;
+}
+
+/*
+  memory_free frees the block which "ptr" points to.
+*/
+int memory_free(void* ptr) {
+  struct memory_map_block* block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
+
+  if (block->prev) {
+    block->prev->next = block->next;
+  }
+
+  block->next = NULL;
+  return 1;
 }

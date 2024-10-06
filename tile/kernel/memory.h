@@ -29,6 +29,7 @@ const extern uint32_t* bss_end;
 extern struct memory_map memory_map;
 extern struct memory_manager memory_manager;
 extern struct memory_bitmap phys_bitmaps;
+extern struct memory_page_info memory_page_info_cache;
 
 extern uint32_t high_memory;
 
@@ -56,6 +57,8 @@ struct memory_map_block {
   uint32_t begin;
   uint32_t size;
   int flags;
+  struct memory_map_block* next;
+  struct memory_map_block* prev;
 };
 
 /*
@@ -134,5 +137,9 @@ uint32_t* bitmap_alloc(struct memory_bitmap* bitmap);
 void* memory_map_phys_alloc(size_t size);
 void* memory_map_alloc(size_t size);
 int memory_map_free(void* ptr);
+
+void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align);
+void* memory_alloc(size_t size, size_t align);
+int memory_free(void* ptr);
 
 #endif
