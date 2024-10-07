@@ -429,8 +429,15 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   while (curr) {
     /* We allocate after the current block. */
     if (!curr->next) {
-      curr->next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
-      curr->next->begin = (uint32_t)curr->next + sizeof(struct memory_map_block);
+      struct memory_map_block* next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
+      uint32_t next_begin = (uint32_t)next + sizeof(struct memory_map_block);
+
+      if (next_begin + size >= page->data + PAGE_SIZE) {
+        break;
+      }
+
+      curr->next = next;
+      curr->next->begin = next_begin;
       curr->next->size = size;
       curr->next->next = NULL;
       curr->next->prev = curr;
