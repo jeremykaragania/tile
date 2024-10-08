@@ -33,7 +33,6 @@ int addr_is_mapped(uint32_t* addr);
 
 uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr);
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr);
-uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr);
 void pmd_clear(uint32_t* pgd, uint32_t addr);
 void pte_clear(uint32_t* pmd, uint32_t addr);
 void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags);

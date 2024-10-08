@@ -122,18 +122,37 @@ int virt_page_free(uint32_t* addr) {
 */
 void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
+  uint32_t* insert_pmd;
+  uint32_t* page_table;
+  uint32_t pmd_page_table;
 
   for (uint32_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
     pmd = pgd_offset(memory_manager.pgd, i);
 
     /* Page middle directory has many entries. */
     if (!IS_ALIGNED(size, PMD_SIZE)) {
-      if (!pmd_is_page_table(pmd)) {
-        pmd = pmd_alloc(memory_manager.pgd, i);
+      int is_page_table = pmd_is_page_table(pmd);
+
+      insert_pmd = pmd;
+
+      /*
+        This pmd isn't a page table, so we will allocate and replace it with
+        a new one.
+      */
+      if (!is_page_table) {
+        page_table = memory_map_alloc(PAGE_TABLE_SIZE);
+        pmd_page_table = create_pmd_page_table(page_table);
+        insert_pmd = &pmd_page_table;
       }
 
+      /* We either insert into the new page table or the existing one. */
       for (uint32_t k = i; k < v_addr + size; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
-        pmd_insert(pmd, k, p_addr, flags);
+        pmd_insert(insert_pmd, k, p_addr, flags);
+      }
+
+      /* We have to populate the new page table before replacing the pmd. */
+      if (!is_page_table) {
+        *pmd = create_pmd_page_table(page_table);
       }
     }
     /* Page middle directory has one entry. */
@@ -177,28 +196,6 @@ uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
 uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
   pmd = pmd_to_page_table(pmd);
   return (uint32_t*)((uint32_t)pmd + pmd_index(addr));
-}
-
-/*
-  pmd_alloc allocates a new page middle directory from a virtual address "addr"
-  and returns a pointer to it. The appropriate index in the page global
-  directory specified by the page global directory "pgd" is updated to point to
-  the new page middle directory.
-*/
-uint32_t* pmd_alloc(uint32_t* pgd, uint32_t addr) {
-  uint32_t* pmd;
-  uint32_t* offset;
-
-  pmd = memory_map_alloc(PAGE_TABLE_SIZE);
-
-  /* Sometimes the pointer to the newly allocated memory isn't mapped. */
-  if (!addr_is_mapped(pmd)) {
-    create_mapping((uint32_t)pmd, virt_to_phys((uint32_t)pmd), PAGE_SIZE, BLOCK_RWX);
-  }
-
-  offset = pgd_offset(pgd, addr);
-  *offset = create_pmd_page_table(pmd);
-  return offset;
 }
 
 /*
