@@ -502,6 +502,21 @@ void* memory_alloc(size_t size, size_t align) {
       return ret;
     }
 
+    /*
+      To allocate the actual page information, we first need to allocate a
+      page, allocate that page information within it, and then initialize that
+      page information.
+    */
+    if (!curr->next) {
+      struct memory_page_info tmp;
+
+      tmp.data = memory_page_info_data_alloc();
+      tmp.next = NULL;
+      curr->next = memory_alloc_page(&tmp, sizeof(struct memory_page_info), 1);
+      curr->next->data = tmp.data;
+      curr->next->next = NULL;
+    }
+
     curr = curr->next;
   }
 
