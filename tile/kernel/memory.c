@@ -419,6 +419,25 @@ int memory_map_free(void* ptr) {
 }
 
 /*
+  memory_page_info_data_alloc allocates a page for memory allocation. The first
+  byte of a page used for memory allocation contains an empty memory map block.
+*/
+void* memory_page_info_data_alloc() {
+  char* data = (char*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps));
+  struct memory_map_block block = {
+    sizeof(struct memory_map_block),
+    0,
+    0,
+    NULL,
+    NULL
+  };
+
+  block.begin += (uint32_t)data;
+  *(struct memory_map_block*)data = block;
+  return data;
+}
+
+/*
   memory_alloc_page allocates a block of "size" bytes aligned to "align" bytes
   from the page information "page" and returns a pointer to it.
 */
@@ -432,7 +451,7 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
       struct memory_map_block* next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
       uint32_t next_begin = (uint32_t)next + sizeof(struct memory_map_block);
 
-      if (next_begin + size >= page->data + PAGE_SIZE) {
+      if (next_begin + size >= (uint32_t)page->data + PAGE_SIZE) {
         break;
       }
 
@@ -474,17 +493,7 @@ void* memory_alloc(size_t size, size_t align) {
 
   while (curr) {
     if (!curr->data) {
-      struct memory_map_block block = {
-        sizeof(struct memory_map_block),
-        0,
-        0,
-        NULL,
-        NULL,
-      };
-
-      curr->data = (uint32_t*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps));
-      block.begin += (uint32_t)curr->data;
-      *(struct memory_map_block*)curr->data = block;
+      curr->data = memory_page_info_data_alloc();
     }
 
     ret = memory_alloc_page(curr, size, align);
