@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  info.size = blocks_count * FILE_BLOCK_SIZE;
+  info.size = blocks_count;
   info.free_blocks_size = FILESYSTEM_INFO_CACHE_SIZE;
   memset(info.free_blocks_cache, 0, sizeof(info.free_blocks_cache[0]) * FILESYSTEM_INFO_CACHE_SIZE);
   info.next_free_block = 0;
