@@ -25,7 +25,7 @@ void map_kernel();
 void map_vector_table();
 void map_smc();
 
-uint32_t* virt_page_alloc(int flags);
+void* virt_page_alloc(int flags);
 int virt_page_free(uint32_t* addr);
 
 void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);

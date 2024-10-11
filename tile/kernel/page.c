@@ -90,7 +90,7 @@ void map_smc() {
   virt_page_alloc allocates a virtual page in kernel space with the flags
   "flags" and returns a pointer to it.
 */
-uint32_t* virt_page_alloc(int flags) {
+void* virt_page_alloc(int flags) {
   uint32_t* p_addr = NULL;
   uint32_t* v_addr = NULL;
 
