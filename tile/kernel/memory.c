@@ -313,14 +313,14 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
 }
 
 /*
-  bitmap_alloc allocates a page in the bitmap "bitmap" and returns a pointer to
-  it.
+  bitmap_alloc allocates a page in the bitmap "bitmap" above "begin" and
+  returns a pointer to it.
 */
-uint32_t* bitmap_alloc(struct memory_bitmap* bitmap) {
+uint32_t* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
   uint32_t* addr = NULL;
 
   while (bitmap) {
-    for (size_t i = 0; i < bitmap->size; ++i) {
+    for (size_t i = bitmap_index(bitmap, begin); i < bitmap->size; ++i) {
       for (size_t j = 0; j < 32; ++j) {
         /* The page is free. */
         if (!(bitmap->data[i] & (1 << j))) {
@@ -423,7 +423,7 @@ int memory_map_free(void* ptr) {
   byte of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_info_data_alloc() {
-  char* data = (char*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps));
+  char* data = (char*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps, 0));
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,

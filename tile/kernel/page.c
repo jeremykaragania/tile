@@ -94,7 +94,7 @@ void* virt_page_alloc(int flags) {
   uint32_t* p_addr = NULL;
   uint32_t* v_addr = NULL;
 
-  v_addr = bitmap_alloc(&virt_bitmap);
+  v_addr = bitmap_alloc(&virt_bitmap, (uint32_t)&VIRT_OFFSET);
 
   if (!v_addr) {
     return NULL;
