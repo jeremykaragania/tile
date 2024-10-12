@@ -100,7 +100,7 @@ void init_memory_map() {
   init_memory_manager initializes the kernel's memory manager.
 */
 void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end) {
-  memory_manager.pgd= (uint32_t*)(uint32_t)pgd;
+  memory_manager.pgd = (uint32_t*)(uint32_t)pgd;
   memory_manager.text_begin = (uint32_t)text_begin;
   memory_manager.text_end = (uint32_t)text_end;
   memory_manager.data_begin = (uint32_t)data_begin;
@@ -316,8 +316,8 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
   bitmap_alloc allocates a page in the bitmap "bitmap" above "begin" and
   returns a pointer to it.
 */
-uint32_t* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
-  uint32_t* addr = NULL;
+void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
+  void* addr = NULL;
 
   while (bitmap) {
     for (size_t i = bitmap_index(bitmap, begin); i < bitmap->size; ++i) {
@@ -371,7 +371,7 @@ void* memory_map_phys_alloc(size_t size) {
 
       if (a_end < r->begin) {
         memory_map_add_block(memory_map.reserved, a_begin, size);
-        return (uint32_t*)a_begin;
+        return (void*)a_begin;
       }
 
       a_begin = r_end + 1;
@@ -385,7 +385,7 @@ void* memory_map_phys_alloc(size_t size) {
 
   if (a_end < m_end) {
     memory_map_add_block(memory_map.reserved, a_begin, size);
-    return (uint32_t*)a_begin;
+    return (void*)a_begin;
   }
 
   return NULL;
@@ -489,7 +489,7 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
 */
 void* memory_alloc(size_t size, size_t align) {
   struct memory_page_info* curr = &memory_page_info_cache;
-  uint32_t* ret = NULL;
+  void* ret = NULL;
 
   while (curr) {
     if (!curr->data) {
