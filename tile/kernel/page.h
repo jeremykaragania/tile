@@ -1,9 +1,9 @@
 #ifndef PAGE_H
 #define PAGE_H
 
-#include <kernel/mci.h>
+#include <drivers/pl011.h>
+#include <drivers/pl180.h>
 #include <kernel/memory.h>
-#include <kernel/uart.h>
 #include <limits.h>
 #include <stdint.h>
 

@@ -1,11 +1,11 @@
+#include <drivers/pl011.h>
+#include <drivers/pl180.h>
 #include <kernel/asm/memory.h>
 #include <kernel/interrupts.h>
 #include <kernel/file.h>
-#include <kernel/mci.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
 #include <kernel/process.h>
-#include <kernel/uart.h>
 
 extern void enable_interrupts();
 extern void disable_interrupts();

@@ -1,7 +1,7 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include <kernel/uart.h>
+#include <drivers/pl011.h>
 
 void do_reset();
 void do_undefined_instruction();

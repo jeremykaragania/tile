@@ -15,17 +15,22 @@ tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld
 %: CFLAGS := $(CFLAGS)
 
 KERNEL_DIR = kernel
+DRIVERS_DIR = drivers
 LIB_DIR = lib
 TOOLS_DIR = tools
-KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o buffer.o file.o helpers.o interrupts.o main.o mci.o memory.o page.o process.o uart.o)
+KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o buffer.o file.o helpers.o interrupts.o main.o memory.o page.o process.o)
+DRIVERS_OBJS = $(addprefix $(DRIVERS_DIR)/, pl011.o pl180.o)
 LIB_OBJS = $(addprefix $(LIB_DIR)/, string.o)
 TOOLS_OBJS = mkfs
 
 .PHONY: all
-all: tile lib tools
+all: tile drivers lib tools
 
-tile: $(KERNEL_OBJS) $(LIB_OBJS)
+tile: $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS)
 	$(LD) $^ -o$@ $(LDFLAGS)
+
+.PHONY: drivers
+drivers: $(DRIVERS_OBJS)
 
 .PHONY: lib
 lib: $(LIB_OBJS)
@@ -38,4 +43,4 @@ tools: $(TOOLS_OBJS)
 
 .PHONY: clean
 clean:
-	rm tile $(KERNEL_OBJS) $(LIB_OBJS) $(TOOLS_OBJS)
+	rm tile $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) $(TOOLS_OBJS)

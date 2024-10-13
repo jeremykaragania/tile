@@ -1,4 +1,4 @@
-#include <kernel/mci.h>
+#include <drivers/pl180.h>
 
 volatile struct mci_registers* mci = (volatile struct mci_registers*)(SMC_CS3_PADDR + 0x50000);
 
