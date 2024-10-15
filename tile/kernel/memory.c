@@ -423,7 +423,7 @@ int memory_map_free(void* ptr) {
   byte of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_info_data_alloc() {
-  char* data = (char*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps, 0));
+  char* data = (char*)phys_to_virt((uint32_t)bitmap_alloc(&phys_bitmaps, phys_bitmaps.offset));
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
