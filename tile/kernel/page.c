@@ -17,7 +17,6 @@ struct memory_bitmap virt_bitmap = {
 void init_paging() {
   init_pgd();
   map_kernel();
-  map_vector_table();
   map_smc();
   invalidate_entire_tlb();
 }
@@ -71,14 +70,6 @@ void map_kernel() {
       create_mapping(phys_to_virt(memory_map.reserved->blocks[i].begin), memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size, BLOCK_RW);
     }
   }
-}
-
-/*
-  map_vector_table maps the interrupt vector table. All it really does is make
-  the memory executable.
-*/
-void map_vector_table() {
-  create_mapping(0xffff0000, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, BLOCK_RWX);
 }
 
 /*
