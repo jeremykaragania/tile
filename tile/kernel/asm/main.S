@@ -118,7 +118,36 @@ mmap_switched:
   mrc p15, 0, r0, c1, c0, 0
   orr r0, r0, #0x2000
   mcr p15, 0, r0, c1, c0, 0 // Set vector base address.
+/*
+  init_stack_pointers initializes the stack pointers for all the processor
+  modes which interrupts can be taken to.
+*/
+init_stack_pointers:
   ldr r0, =init_process_end - 0x8
+  /* FIQ. */
+  mrs r1, cpsr
+  orr r1, r1, #0x11
+  msr cpsr, r1
+  mov sp, r0
+  /* IRQ. */
+  mrs r1, cpsr
+  orr r1, r1, #0x12
+  msr cpsr, r1
+  mov sp, r0
+  /* Abort. */
+  mrs r1, cpsr
+  orr r1, r1, #0x17
+  msr cpsr, r1
+  mov sp, r0
+  /* Undefined. */
+  mrs r1, cpsr
+  orr r1, r1, #0x1b
+  msr cpsr, r1
+  mov sp, r0
+  /* Supervisor. */
+  mrs r1, cpsr
+  orr r1, r1, #0x13
+  msr cpsr, r1
   mov sp, r0
   bl start_kernel
 4:
