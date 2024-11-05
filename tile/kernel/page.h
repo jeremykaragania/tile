@@ -22,6 +22,7 @@ void init_paging();
 void init_pgd();
 
 void map_kernel();
+void map_vector_table();
 void map_smc();
 
 void* virt_page_alloc(int flags);
