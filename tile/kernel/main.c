@@ -26,4 +26,5 @@ void start_kernel() {
   mci_init();
   filesystem_init();
   uart_printf(tile_banner);
+  while(1);
 }

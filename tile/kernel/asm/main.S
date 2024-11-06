@@ -150,5 +150,3 @@ init_stack_pointers:
   msr cpsr, r1
   mov sp, r0
   bl start_kernel
-4:
-  b 4b
