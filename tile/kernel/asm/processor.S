@@ -4,4 +4,5 @@ set_processor_mode:
   and r1, r1, #0xffffffe0
   orr r1, r1, r0
   msr cpsr, r1
+  isb
   bx lr
