@@ -125,33 +125,18 @@ mmap_switched:
 init_stack_pointers:
   ldr r0, =init_process_end - 0x8
   /* FIQ. */
-  mrs r1, cpsr
-  and r1, r1, #0xffffffe0
-  orr r1, r1, #0x11
-  msr cpsr, r1
+  cps #0x11
   mov sp, r0
   /* IRQ. */
-  mrs r1, cpsr
-  and r1, r1, #0xffffffe0
-  orr r1, r1, #0x12
-  msr cpsr, r1
+  cps #0x12
   mov sp, r0
   /* Abort. */
-  mrs r1, cpsr
-  and r1, r1, #0xffffffe0
-  orr r1, r1, #0x17
-  msr cpsr, r1
+  cps #0x17
   mov sp, r0
   /* Undefined. */
-  mrs r1, cpsr
-  and r1, r1, #0xffffffe0
-  orr r1, r1, #0x1b
-  msr cpsr, r1
+  cps #0x1b
   mov sp, r0
   /* Supervisor. */
-  mrs r1, cpsr
-  and r1, r1, #0xffffffe0
-  orr r1, r1, #0x13
-  msr cpsr, r1
+  cps #0x13
   mov sp, r0
   bl start_kernel
