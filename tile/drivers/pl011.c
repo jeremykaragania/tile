@@ -36,11 +36,6 @@ void uart_put_signed_integer(long long a) {
   depending on a format "format" and writes it to the UART data register.
 */
 void uart_put_unsigned_integer(unsigned long long a, const char format) {
-  if (format == 'x' || format == 'X') {
-    uart_putchar('0');
-    uart_putchar(format);
-  }
-
   if (a == 0) {
     uart_putchar('0');
   }
