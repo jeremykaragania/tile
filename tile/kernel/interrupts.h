@@ -2,6 +2,8 @@
 #define INTERRUPTS_H
 
 #include <drivers/pl011.h>
+#include <kernel/memory.h>
+#include <kernel/page.h>
 
 void do_reset();
 void do_undefined_instruction();
