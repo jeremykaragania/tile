@@ -10,7 +10,7 @@ struct file_info_int free_file_infos;
   of the SD card.
 */
 void filesystem_init() {
-  char* block = memory_map_alloc(FILE_BLOCK_SIZE);
+  char* block = memory_alloc(FILE_BLOCK_SIZE, 1);
   struct file_info_int* curr;
 
   /*
@@ -19,12 +19,12 @@ void filesystem_init() {
   */
   mci_read(0, block);
   filesystem_info = *(struct filesystem_info*)block;
-  memory_map_free(block);
+  memory_free(block);
 
   /*
     Initialize the file information cache and the free file information list.
   */
-  file_info_cache = memory_map_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE);
+  file_info_cache = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE, 1);
   free_file_infos.next = &file_info_cache[0];
   free_file_infos.prev = &file_info_cache[FILE_INFO_CACHE_SIZE - 1];
 
@@ -53,7 +53,7 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
   uint32_t block_num = 1 + (file_info_num - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
 
-  block = memory_map_alloc(FILE_BLOCK_SIZE);
+  block = memory_alloc(FILE_BLOCK_SIZE, 1);
   ret = free_file_infos_pop();
 
   if (ret == NULL) {
@@ -62,7 +62,7 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
 
   mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
   ret->ext = *(struct file_info_ext*)(block + block_offset);
-  memory_map_free(block);
+  memory_free(block);
   return ret;
 }
 
@@ -75,11 +75,11 @@ void file_info_put(const struct file_info_int* file_info) {
   uint32_t block_num = 1 + (file_info->ext.num - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info->ext.num - 1) % FILE_INFO_PER_BLOCK);
 
-  block = memory_map_alloc(FILE_BLOCK_SIZE);
+  block = memory_alloc(FILE_BLOCK_SIZE, 1);
   mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
   *(struct file_info_ext*)(block + block_offset) = file_info->ext;
   mci_write(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
-  memory_map_free(block);
+  memory_free(block);
 }
 
 /*

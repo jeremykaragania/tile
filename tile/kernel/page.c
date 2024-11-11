@@ -145,7 +145,7 @@ void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) 
         a new one.
       */
       if (!is_page_table) {
-        page_table = memory_map_alloc(PAGE_TABLE_SIZE);
+        page_table = memory_alloc(PAGE_TABLE_SIZE, PAGE_TABLE_SIZE);
         pmd_page_table = create_pmd_page_table(page_table);
         insert_pmd = &pmd_page_table;
       }
