@@ -8,17 +8,17 @@ void do_reset() {}
 /*
   do_undefined_instruction handles the undefined instruction exception.
 */
-void __attribute__((interrupt ("UNDEF"))) do_undefined_instruction() {}
+void do_undefined_instruction() {}
 
 /*
   do_supervisor_call handles the supervisor call exception.
 */
-void __attribute__((interrupt ("SWI"))) do_supervisor_call() {}
+void do_supervisor_call() {}
 
 /*
   do_prefetch_abort handles the prefetch abort exception.
 */
-void __attribute__((interrupt ("ABORT"))) do_prefetch_abort() {}
+void do_prefetch_abort() {}
 
 /*
   do_data_abort handles the data abort exception. It tries to allocate and map
@@ -34,9 +34,9 @@ void do_data_abort() {
 /*
   do_irq_interrupt handles the IRQ interrupt exception.
 */
-void __attribute__((interrupt ("IRQ"))) do_irq_interrupt() {}
+void do_irq_interrupt() {}
 
 /*
   do_fiq_interrupt handles the FIQ interrupt exception.
 */
-void __attribute__((interrupt ("FIQ"))) do_fiq_interrupt() {}
+void do_fiq_interrupt() {}
