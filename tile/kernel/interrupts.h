@@ -5,6 +5,8 @@
 #include <kernel/memory.h>
 #include <kernel/page.h>
 
+extern uint32_t get_dfar();
+
 void do_reset();
 void do_undefined_instruction();
 void do_supervisor_call();

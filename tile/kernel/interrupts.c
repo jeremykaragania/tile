@@ -26,7 +26,7 @@ void do_prefetch_abort() {}
 */
 void do_data_abort() {
   uint32_t dfar = get_dfar();
-  uint32_t pmd = pgd_offset(memory_manager.pgd, dfar);
+  uint32_t* pmd = pgd_offset(memory_manager.pgd, dfar);
 
   pmd_insert(pmd, dfar, (uint32_t)bitmap_alloc(&phys_bitmaps, phys_bitmaps.offset), BLOCK_RW);
 }
