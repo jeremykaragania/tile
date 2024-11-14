@@ -1,6 +1,7 @@
 #include <drivers/pl011.h>
 #include <drivers/pl180.h>
 #include <kernel/asm/memory.h>
+#include <kernel/buffer.h>
 #include <kernel/interrupts.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
@@ -24,6 +25,7 @@ void start_kernel() {
   init_paging();
   uart_init();
   mci_init();
+  buffer_init();
   filesystem_init();
   uart_printf(tile_banner);
   while(1);
