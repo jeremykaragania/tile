@@ -445,6 +445,20 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   struct memory_map_block* curr = (struct memory_map_block*)page->data;
   uint32_t distance = 0;
 
+  /*
+    If this is a new page with an empty first memory map block, then use that
+    block.
+  */
+  if (!curr->size) {
+    uint32_t begin = ALIGN(curr->begin + curr->size, align);
+
+    if (begin + size - 1 <= (uint32_t)page->data + PAGE_SIZE - 1) {
+      curr->begin = begin;
+      curr->size = size;
+      return (void*)curr->begin;
+    }
+  }
+
   while (curr) {
     /* We allocate after the current block. */
     if (!curr->next) {
