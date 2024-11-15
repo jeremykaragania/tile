@@ -445,6 +445,10 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   struct memory_map_block* curr = (struct memory_map_block*)page->data;
   uint32_t distance = 0;
 
+  if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
+    return NULL;
+  }
+
   /*
     If this is a new page with an empty first memory map block, then use that
     block.
@@ -504,6 +508,10 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
 void* memory_alloc(size_t size, size_t align) {
   struct memory_page_info* curr = &memory_page_info_cache;
   void* ret = NULL;
+
+  if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
+    return NULL;
+  }
 
   while (curr) {
     if (!curr->data) {
