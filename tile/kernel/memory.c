@@ -507,12 +507,16 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
 */
 void* memory_alloc(size_t size, size_t align) {
   struct memory_page_info* curr = &memory_page_info_cache;
+  struct memory_page_info tmp;
   void* ret = NULL;
 
   if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
     return NULL;
   }
 
+  /*
+    We try to allocate in one of the existing pages.
+  */
   while (curr) {
     if (!curr->data) {
       curr->data = memory_page_info_data_alloc();
@@ -525,21 +529,31 @@ void* memory_alloc(size_t size, size_t align) {
     }
 
     /*
-      To allocate the actual page information, we first need to allocate a
-      page, allocate that page information within it, and then initialize that
-      page information.
+      If we've tried all of the pages, then we allocate a new one and try to
+      allocate inside of it.
     */
     if (!curr->next) {
-      struct memory_page_info tmp;
-
-      tmp.data = memory_page_info_data_alloc();
-      tmp.next = NULL;
-      curr->next = memory_alloc_page(&tmp, sizeof(struct memory_page_info), 1);
-      curr->next->data = tmp.data;
-      curr->next->next = NULL;
+      break;
     }
 
     curr = curr->next;
+  }
+
+  /*
+    To allocate the actual page information, we first need to allocate a
+    page, allocate that page information within it, and then initialize that
+    page information.
+  */
+  tmp.data = memory_page_info_data_alloc();
+  tmp.next = NULL;
+  curr->next = memory_alloc_page(&tmp, sizeof(struct memory_page_info), 1);
+  curr->next->data = tmp.data;
+  curr->next->next = NULL;
+
+  ret = memory_alloc_page(curr->next, size, align);
+
+  if (ret) {
+    return ret;
   }
 
   return NULL;
