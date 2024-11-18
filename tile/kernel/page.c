@@ -27,29 +27,37 @@ void init_paging() {
   entries which are not used by the kernel.
 */
 void init_pgd() {
-  /* Reserve all the pages in the virtual bitmap. */
+  struct memory_bitmap* curr = &phys_bitmaps;
+
+  /* Clear page table entries which aren't reserved in the physical bitmap. */
+  while (curr) {
+    for (size_t i = 0; i < curr->size; i += (PMD_SIZE / PAGE_SIZE / 32)) {
+      if (!curr->data[i]) {
+        pmd_clear(memory_manager.pgd, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, 0)));
+      }
+    }
+
+    curr = curr->next;
+  }
+
+  /* Clear all the pages in the virtual bitmap. */
   for (size_t i = 0; i < virt_bitmap.size; ++i) {
-    virt_bitmap.data[i] = 0xffffffff;
+    virt_bitmap.data[i] = 0;
   }
 
-  /* Clear page table entries below the kernel. */
-  for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
-    pmd_clear(memory_manager.pgd, i);
-  }
+  curr = &phys_bitmaps;
 
-  /* Clear virtual bitmap entries below the kernel. */
-  for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PAGE_SIZE) {
-    bitmap_clear(&virt_bitmap, i);
-  }
+  /* Reserve virtual bitmap entries which are reserved in the physical bitmap. */
+  while (curr) {
+    for (size_t i = 0; i < curr->size; ++i) {
+      for (size_t j = 0; j < 32; ++j) {
+        if (curr->data[i] & 1 << j) {
+          bitmap_insert(&virt_bitmap, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, j)), PAGE_SIZE);
+        }
+      }
+    }
 
-  /* Clear page table entries above the kernel. */
-  for (uint32_t i = ALIGN(memory_manager.bss_end, PMD_SIZE); i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
-    pmd_clear(memory_manager.pgd, i);
-  }
-
-  /* Clear virtual bitmap entries above the kernel. */
-  for (uint32_t i = memory_manager.bss_end; i < VMALLOC_BEGIN_VADDR; i += PAGE_SIZE) {
-    bitmap_clear(&virt_bitmap, i);
+    curr = curr->next;
   }
 }
 
