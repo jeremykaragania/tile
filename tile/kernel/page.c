@@ -94,9 +94,11 @@ void map_vector_table() {
   directory and maps the MCI and the UART.
 */
 void map_smc() {
-  uart_0 = (volatile struct uart_registers*)0xffc00000;
+  uint32_t uart_0_addr = 0xffc00000;
+
   create_mapping((uint32_t)mci, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
-  create_mapping((uint32_t)uart_0, 0x1c090000, PAGE_SIZE, BLOCK_RW);
+  create_mapping(uart_0_addr, 0x1c090000, PAGE_SIZE, BLOCK_RW);
+  uart_0 = (volatile struct uart_registers*)uart_0_addr;
 }
 
 /*
