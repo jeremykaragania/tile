@@ -22,6 +22,15 @@ struct memory_manager memory_manager;
 
 struct memory_bitmap phys_bitmaps;
 
+static uint32_t virt_bitmap_data[VIRT_BITMAP_SIZE];
+
+struct memory_bitmap virt_bitmap = {
+  virt_bitmap_data,
+  VIRT_BITMAP_SIZE,
+  0,
+  NULL
+};
+
 struct memory_page_info memory_page_info_cache = {
   NULL,
   NULL
@@ -47,8 +56,6 @@ uint32_t phys_to_virt(uint32_t x) {
   init_memory_map initializes the kernel's memory map.
 */
 void init_memory_map() {
-  struct memory_bitmap* curr;
-
   /*
     We initialize the kernel's initial memory map using the system's memory
     map; and the kernel's memory map from the linker. Eventually we won't need
@@ -58,8 +65,28 @@ void init_memory_map() {
   memory_map_add_block(memory_map.reserved, 0x80000000, 0x8000);
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
   memory_map_add_block(memory_map.reserved, virt_to_phys((uint32_t)&text_begin), (uint32_t)&bss_end - (uint32_t)&text_begin);
+}
 
-  curr = &phys_bitmaps;
+/*
+  init_memory_manager initializes the kernel's memory manager.
+*/
+void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end) {
+  memory_manager.pgd = (uint32_t*)(uint32_t)pgd;
+  memory_manager.text_begin = (uint32_t)text_begin;
+  memory_manager.text_end = (uint32_t)text_end;
+  memory_manager.data_begin = (uint32_t)data_begin;
+  memory_manager.data_end = (uint32_t)data_end;
+  memory_manager.bss_begin = (uint32_t)bss_begin;
+  memory_manager.bss_end = (uint32_t)bss_end;
+}
+
+/*
+  init_bitmaps initializes the physical and virtual page bitmaps. The physical
+  page bitmap is initialized using the memory map, and the virtual page bitmap
+  is initialized using the physical page bitmap.
+*/
+void init_bitmaps() {
+  struct memory_bitmap* curr = &phys_bitmaps;
 
   /*
     For each memory block in the initial memory map's memory group, we allocate
@@ -94,19 +121,26 @@ void init_memory_map() {
 
     bitmap_insert(curr, memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size);
   }
-}
 
-/*
-  init_memory_manager initializes the kernel's memory manager.
-*/
-void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end) {
-  memory_manager.pgd = (uint32_t*)(uint32_t)pgd;
-  memory_manager.text_begin = (uint32_t)text_begin;
-  memory_manager.text_end = (uint32_t)text_end;
-  memory_manager.data_begin = (uint32_t)data_begin;
-  memory_manager.data_end = (uint32_t)data_end;
-  memory_manager.bss_begin = (uint32_t)bss_begin;
-  memory_manager.bss_end = (uint32_t)bss_end;
+  /* Clear all the pages in the virtual bitmap. */
+  for (size_t i = 0; i < virt_bitmap.size; ++i) {
+    virt_bitmap.data[i] = 0;
+  }
+
+  curr = &phys_bitmaps;
+
+  /* Reserve virtual bitmap entries which are reserved in the physical bitmap. */
+  while (curr) {
+    for (size_t i = 0; i < curr->size; ++i) {
+      for (size_t j = 0; j < 32; ++j) {
+        if (curr->data[i] & 1 << j) {
+          bitmap_insert(&virt_bitmap, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, j)), PAGE_SIZE);
+        }
+      }
+    }
+
+    curr = curr->next;
+  }
 }
 
 /*

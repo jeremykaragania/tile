@@ -1,14 +1,5 @@
 #include <kernel/page.h>
 
-static uint32_t virt_bitmap_data[VIRT_BITMAP_SIZE];
-
-struct memory_bitmap virt_bitmap = {
-  virt_bitmap_data,
-  VIRT_BITMAP_SIZE,
-  0,
-  NULL
-};
-
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
   Currently the kernel is mapped using 1MB sections. These sections are
@@ -34,26 +25,6 @@ void init_pgd() {
     for (size_t i = 0; i < curr->size; i += (PMD_SIZE / PAGE_SIZE / 32)) {
       if (!curr->data[i]) {
         pmd_clear(memory_manager.pgd, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, 0)));
-      }
-    }
-
-    curr = curr->next;
-  }
-
-  /* Clear all the pages in the virtual bitmap. */
-  for (size_t i = 0; i < virt_bitmap.size; ++i) {
-    virt_bitmap.data[i] = 0;
-  }
-
-  curr = &phys_bitmaps;
-
-  /* Reserve virtual bitmap entries which are reserved in the physical bitmap. */
-  while (curr) {
-    for (size_t i = 0; i < curr->size; ++i) {
-      for (size_t j = 0; j < 32; ++j) {
-        if (curr->data[i] & 1 << j) {
-          bitmap_insert(&virt_bitmap, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, j)), PAGE_SIZE);
-        }
       }
     }
 

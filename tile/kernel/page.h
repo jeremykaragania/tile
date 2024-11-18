@@ -7,14 +7,10 @@
 #include <limits.h>
 #include <stdint.h>
 
-#define VIRT_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
-
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
-
-extern struct memory_bitmap virt_bitmap;
 
 extern void invalidate_entire_tlb();
 

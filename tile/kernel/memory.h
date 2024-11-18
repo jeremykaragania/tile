@@ -9,6 +9,8 @@
 
 #define MEMORY_MAP_GROUP_LENGTH 128
 
+#define VIRT_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
+
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
@@ -29,6 +31,7 @@ const extern uint32_t* bss_end;
 extern struct memory_map memory_map;
 extern struct memory_manager memory_manager;
 extern struct memory_bitmap phys_bitmaps;
+extern struct memory_bitmap virt_bitmap;
 extern struct memory_page_info memory_page_info_cache;
 
 extern uint32_t high_memory;
@@ -118,6 +121,7 @@ uint32_t phys_to_virt(uint32_t x);
 
 void init_memory_map();
 void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
+void init_bitmaps();
 
 void update_memory_map();
 
