@@ -358,11 +358,11 @@ void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
   size_t begin_index_index = bitmap_index_index(bitmap, addr);
 
   for (size_t i = begin_index, j = begin_index_index; j < begin_index_index + count; ++j) {
-    bitmap->data[i] |= 1 << j % 32;
-
     if (j > 0 && j % 32 == 0) {
       ++i;
     }
+
+    bitmap->data[i] |= 1 << j % 32;
   }
 }
 
