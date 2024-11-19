@@ -115,7 +115,7 @@ void init_bitmaps() {
     reserve that memory block in the appropriate physical page bitmap.
   */
   for (size_t i = 0; i < memory_map.reserved->size; ++i) {
-    while (memory_map.reserved->blocks[i].begin > curr->offset + curr->size * PAGE_SIZE * 32 - 1) {
+    while (memory_map.reserved->blocks[i].begin > bitmap_end_addr(curr)) {
       curr = curr->next;
     }
 
@@ -330,6 +330,26 @@ uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j) 
 }
 
 /*
+  bitmap_end_addr returns the upper address bound which the bitmap "bitmap"
+  contains.
+*/
+uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap) {
+  return bitmap->offset + bitmap->size * PAGE_SIZE * 32 - 1;
+}
+
+/*
+  bitmap_addr_is_free returns true if the address "addr" is free in the bitmap
+  "bitmap".
+*/
+int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr) {
+  if (addr >= bitmap->offset && addr <= bitmap_end_addr(bitmap)) {
+    return (!(bitmap->data[bitmap_index(bitmap, addr)] & (1 << bitmap_index_index(bitmap, addr))));
+  }
+
+  return 0;
+}
+
+/*
   bitmap_insert inserts pages from the address "addr" spanning "size" bytes in
   the bitmap "bitmap".
 */
@@ -351,16 +371,17 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
   returns a pointer to it.
 */
 void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
-  void* addr = NULL;
+  uint32_t addr;
 
   while (bitmap) {
     for (size_t i = bitmap_index(bitmap, begin); i < bitmap->size; ++i) {
       for (size_t j = 0; j < 32; ++j) {
+        addr = bitmap_to_addr(bitmap, i, j);
+
         /* The page is free. */
-        if (!(bitmap->data[i] & (1 << j))) {
-          addr = (uint32_t*)bitmap_to_addr(bitmap, i, j);
-          bitmap_insert(bitmap, (uint32_t)addr, PAGE_SIZE);
-          return addr;
+        if (bitmap_addr_is_free(bitmap, addr)) {
+          bitmap_insert(bitmap, addr, PAGE_SIZE);
+          return (void*)addr;
         }
       }
     }

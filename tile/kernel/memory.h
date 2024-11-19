@@ -134,6 +134,8 @@ int memory_map_split_block(struct memory_map_group* group, uint32_t begin);
 size_t bitmap_index(const struct memory_bitmap* bitmap, uint32_t addr);
 size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint32_t addr);
 uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j);
+uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap);
+int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr);
 void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size);
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr);
 void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin);
