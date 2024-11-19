@@ -93,16 +93,16 @@ void init_bitmaps() {
     a physical page bitmap to map that memory block.
   */
   for (size_t i = 0; i < memory_map.memory->size; ++i) {
+    if (!curr) {
+      curr = memory_map_alloc(sizeof(struct memory_bitmap));
+    }
+
     curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
     curr->data = memory_map_alloc(curr->size);
     curr->offset = memory_map.memory->blocks[i].begin;
 
     for (size_t j = 0; j < curr->size; ++j) {
       curr->data[j] = 0;
-    }
-
-    if (i + 1 > memory_map.memory->size) {
-      curr->next = memory_map_alloc(sizeof(struct memory_bitmap));
     }
 
     curr = curr->next;
