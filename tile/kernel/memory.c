@@ -119,7 +119,7 @@ void init_bitmaps() {
       curr = curr->next;
     }
 
-    bitmap_insert(curr, memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size);
+    bitmap_insert(curr, memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size / PAGE_SIZE);
   }
 
   /* Clear all the pages in the virtual bitmap. */
@@ -134,7 +134,7 @@ void init_bitmaps() {
     for (size_t i = 0; i < curr->size; ++i) {
       for (size_t j = 0; j < 32; ++j) {
         if (curr->data[i] & 1 << j) {
-          bitmap_insert(&virt_bitmap, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, j)), PAGE_SIZE);
+          bitmap_insert(&virt_bitmap, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, j)), 1);
         }
       }
     }
@@ -350,12 +350,19 @@ int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr) {
 }
 
 /*
-  bitmap_insert inserts pages from the address "addr" spanning "size" bytes in
+  bitmap_insert inserts pages from the address "addr" spanning "count" pages in
   the bitmap "bitmap".
 */
-void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, uint32_t size) {
-  for (uint32_t i = addr; i < addr + size; i += PAGE_SIZE) {
-    bitmap->data[bitmap_index(bitmap, i)] |= 1 << bitmap_index_index(bitmap, i);
+void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
+  size_t begin_index = bitmap_index(bitmap, addr);
+  size_t begin_index_index = bitmap_index_index(bitmap, addr);
+
+  for (size_t i = begin_index, j = begin_index_index; j < begin_index_index + count; ++j) {
+    bitmap->data[i] |= 1 << j % 32;
+
+    if (j > 0 && j % 32 == 0) {
+      ++i;
+    }
   }
 }
 
@@ -380,7 +387,7 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
 
         /* The page is free. */
         if (bitmap_addr_is_free(bitmap, addr)) {
-          bitmap_insert(bitmap, addr, PAGE_SIZE);
+          bitmap_insert(bitmap, addr, 1);
           return (void*)addr;
         }
       }
