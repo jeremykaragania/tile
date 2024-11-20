@@ -164,6 +164,21 @@ int addr_is_mapped(uint32_t* addr) {
 }
 
 /*
+  pgd_walk walks the page global directory as far as it can from the virtual
+  address "v_addr" and returns the entry where translation stops. It returns
+  either a section entry or a page entry.
+*/
+uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr) {
+  uint32_t* entry = pgd_offset(pgd, v_addr);
+
+  if (pmd_is_page_table(entry)) {
+    entry = pmd_offset(entry, v_addr);
+  }
+
+  return *entry;
+}
+
+/*
   pgd_offset returns the address of a page middle directory from a virtual
   address "addr", and the base address of a page global directory "pgd". It
   returns the address of a page table first-level descriptor from a virtual
