@@ -97,7 +97,7 @@ void* virt_page_alloc(int flags) {
 */
 int virt_page_free(uint32_t* addr) {
   bitmap_clear(&virt_bitmap, (uint32_t)addr);
-  pte_clear(pgd_offset(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
+  pte_clear(addr_to_pmd(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
   return 1;
 }
 
@@ -113,7 +113,7 @@ void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) 
   uint32_t pmd_page_table;
 
   for (uint32_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
-    pmd = pgd_offset(memory_manager.pgd, i);
+    pmd = addr_to_pmd(memory_manager.pgd, i);
 
     /* Page middle directory has many entries. */
     if (!IS_ALIGNED(size, PMD_SIZE)) {
@@ -169,32 +169,32 @@ int addr_is_mapped(uint32_t* addr) {
   either a section entry or a page entry.
 */
 uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr) {
-  uint32_t* entry = pgd_offset(pgd, v_addr);
+  uint32_t* entry = addr_to_pmd(pgd, v_addr);
 
   if (pmd_is_page_table(entry)) {
-    entry = pmd_offset(entry, v_addr);
+    entry = addr_to_pte(entry, v_addr);
   }
 
   return *entry;
 }
 
 /*
-  pgd_offset returns the address of a page middle directory from a virtual
+  addr_to_pmd returns the address of a page middle directory from a virtual
   address "addr", and the base address of a page global directory "pgd". It
   returns the address of a page table first-level descriptor from a virtual
   address "addr", and a translation table base, "pgd".
 */
-uint32_t* pgd_offset(uint32_t* pgd, uint32_t addr) {
+uint32_t* addr_to_pmd(uint32_t* pgd, uint32_t addr) {
   return (uint32_t*)((uint32_t)pgd + pgd_index(addr));
 }
 
 /*
-  pmd_offset returns the address of a page table entry from a virtual address
+  addr_to_pte returns the address of a page table entry from a virtual address
   "addr", and the base address of a page middle directory "pmd". It returns the
   address of a small page second-level descriptor from a virtual address,
   "addr" and a page table base address, "pmd".
 */
-uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
+uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr) {
   pmd = pmd_to_page_table(pmd);
   return (uint32_t*)((uint32_t)pmd + pmd_index(addr));
 }
@@ -204,10 +204,10 @@ uint32_t* pmd_offset(uint32_t* pmd, uint32_t addr) {
   page global directory "pgd"
 */
 void pmd_clear(uint32_t* pgd, uint32_t addr) {
-  uint32_t* offset;
+  uint32_t* pmd;
 
-  offset = pgd_offset(memory_manager.pgd, addr);
-  *offset = 0x0;
+  pmd = addr_to_pmd(memory_manager.pgd, addr);
+  *pmd = 0x0;
 }
 
 /*
@@ -215,10 +215,10 @@ void pmd_clear(uint32_t* pgd, uint32_t addr) {
   middle directory "pmd".
 */
 void pte_clear(uint32_t* pmd, uint32_t addr) {
-  uint32_t* offset;
+  uint32_t* pte;
 
-  offset = pmd_offset(pmd, addr);
-  *offset = 0x0;
+  pte = addr_to_pte(pmd, addr);
+  *pte = 0x0;
 }
 
 /*
@@ -228,10 +228,10 @@ void pte_clear(uint32_t* pmd, uint32_t addr) {
   entry already exists it is replaced.
 */
 void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
-  uint32_t* offset;
+  uint32_t* pte;
 
-  offset = pmd_offset(pmd, v_addr);
-  *offset = create_pte(p_addr, flags);
+  pte = addr_to_pte(pmd, v_addr);
+  *pte = create_pte(p_addr, flags);
 }
 
 /*
