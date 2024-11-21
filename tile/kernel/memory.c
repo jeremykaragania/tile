@@ -98,7 +98,7 @@ void init_bitmaps() {
     }
 
     curr->size = memory_map.memory->blocks[i].size / PAGE_SIZE / 32;
-    curr->data = memory_map_alloc(curr->size);
+    curr->data = memory_map_alloc(curr->size * sizeof(uint32_t));
     curr->offset = memory_map.memory->blocks[i].begin;
 
     for (size_t j = 0; j < curr->size; ++j) {
