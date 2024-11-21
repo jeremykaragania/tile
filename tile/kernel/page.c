@@ -201,19 +201,10 @@ uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr) {
 
 /*
   pmd_to_addr returns the virtual address which the page middle directory "pmd"
-  maps to.
+  maps to in the page global directory "pgd".
 */
-uint32_t pmd_to_addr(uint32_t* pmd) {
-  uint32_t addr = 0;
-
-  if (pmd_is_page_table(pmd)) {
-    addr = pte_to_addr(*pmd_to_page_table(pmd));
-  }
-  else {
-    addr = *pmd & 0xfff00000;
-  }
-
-  return phys_to_virt(addr);
+uint32_t pmd_to_addr(uint32_t* pgd, uint32_t* pmd) {
+  return ((uint32_t)pmd - (uint32_t)pgd) / 4 * PMD_SIZE;
 }
 
 /*
