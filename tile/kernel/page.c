@@ -34,18 +34,23 @@ void init_pgd() {
   memory sections.
 */
 void map_kernel() {
-  /*Map the memory after the ".text" section. */
-  create_mapping(memory_manager.data_begin, virt_to_phys(memory_manager.data_begin), memory_manager.bss_end - memory_manager.data_begin, BLOCK_RW);
-  /* Map the memory before the ".text" section. */
-  create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR), BLOCK_RW);
+  /*
+    The ".text" section is the only section which we map at a page granularity.
+    "text_begin" and "text_end" are respectively the page middle directory
+    lower and upper section bounds of the ".text" section. We need to make sure
+    that the pages below and above the ".text" section are mapped too.
+  */
+  uint32_t text_begin = pmd_to_addr(memory_manager.pgd, addr_to_pmd(memory_manager.pgd, memory_manager.text_begin));
+  uint32_t text_end = pmd_to_addr(memory_manager.pgd, addr_to_pmd(memory_manager.pgd, memory_manager.text_end)) + PMD_SIZE;
+
   /* Map the memory in the ".text" section. */
   create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
-  /* Map the reserved memory blocks after the ".bss" section. */
-  for (size_t i = 0; i < memory_map.reserved->size; ++i) {
-    if (phys_to_virt(memory_map.reserved->blocks[i].begin) >= memory_manager.bss_end) {
-      create_mapping(phys_to_virt(memory_map.reserved->blocks[i].begin), memory_map.reserved->blocks[i].begin, memory_map.reserved->blocks[i].size, BLOCK_RW);
-    }
-  }
+
+  /* Map the memory before the ".text" section. */
+  create_mapping(text_begin, virt_to_phys(text_begin), memory_manager.text_begin - text_begin, BLOCK_RW);
+
+  /* Map the memory after the ".text" section. */
+  create_mapping(ALIGN(memory_manager.text_end, PAGE_SIZE), virt_to_phys(ALIGN(memory_manager.text_end, PAGE_SIZE)), text_end - memory_manager.text_end, BLOCK_RW);
 }
 
 /*
