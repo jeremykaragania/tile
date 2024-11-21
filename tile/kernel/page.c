@@ -18,17 +18,14 @@ void init_paging() {
   entries which are not used by the kernel.
 */
 void init_pgd() {
-  struct memory_bitmap* curr = &phys_bitmaps;
+  /* Clear page table entries below the kernel. */
+  for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
+    pmd_clear(memory_manager.pgd, i);
+  }
 
-  /* Clear page table entries which aren't reserved in the physical bitmap. */
-  while (curr) {
-    for (size_t i = 0; i < curr->size; i += (PMD_SIZE / PAGE_SIZE / 32)) {
-      if (!curr->data[i]) {
-        pmd_clear(memory_manager.pgd, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, 0)));
-      }
-    }
-
-    curr = curr->next;
+  /* Clear page table entries above the kernel. */
+  for (uint32_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
+    pmd_clear(memory_manager.pgd, i);
   }
 }
 
