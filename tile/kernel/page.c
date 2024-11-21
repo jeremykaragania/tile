@@ -43,7 +43,6 @@ void map_kernel() {
   create_mapping(phys_to_virt(KERNEL_SPACE_PADDR), KERNEL_SPACE_PADDR, memory_manager.text_begin - phys_to_virt(KERNEL_SPACE_PADDR), BLOCK_RW);
   /* Map the memory in the ".text" section. */
   create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
-
   /* Map the reserved memory blocks after the ".bss" section. */
   for (size_t i = 0; i < memory_map.reserved->size; ++i) {
     if (phys_to_virt(memory_map.reserved->blocks[i].begin) >= memory_manager.bss_end) {
@@ -108,12 +107,14 @@ int virt_page_free(uint32_t* addr) {
 */
 void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
+  uint32_t pmd_addr;
   uint32_t* insert_pmd;
   uint32_t* page_table;
   uint32_t pmd_page_table;
 
   for (uint32_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
     pmd = addr_to_pmd(memory_manager.pgd, i);
+    pmd_addr = pmd_to_addr(memory_manager.pgd, pmd);
 
     /* Page middle directory has many entries. */
     if (!IS_ALIGNED(size, PMD_SIZE)) {
@@ -129,6 +130,14 @@ void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) 
         page_table = memory_alloc(PAGE_TABLE_SIZE, PAGE_TABLE_SIZE);
         pmd_page_table = create_pmd_page_table(page_table);
         insert_pmd = &pmd_page_table;
+
+        /*
+          If the new page table should map itself, then we make sure that it
+          does.
+        */
+        if ((uint32_t)page_table > pmd_addr && (uint32_t)page_table < pmd_addr + PMD_SIZE) {
+          pmd_insert(insert_pmd, (uint32_t)page_table, virt_to_phys((uint32_t)page_table), BLOCK_RW);
+        }
       }
 
       /* We either insert into the new page table or the existing one. */
