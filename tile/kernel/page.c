@@ -200,6 +200,31 @@ uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr) {
 }
 
 /*
+  pmd_to_addr returns the virtual address which the page middle directory "pmd"
+  maps to.
+*/
+uint32_t pmd_to_addr(uint32_t* pmd) {
+  uint32_t addr = 0;
+
+  if (pmd_is_page_table(pmd)) {
+    addr = pte_to_addr(*pmd_to_page_table(pmd));
+  }
+  else {
+    addr = *pmd & 0xfff00000;
+  }
+
+  return phys_to_virt(addr);
+}
+
+/*
+  pte_to_addr returns the virtual address which the page table entry "pte" maps
+  to.
+*/
+uint32_t pte_to_addr(uint32_t pte) {
+  return pte & 0xfffff000;
+}
+
+/*
   pmd_clear clears a page middle directory from a virtual address "addr" in the
   page global directory "pgd"
 */
@@ -280,22 +305,6 @@ uint32_t create_pmd_section(uint32_t p_addr, int flags) {
   }
 
   return pte;
-}
-
-/*
-  pmd_section_to_addr returns the physical address which the page middle
-  directory section "pmd" maps to.
-*/
-uint32_t pmd_section_to_addr(uint32_t pmd) {
-  return pmd & 0xfff00000;
-}
-
-/*
-  pte_to_addr returns the physical address which the page table entry "pte"
-  maps to.
-*/
-uint32_t pte_to_addr(uint32_t pte) {
-  return pte & 0xfffff000;
 }
 
 /*
