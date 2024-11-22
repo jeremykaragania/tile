@@ -31,26 +31,30 @@ void init_pgd() {
 
 /*
   map_kernel maps the kernel. It sets the appropriate attributes for the kernel
-  memory sections.
+  memory sections. The ".text" section is the only section which we map at a
+  page granularity. All other memory uses a page middle directory section
+  granularity. "text_begin" and "text_end" are respectively the page middle
+  directory lower and upper section bounds of the ".text" section. We need to
+  make sure that the pages below and above the ".text" section are mapped too.
 */
 void map_kernel() {
-  /*
-    The ".text" section is the only section which we map at a page granularity.
-    "text_begin" and "text_end" are respectively the page middle directory
-    lower and upper section bounds of the ".text" section. We need to make sure
-    that the pages below and above the ".text" section are mapped too.
-  */
   uint32_t text_begin = pmd_to_addr(memory_manager.pgd, addr_to_pmd(memory_manager.pgd, memory_manager.text_begin));
   uint32_t text_end = pmd_to_addr(memory_manager.pgd, addr_to_pmd(memory_manager.pgd, memory_manager.text_end)) + PMD_SIZE;
 
   /* Map the memory in the ".text" section. */
   create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
 
-  /* Map the memory before the ".text" section. */
+  /* Map the section memory before the ".text" section. */
   create_mapping(text_begin, virt_to_phys(text_begin), memory_manager.text_begin - text_begin, BLOCK_RW);
 
-  /* Map the memory after the ".text" section. */
+  /* Map the section memory after the ".text" section. */
   create_mapping(ALIGN(memory_manager.text_end, PAGE_SIZE), virt_to_phys(ALIGN(memory_manager.text_end, PAGE_SIZE)), text_end - memory_manager.text_end, BLOCK_RW);
+
+  /* Map the kernel memory before the ".text" section. */
+  create_mapping((uint32_t)&VIRT_OFFSET, virt_to_phys((uint32_t)&VIRT_OFFSET), ALIGN(text_begin - (uint32_t)&VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
+
+  /* Map the kernel memory after the ".text" section. */
+  create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), BLOCK_RW);
 }
 
 /*
