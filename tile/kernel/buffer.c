@@ -2,6 +2,7 @@
 
 char** buffer_pool;
 struct buffer_info* buffer_info_pool;
+struct buffer_info buffer_info_cache;
 struct buffer_info free_buffer_infos;
 
 void buffer_init() {
@@ -20,6 +21,9 @@ void buffer_init() {
     Initialize the buffer information pool and the free buffer information list.
   */
   buffer_info_pool = memory_alloc(sizeof(struct buffer_info) * BUFFER_INFO_POOL_SIZE, 1);
+
+  buffer_info_cache.next = &buffer_info_cache;
+  buffer_info_cache.prev = &buffer_info_cache;
 
   free_buffer_infos.next = &buffer_info_pool[0];
   free_buffer_infos.prev = &buffer_info_pool[BUFFER_INFO_POOL_SIZE - 1];
