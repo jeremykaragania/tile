@@ -44,28 +44,28 @@ void buffer_init() {
 }
 
 /*
-  free_buffer_infos_push adds an element "buffer_info" to the free buffer
-  information list.
+  buffer_info_push adds an element "buffer_info" to the buffer information list
+  "list".
 */
-void free_buffer_infos_push(struct buffer_info* buffer_info) {
-  buffer_info->next = free_buffer_infos.next;
-  buffer_info->prev = &free_buffer_infos;
-  free_buffer_infos.next->prev = buffer_info;
-  free_buffer_infos.next = buffer_info;
+void buffer_info_push(struct buffer_info* list, struct buffer_info* buffer_info) {
+  buffer_info->next = list->next;
+  buffer_info->prev = list;
+  list->next->prev = buffer_info;
+  list->next = buffer_info;
 }
 
 /*
-  free_buffer_infos_pop removes the first element of the free buffer
-  information list and returns it.
+  buffer_info_pop removes the first element of the buffer information list
+  "list" and returns it.
 */
-struct buffer_info* free_buffer_infos_pop() {
-  struct buffer_info* ret = free_buffer_infos.next;
+struct buffer_info* buffer_info_pop(struct buffer_info* list) {
+  struct buffer_info* ret = list->next;
 
   if (ret == &free_buffer_infos) {
     return NULL;
   }
 
-  free_buffer_infos.next = ret->next;
-  ret->next->prev = &free_buffer_infos;
+  list->next = ret->next;
+  ret->next->prev = list;
   return ret;
 }
