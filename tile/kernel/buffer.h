@@ -34,4 +34,7 @@ struct buffer_info {
 
 void buffer_init();
 
+void free_buffer_infos_push(struct buffer_info* buffer_info);
+struct buffer_info* free_buffer_infos_pop();
+
 #endif

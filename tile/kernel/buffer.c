@@ -38,3 +38,30 @@ void buffer_init() {
     curr = curr->next;
   }
 }
+
+/*
+  free_buffer_infos_push adds an element "buffer_info" to the free buffer
+  information list.
+*/
+void free_buffer_infos_push(struct buffer_info* buffer_info) {
+  buffer_info->next = free_buffer_infos.next;
+  buffer_info->prev = &free_buffer_infos;
+  free_buffer_infos.next->prev = buffer_info;
+  free_buffer_infos.next = buffer_info;
+}
+
+/*
+  free_buffer_infos_pop removes the first element of the free buffer
+  information list and returns it.
+*/
+struct buffer_info* free_buffer_infos_pop() {
+  struct buffer_info* ret = free_buffer_infos.next;
+
+  if (ret == &free_buffer_infos) {
+    return NULL;
+  }
+
+  free_buffer_infos.next = ret->next;
+  ret->next->prev = &free_buffer_infos;
+  return ret;
+}
