@@ -489,7 +489,7 @@ void* memory_page_info_data_alloc() {
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
-    0,
+    BLOCK_RW,
     NULL,
     NULL
   };
@@ -538,6 +538,7 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
       curr->next = next;
       curr->next->begin = next_begin;
       curr->next->size = size;
+      curr->next->flags = BLOCK_RW;
       curr->next->next = NULL;
       curr->next->prev = curr;
       return (uint32_t*)curr->next->begin;
@@ -552,6 +553,7 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
       curr->next = (struct memory_map_block*)(curr->begin + curr->size);
       curr->next->begin = (uint32_t)curr->next + sizeof(struct memory_map_block);
       curr->next->size = size;
+      curr->next->flags = BLOCK_RW;
       curr->next->next = next;
       curr->next->prev = curr;
       return (uint32_t*)curr->next->begin;
