@@ -5,23 +5,23 @@
 #include <kernel/memory.h>
 #include <stdint.h>
 
-#define BUFFER_INFO_CACHE_SIZE 32
+#define BUFFER_INFO_POOL_SIZE 32
 
 /*
-  "buffer_cache" is a cache for buffers. It is the memory backing all buffer
+  "buffer_pool" is a pool for buffers. It is the memory backing all buffer
   data.
 */
-extern char** buffer_cache;
+extern char** buffer_pool;
 
 /*
-  "buffer_info_cache" is a cache for buffer information. It is the memory
+  "buffer_info_pool" is a pool for buffer information. It is the memory
   backing all buffer information.
 */
-extern struct buffer_info* buffer_info_cache;
+extern struct buffer_info* buffer_info_pool;
 
 /*
   "free_buffer_infos" is a doubly linked list which stores the buffer
-  information in "buffer_info_cache" which are not being used.
+  information in "buffer_info_pool" which are not being used.
 */
 extern struct buffer_info free_buffer_infos;
 
