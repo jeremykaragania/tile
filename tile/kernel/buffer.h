@@ -1,6 +1,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+#include <drivers/pl180.h>
 #include <kernel/asm/file.h>
 #include <kernel/memory.h>
 #include <stdint.h>
@@ -38,6 +39,8 @@ struct buffer_info {
 };
 
 void buffer_init();
+
+struct buffer_info* buffer_info_get(uint32_t num);
 
 void buffer_info_push(struct buffer_info* list, struct buffer_info* buffer_info);
 struct buffer_info* buffer_info_pop(struct buffer_info* list);

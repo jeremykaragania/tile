@@ -38,9 +38,44 @@ void buffer_init() {
       curr->next = &buffer_info_pool[i + 1];
     }
 
+    curr->data = buffer_pool[i];
     curr->prev = &buffer_info_pool[i - 1];
     curr = curr->next;
   }
+}
+
+/*
+  buffer_info_get reads the filesystem for the block number "num" and returns
+  buffer information for it.
+*/
+struct buffer_info* buffer_info_get(uint32_t num) {
+  struct buffer_info* curr = buffer_info_cache.next;
+
+  /*
+    We first check if the buffer information is in the cache. If it is, then we
+    return it.
+  */
+  while (curr != &buffer_info_cache) {
+    if (curr->num == num) {
+      return curr;
+    }
+
+    curr = curr->next;
+  }
+
+  /*
+    If the buffer information isn't in the cache, then we allocate it.
+  */
+  curr = buffer_info_pop(&free_buffer_infos);
+
+  if (!curr) {
+    return NULL;
+  }
+
+  curr->num = num;
+  mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * num, curr->data);
+  buffer_info_push(&buffer_info_cache, curr);
+  return curr;
 }
 
 /*
