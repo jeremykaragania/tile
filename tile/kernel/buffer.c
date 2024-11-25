@@ -79,6 +79,16 @@ struct buffer_info* buffer_info_get(uint32_t num) {
 }
 
 /*
+  buffer_info_put writes the buffer information "buffer_info" to the filesystem
+  and frees it.
+*/
+void buffer_info_put(struct buffer_info* buffer_info) {
+  mci_write(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * buffer_info->num, buffer_info->data);
+  buffer_info_remove(&buffer_info_cache, buffer_info);
+  buffer_info_push(&free_buffer_infos, buffer_info);
+}
+
+/*
   buffer_info_push adds an element "buffer_info" to the buffer information list
   "list".
 */
