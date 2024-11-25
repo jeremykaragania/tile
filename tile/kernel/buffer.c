@@ -73,7 +73,7 @@ struct buffer_info* buffer_info_get(uint32_t num) {
   }
 
   curr->num = num;
-  mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * num, curr->data);
+  mci_read(FILE_BLOCK_SIZE * num, curr->data);
   buffer_info_push(&buffer_info_cache, curr);
   return curr;
 }
@@ -83,7 +83,7 @@ struct buffer_info* buffer_info_get(uint32_t num) {
   and frees it.
 */
 void buffer_info_put(struct buffer_info* buffer_info) {
-  mci_write(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * buffer_info->num, buffer_info->data);
+  mci_write(FILE_BLOCK_SIZE * buffer_info->num, buffer_info->data);
   buffer_info_remove(&buffer_info_cache, buffer_info);
   buffer_info_push(&free_buffer_infos, buffer_info);
 }
