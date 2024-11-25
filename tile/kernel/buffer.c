@@ -104,3 +104,20 @@ struct buffer_info* buffer_info_pop(struct buffer_info* list) {
   ret->next->prev = list;
   return ret;
 }
+
+/*
+  buffer_info_remove removes the buffer information "buffer_info" from the
+  buffer information list "list".
+*/
+void buffer_info_remove(struct buffer_info* list, struct buffer_info* buffer_info) {
+  /*
+    Not allowed to remove the head buffer information element or remove from an
+    empty list.
+  */
+  if (list == buffer_info || list->next == list) {
+    return;
+  }
+
+  buffer_info->next->prev = buffer_info->prev;
+  buffer_info->prev->next = buffer_info->next;
+}
