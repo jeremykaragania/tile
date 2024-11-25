@@ -1,7 +1,7 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <drivers/pl180.h>
+#include <kernel/buffer.h>
 #include <kernel/asm/file.h>
 #include <kernel/memory.h>
 #include <lib/string.h>

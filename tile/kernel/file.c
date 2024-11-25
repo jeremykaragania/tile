@@ -10,16 +10,15 @@ struct file_info_int free_file_infos;
   of the SD card.
 */
 void filesystem_init() {
-  char* block = memory_alloc(FILE_BLOCK_SIZE, 1);
+  struct buffer_info* buffer_info = NULL;
   struct file_info_int* curr;
 
   /*
     The first block contains information about the filesystem. The memory
     layout is specified by struct filesystem_info.
   */
-  mci_read(0, block);
-  filesystem_info = *(struct filesystem_info*)block;
-  memory_free(block);
+  buffer_info = buffer_info_get(0);
+  filesystem_info = *(struct filesystem_info*)buffer_info->data;
 
   /*
     Initialize the file information cache and the free file information list.
@@ -49,20 +48,18 @@ void filesystem_init() {
 */
 struct file_info_int* file_info_get(uint32_t file_info_num) {
   struct file_info_int* ret = NULL;
-  char* block = NULL;
+  struct buffer_info* buffer_info = NULL;
   uint32_t block_num = 1 + (file_info_num - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
 
-  block = memory_alloc(FILE_BLOCK_SIZE, 1);
+  buffer_info = buffer_info_get(block_num);
   ret = free_file_infos_pop();
 
-  if (ret == NULL) {
+  if (!buffer_info || !ret) {
     return NULL;
   }
 
-  mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
-  ret->ext = *(struct file_info_ext*)(block + block_offset);
-  memory_free(block);
+  ret->ext = *(struct file_info_ext*)(buffer_info->data + block_offset);
   return ret;
 }
 
@@ -71,15 +68,13 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
   information "file_info" to the SD card.
 */
 void file_info_put(const struct file_info_int* file_info) {
-  char* block = NULL;
+  struct buffer_info* buffer_info = NULL;
   uint32_t block_num = 1 + (file_info->ext.num - 1) / FILE_INFO_PER_BLOCK;
   uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info->ext.num - 1) % FILE_INFO_PER_BLOCK);
 
-  block = memory_alloc(FILE_BLOCK_SIZE, 1);
-  mci_read(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
-  *(struct file_info_ext*)(block + block_offset) = file_info->ext;
-  mci_write(FILE_BLOCK_SIZE + FILE_BLOCK_SIZE * block_num, block);
-  memory_free(block);
+  buffer_info = buffer_info_get(block_num);
+  *(struct file_info_ext*)(buffer_info->data + block_offset) = file_info->ext;
+  buffer_info_put(buffer_info);
 }
 
 /*
