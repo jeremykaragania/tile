@@ -106,7 +106,7 @@ void buffer_info_push(struct buffer_info* list, struct buffer_info* buffer_info)
 struct buffer_info* buffer_info_pop(struct buffer_info* list) {
   struct buffer_info* ret = list->next;
 
-  if (ret == &free_buffer_infos) {
+  if (ret == list) {
     return NULL;
   }
 
