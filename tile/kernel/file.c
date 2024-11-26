@@ -58,7 +58,7 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
   uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
 
   buffer_info = buffer_info_get(block_num);
-  ret = free_file_infos_pop();
+  ret = file_info_pop(&free_file_infos);
 
   if (!buffer_info || !ret) {
     return NULL;
@@ -83,28 +83,28 @@ void file_info_put(const struct file_info_int* file_info) {
 }
 
 /*
-  free_file_infos_push adds an element "file_info" to the free file information
-  list.
+  file_info_push adds an element "file_info" to the free file information list
+  "list".
 */
-void free_file_infos_push(struct file_info_int* file_info) {
-  file_info->next = free_file_infos.next;
-  file_info->prev = &free_file_infos;
-  free_file_infos.next->prev = file_info;
-  free_file_infos.next = file_info;
+void file_info_push(struct file_info_int* list, struct file_info_int* file_info) {
+  file_info->next = list->next;
+  file_info->prev = list;
+  list->next->prev = file_info;
+  list->next = file_info;
 }
 
 /*
-  free_file_infos_pop removes the first element of the free file information
-  list and returns it.
+  file_info_pop removes the first element of the free file information list
+  "list" and returns it.
 */
-struct file_info_int* free_file_infos_pop() {
-  struct file_info_int* ret = free_file_infos.next;
+struct file_info_int* file_info_pop(struct file_info_int* list) {
+  struct file_info_int* ret = list->next;
 
-  if (ret == &free_file_infos) {
+  if (ret == list) {
     return NULL;
   }
 
-  free_file_infos.next = ret->next;
-  ret->next->prev = &free_file_infos;
+  list->next = ret->next;
+  ret->next->prev = list;
   return ret;
 }
