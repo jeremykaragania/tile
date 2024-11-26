@@ -2,6 +2,7 @@
 
 struct filesystem_info filesystem_info;
 struct file_info_int* file_info_pool;
+struct file_info_int file_info_cache;
 struct file_info_int free_file_infos;
 
 /*
@@ -24,6 +25,10 @@ void filesystem_init() {
     Initialize the file information pool and the free file information list.
   */
   file_info_pool = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE, 1);
+
+  file_info_cache.next = &file_info_cache;
+  file_info_cache.prev = &file_info_cache;
+
   free_file_infos.next = &file_info_pool[0];
   free_file_infos.prev = &file_info_pool[FILE_INFO_CACHE_SIZE - 1];
 

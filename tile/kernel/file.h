@@ -21,6 +21,11 @@ extern struct filesystem_info filesystem_info;
 extern struct file_info_int* file_info_pool;
 
 /*
+  "file_info_cache" is a cache for internal file information.
+*/
+extern struct file_info_int file_info_cache;
+
+/*
   "free_file_infos" is a doubly linked list which stores the internal file
   information in "file_info_pool" which are not being used.
 */
