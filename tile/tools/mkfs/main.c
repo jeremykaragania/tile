@@ -31,11 +31,19 @@ int main(int argc, char* argv[]) {
   /* Initialize the filesystem information. */
   info.size = blocks_count;
   info.free_blocks_size = FILESYSTEM_INFO_CACHE_SIZE;
-  memset(info.free_blocks_cache, 0, sizeof(info.free_blocks_cache[0]) * FILESYSTEM_INFO_CACHE_SIZE);
+
+  for (size_t i = 0; i < info.free_blocks_size; ++i) {
+    info.free_blocks_cache[i] = i + 2;
+  }
+
   info.next_free_block = 0;
   info.file_infos_size = (blocks_count - 1) / 2;
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
-  memset(info.free_file_infos_cache, 0, sizeof(info.free_file_infos_cache[0]) * FILESYSTEM_INFO_CACHE_SIZE);
+
+  for (size_t i = 0; i < info.free_file_infos_size; ++i) {
+    info.free_file_infos_cache[i] = i + 1;
+  }
+
   info.next_free_file_info = 0;
 
   /* Initialize the filesystem information block. */
