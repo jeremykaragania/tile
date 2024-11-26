@@ -15,14 +15,14 @@
 extern struct filesystem_info filesystem_info;
 
 /*
-  "file_info_cache" is a cache for internal file information. It is the memory
+  "file_info_pool" is a pool for internal file information. It is the memory
   backing all internal file information read from secondary memory.
 */
-extern struct file_info_int* file_info_cache;
+extern struct file_info_int* file_info_pool;
 
 /*
   "free_file_infos" is a doubly linked list which stores the internal file
-  information in "file_info_cache" which are not being used.
+  information in "file_info_pool" which are not being used.
 */
 extern struct file_info_int free_file_infos;
 

@@ -1,7 +1,7 @@
 #include <kernel/file.h>
 
 struct filesystem_info filesystem_info;
-struct file_info_int* file_info_cache;
+struct file_info_int* file_info_pool;
 struct file_info_int free_file_infos;
 
 /*
@@ -21,11 +21,11 @@ void filesystem_init() {
   filesystem_info = *(struct filesystem_info*)buffer_info->data;
 
   /*
-    Initialize the file information cache and the free file information list.
+    Initialize the file information pool and the free file information list.
   */
-  file_info_cache = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE, 1);
-  free_file_infos.next = &file_info_cache[0];
-  free_file_infos.prev = &file_info_cache[FILE_INFO_CACHE_SIZE - 1];
+  file_info_pool = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE, 1);
+  free_file_infos.next = &file_info_pool[0];
+  free_file_infos.prev = &file_info_pool[FILE_INFO_CACHE_SIZE - 1];
 
   curr = free_file_infos.next;
 
@@ -34,10 +34,10 @@ void filesystem_init() {
       curr->next = &free_file_infos;
     }
     else {
-      curr->next = &file_info_cache[i + 1];
+      curr->next = &file_info_pool[i + 1];
     }
 
-    curr->prev = &file_info_cache[i - 1];
+    curr->prev = &file_info_pool[i - 1];
     curr = curr->next;
   }
 }
