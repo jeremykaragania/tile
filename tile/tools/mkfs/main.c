@@ -11,7 +11,6 @@ char usage[] = "Usage: mkfs device blocks-count";
 int main(int argc, char* argv[]) {
   char* device;
   size_t blocks_count;
-  uint32_t file_infos_size;
   FILE* f;
   struct filesystem_info info;
   char block[FILE_BLOCK_SIZE];
@@ -29,14 +28,30 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  file_infos_size = (blocks_count - 1) / 2;
+  /* Initialize the filesystem information. */
+  info.size = blocks_count;
+  info.free_blocks_size = FILESYSTEM_INFO_CACHE_SIZE;
+
+  for (size_t i = 0; i < info.free_blocks_size; ++i) {
+    info.free_blocks_cache[i] = i + 2;
+  }
+
+  info.next_free_block = 0;
+  info.file_infos_size = (blocks_count - 1) / 2;
+  info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
+
+  for (size_t i = 0; i < info.free_file_infos_size; ++i) {
+    info.free_file_infos_cache[i] = i + 1;
+  }
+
+  info.next_free_file_info = 0;
 
   /* Initialize the filesystem information block. */
   memset(block, 0, FILE_BLOCK_SIZE);
   fwrite(block, FILE_BLOCK_SIZE, 1, f);
 
   /* Initialize the file information blocks. */
-  for (size_t i = 0; i < file_infos_size; ++i) {
+  for (size_t i = 0; i < info.file_infos_size; ++i) {
     memset(block, 0, FILE_BLOCK_SIZE);
 
     for (size_t j = 0; j < FILE_INFO_PER_BLOCK; ++j) {
@@ -51,27 +66,9 @@ int main(int argc, char* argv[]) {
   /* Initialize the data blocks. */
   memset(block, 0, FILE_BLOCK_SIZE);
 
-  for (size_t i = 0; i < (blocks_count - 1) - file_infos_size; ++i) {
+  for (size_t i = 0; i < (blocks_count - 1) - info.file_infos_size; ++i) {
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
   }
-
-  /* Initialize the filesystem information. */
-  info.size = blocks_count;
-  info.free_blocks_size = FILESYSTEM_INFO_CACHE_SIZE;
-
-  for (size_t i = 0; i < info.free_blocks_size; ++i) {
-    info.free_blocks_cache[i] = i + 2;
-  }
-
-  info.next_free_block = 0;
-  info.file_infos_size = file_infos_size;
-  info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
-
-  for (size_t i = 0; i < info.free_file_infos_size; ++i) {
-    info.free_file_infos_cache[i] = i + 1;
-  }
-
-  info.next_free_file_info = 0;
 
   /* Initialize the filesystem information block. */
   rewind(f);
