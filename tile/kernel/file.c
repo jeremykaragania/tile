@@ -108,3 +108,49 @@ struct file_info_int* file_info_pop(struct file_info_int* list) {
   ret->next->prev = list;
   return ret;
 }
+
+/*
+  block_alloc allocates a block using the free block list and returns it.
+*/
+struct buffer_info* block_alloc() {
+  uint32_t num;
+  struct buffer_info* ret;
+
+  --filesystem_info.free_blocks_size;
+  num = filesystem_info.free_blocks_cache[filesystem_info.free_blocks_size];
+  ret = buffer_info_get(num);
+
+  /*
+    If we just read the last block from the free block list, then we replenish
+    the free block list.
+  */
+  if (!filesystem_info.free_blocks_size) {
+    filesystem_info.free_blocks_size = *((uint32_t*)ret->data);
+    memcpy(filesystem_info.free_blocks_cache, (uint32_t*)ret->data + 1, filesystem_info.free_blocks_size * sizeof(uint32_t));
+  }
+
+  memset(ret->data, 0, FILE_BLOCK_SIZE);
+  return ret;
+}
+
+/*
+  block_free frees the block specified by "buffer_info". It tries to push the
+  block to the free block list.
+*/
+void block_free(struct buffer_info* buffer_info) {
+  /*
+    If the free block list is full and we can't push to it, then we write it to
+    disk and point to it.
+  */
+  if (filesystem_info.free_blocks_size + 1 > FILESYSTEM_INFO_CACHE_SIZE) {
+    *((uint32_t*)buffer_info->data) = filesystem_info.free_blocks_size;
+    memcpy((uint32_t*)buffer_info->data + 1, filesystem_info.free_blocks_cache, filesystem_info.free_blocks_size * sizeof(uint32_t));
+    filesystem_info.free_blocks_size = 1;
+    *filesystem_info.free_blocks_cache = buffer_info->num;
+    buffer_info_put(buffer_info);
+  }
+  else {
+    filesystem_info.free_blocks_cache[filesystem_info.free_blocks_size] = buffer_info->num;
+    ++filesystem_info.free_blocks_size;
+  }
+}
