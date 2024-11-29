@@ -68,8 +68,11 @@ struct buffer_info* buffer_info_get(uint32_t num) {
   */
   curr = buffer_info_pop(&free_buffer_infos);
 
-  if (!curr) {
-    return NULL;
+  /*
+    If there are no free buffers, then we wait.
+  */
+  while (!curr) {
+    curr = buffer_info_pop(&free_buffer_infos);
   }
 
   curr->num = num;
