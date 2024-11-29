@@ -17,7 +17,7 @@ void write_free_block_list(struct filesystem_info* info, void* ptr, size_t num, 
   uint32_t data_blocks_count = info->size - 1 - info->file_infos_size;
   uint32_t free_data_blocks_count = data_blocks_count / FILESYSTEM_INFO_CACHE_SIZE;
 
-  ((uint32_t*)(ptr))[0] = info->file_infos_size + num + 2;
+  ((uint32_t*)(ptr))[0] = info->file_infos_size + num + 1;
 
   for (size_t i = 0; i < size - 1; ++i) {
     ((uint32_t*)(ptr))[i + 1] = free_data_blocks_count + (num * (FILESYSTEM_INFO_CACHE_SIZE - 1)) + i;
@@ -83,8 +83,8 @@ int main(int argc, char* argv[]) {
   /* Initialize the free data blocks. */
   for (size_t i = 0; i < free_data_blocks_count; ++i) {
     memset(block, 0, FILE_BLOCK_SIZE);
-    ((uint32_t*)(block))[0] = 0;
-    write_free_block_list(&info, block + 1, i + 1, FILESYSTEM_INFO_CACHE_SIZE);
+    ((uint32_t*)(block))[0] = FILESYSTEM_INFO_CACHE_SIZE;
+    write_free_block_list(&info, (uint32_t*)block + 1, i + 1, FILESYSTEM_INFO_CACHE_SIZE);
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
   }
 
