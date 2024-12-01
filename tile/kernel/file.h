@@ -12,6 +12,8 @@
 #define FILE_INFO_CACHE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 
+#define BLOCK_NUMS_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(uint32_t))
+
 /*
   A file's data is accessed through four levels of indirection. Zeroth level
   blocks contain direct data, first level blocks contain the numbers of zeroth
@@ -22,6 +24,17 @@
 #define L1_BLOCKS_SIZE 1
 #define L2_BLOCKS_SIZE 1
 #define L3_BLOCKS_SIZE 1
+
+#define L0_BLOCKS_COUNT 1
+#define L1_BLOCKS_COUNT BLOCK_NUMS_PER_BLOCK
+#define L2_BLOCKS_COUNT (BLOCK_NUMS_PER_BLOCK * BLOCK_NUMS_PER_BLOCK)
+#define L3_BLOCKS_COUNT (BLOCK_NUMS_PER_BLOCK * BLOCK_NUMS_PER_BLOCK * BLOCK_NUMS_PER_BLOCK)
+
+#define L0_BLOCKS_END (L0_BLOCKS_SIZE * L0_BLOCKS_COUNT * FILE_BLOCK_SIZE)
+#define L1_BLOCKS_END (L0_BLOCKS_END + L1_BLOCKS_SIZE * L1_BLOCKS_COUNT * FILE_BLOCK_SIZE)
+#define L2_BLOCKS_END (L1_BLOCKS_END + L2_BLOCKS_SIZE * L2_BLOCKS_COUNT * FILE_BLOCK_SIZE)
+#define L3_BLOCKS_END (L2_BLOCKS_END + L3_BLOCKS_SIZE * L3_BLOCKS_COUNT * FILE_BLOCK_SIZE)
+
 #define FILE_INFO_BLOCKS_SIZE (L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE + L3_BLOCKS_SIZE)
 
 extern struct filesystem_info filesystem_info;
