@@ -12,6 +12,18 @@
 #define FILE_INFO_CACHE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 
+/*
+  A file's data is accessed through four levels of indirection. Zeroth level
+  blocks contain direct data, first level blocks contain the numbers of zeroth
+  level blocks, second level blocks contain the numbers of first level blocks,
+  and third level blocks contain the numbers of second level blocks.
+*/
+#define L0_BLOCKS_SIZE 10
+#define L1_BLOCKS_SIZE 1
+#define L2_BLOCKS_SIZE 1
+#define L3_BLOCKS_SIZE 1
+#define FILE_INFO_BLOCKS_SIZE (L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE + L3_BLOCKS_SIZE)
+
 extern struct filesystem_info filesystem_info;
 
 /*
@@ -81,7 +93,7 @@ struct filesystem_info {
 */
 struct file_info_ext {
   uint32_t num;
-  uint32_t blocks[15];
+  uint32_t blocks[FILE_INFO_BLOCKS_SIZE];
   int32_t type;
   uint32_t size;
 };
