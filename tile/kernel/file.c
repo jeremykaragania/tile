@@ -48,6 +48,96 @@ void filesystem_init() {
 }
 
 /*
+  file_info_to_addr returns the filesystem address at the byte offset "offset"
+  in the file represented by the file information "info".
+*/
+struct filesystem_addr file_info_to_addr(const struct file_info_int* file_info, uint32_t offset) {
+  struct filesystem_addr ret = {0, 0};
+  struct buffer_info* buffer_info;
+  size_t level;
+  uint32_t blocks_index;
+
+  /*
+    We determine which block level "offset" is at and the corresponding block
+    index inside "file_info".
+  */
+  if (offset < L0_BLOCKS_END) {
+    level = 0;
+    blocks_index = offset / FILE_BLOCK_SIZE;
+  }
+  else if (offset < L1_BLOCKS_END) {
+    level = 1;
+    blocks_index = L0_BLOCKS_SIZE;
+  }
+  else if (offset < L2_BLOCKS_END) {
+    level = 2;
+    blocks_index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE;
+  }
+  else if (offset < L3_BLOCKS_END) {
+    level = 3;
+    blocks_index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE;
+  }
+  else {
+    return ret;
+  }
+
+  ret.num = file_info->ext.blocks[blocks_index];
+  ret.offset = offset % 512;
+
+  if (level) {
+    for (size_t i = 0; i < level; ++i) {
+      buffer_info = buffer_info_get(ret.num);
+      ret.num = ((uint32_t*)buffer_info->data)[next_block_index(level - i, offset)];
+      buffer_info_put(buffer_info);
+    }
+  }
+
+  return ret;
+}
+
+/*
+  next_block_index returns the index of a block number at the next block level
+  from a block level "level" and a file byte offset "offset".
+*/
+uint32_t next_block_index(size_t level, uint32_t offset) {
+  uint32_t begin;
+  uint32_t step;
+
+  /*
+    At each block level, the beginning file byte offset along with how many
+    bytes a block represents.
+  */
+  switch (level) {
+    case 1:
+      begin = L0_BLOCKS_END;
+      step = L1_BLOCKS_COUNT * FILE_BLOCK_SIZE;
+      break;
+    case 2:
+      begin = L1_BLOCKS_END;
+      step = L2_BLOCKS_COUNT * FILE_BLOCK_SIZE;
+      break;
+    case 3:
+      begin = L2_BLOCKS_END;
+      step = L3_BLOCKS_COUNT * FILE_BLOCK_SIZE;
+      break;
+    default:
+      return 0;
+  }
+
+  /*
+    We imagine that we are at the beginning address and determine which block
+    index contains the "offset".
+  */
+  for (size_t i = 0; i < BLOCK_NUMS_PER_BLOCK; ++i) {
+    if (begin + i * step >= offset) {
+      return i;
+    }
+  }
+
+  return 0;
+}
+
+/*
   file_info_int_get returns internal file information from an external file
   information number "file_info_num".
 */

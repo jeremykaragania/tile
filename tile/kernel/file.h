@@ -101,6 +101,15 @@ struct filesystem_info {
 };
 
 /*
+  struct filesystem_addr the address of a location within the filesystem. It is
+  specified by a block number "num", and an offset "offset" within that block.
+*/
+struct filesystem_addr {
+  uint32_t num;
+  uint32_t offset;
+};
+
+/*
   struct file_info_ext represents external file information for file
   information that is in secondary memory. They are like UNIX disk inodes.
 */
@@ -134,6 +143,9 @@ struct block_info_ext {
 };
 
 void filesystem_init();
+
+struct filesystem_addr file_info_to_addr(const struct file_info_int* info, uint32_t offset);
+uint32_t next_block_index(size_t level, uint32_t offset);
 
 struct file_info_int* file_info_get(uint32_t file_info_num);
 void file_info_put(const struct file_info_int* file_info);
