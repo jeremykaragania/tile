@@ -78,35 +78,6 @@ void map_smc() {
 }
 
 /*
-  virt_page_alloc allocates a virtual page in kernel space with the flags
-  "flags" and returns a pointer to it.
-*/
-void* virt_page_alloc(int flags) {
-  uint32_t* p_addr = NULL;
-  uint32_t* v_addr = NULL;
-
-  v_addr = bitmap_alloc(&virt_bitmap, (uint32_t)&VIRT_OFFSET);
-
-  if (!v_addr) {
-    return NULL;
-  }
-
-  p_addr = (uint32_t*)virt_to_phys((uint32_t)v_addr);
-  bitmap_insert(&phys_bitmaps, (uint32_t)p_addr, 1);
-  create_mapping((uint32_t)v_addr, (uint32_t)p_addr, PAGE_SIZE, flags);
-  return v_addr;
-}
-
-/*
-  virt_page_free unmaps the virtual page which "addr" points to.
-*/
-int virt_page_free(uint32_t* addr) {
-  bitmap_clear(&virt_bitmap, (uint32_t)addr);
-  pte_clear(addr_to_pmd(memory_manager.pgd, (uint32_t)addr), (uint32_t)addr);
-  return 1;
-}
-
-/*
   create_mapping creates a linear mapping from the virtual address "v_addr" to
   the physical address "p_addr" spanning "size" bytes with the memory flags
   "flags".
@@ -168,29 +139,6 @@ void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) 
 
   bitmap_insert(&virt_bitmap, v_addr, size / PAGE_SIZE);
 
-}
-
-/*
-  addr_is_mapped checks if the the virtual address "addr" is mapped to a
-  physical address.
-*/
-int addr_is_mapped(uint32_t* addr) {
-  return (virt_bitmap.data[bitmap_index(&virt_bitmap, (uint32_t)addr)] & 1 << bitmap_index_index(&virt_bitmap, (uint32_t)addr)) != 0;
-}
-
-/*
-  pgd_walk walks the page global directory as far as it can from the virtual
-  address "v_addr" and returns the entry where translation stops. It returns
-  either a section entry or a page entry.
-*/
-uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr) {
-  uint32_t* entry = addr_to_pmd(pgd, v_addr);
-
-  if (pmd_is_page_table(entry)) {
-    entry = addr_to_pte(entry, v_addr);
-  }
-
-  return *entry;
 }
 
 /*
