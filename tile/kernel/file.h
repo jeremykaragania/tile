@@ -153,6 +153,9 @@ void file_info_put(const struct file_info_int* file_info);
 void file_info_push(struct file_info_int* list, struct file_info_int* file_info);
 struct file_info_int* file_info_pop(struct file_info_int* list);
 
+struct file_info_int* file_info_alloc();
+void file_info_free(const struct file_info_int* file_info);
+
 struct buffer_info* block_alloc();
 void block_free(struct buffer_info* buffer_info);
 

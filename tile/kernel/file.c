@@ -200,6 +200,73 @@ struct file_info_int* file_info_pop(struct file_info_int* list) {
 }
 
 /*
+  file_info_alloc allocates a struct file_info_int using the free file file
+  information list and returns it.
+*/
+struct file_info_int* file_info_alloc() {
+  uint32_t num;
+  struct file_info_int* ret;
+
+  /*
+    If the free file information list is empty, then we search the filesystem
+    to replenish it.
+  */
+  if (!filesystem_info.free_file_infos_size) {
+    struct buffer_info* buffer_info;
+    struct file_info_ext* file_info_exts;
+    int is_full = 0;
+
+    /*
+      The file information blocks begin after the filesystem information block.
+    */
+    for (size_t i = 1; i < filesystem_info.file_infos_size; ++i) {
+      buffer_info = buffer_info_get(i);
+      file_info_exts = (struct file_info_ext*)buffer_info->data;
+
+      for (size_t j = 0; j < FILE_INFO_PER_BLOCK; ++j) {
+        if (filesystem_info.free_file_infos_size == FILESYSTEM_INFO_CACHE_SIZE) {
+          is_full = 1;
+          break;
+        }
+
+        /* External file information is free if its type is zero. */
+        if (!file_info_exts[j].type) {
+          filesystem_info.free_file_infos_cache[filesystem_info.free_file_infos_size] = file_info_exts[j].num;
+          ++filesystem_info.free_file_infos_size;
+        }
+      }
+
+      buffer_info_put(buffer_info);
+
+      if (is_full) {
+        break;
+      }
+    }
+  }
+
+  --filesystem_info.free_file_infos_size;
+  num = filesystem_info.free_file_infos_cache[filesystem_info.free_file_infos_size];
+  ret = file_info_get(num);
+  ret->ext.type = 1;
+  file_info_put(ret);
+  return ret;
+}
+
+/*
+  file_info_free frees the internal file information specified by "file_info".
+  It tries to push the internal file information to the free file information
+  list.
+*/
+void file_info_free(const struct file_info_int* file_info) {
+  if (filesystem_info.free_file_infos_size == FILESYSTEM_INFO_CACHE_SIZE) {
+    return;
+  }
+
+  filesystem_info.free_file_infos_cache[filesystem_info.free_file_infos_size] = file_info->ext.num;
+  ++filesystem_info.free_file_infos_size;
+}
+
+/*
   block_alloc allocates a block using the free block list and returns it.
 */
 struct buffer_info* block_alloc() {
