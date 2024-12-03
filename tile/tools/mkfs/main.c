@@ -71,6 +71,8 @@ int main(int argc, char* argv[]) {
     for (size_t j = 0; j < FILE_INFO_PER_BLOCK; ++j) {
       struct file_info_ext file_info_ext;
       file_info_ext.num = i * FILE_INFO_PER_BLOCK + j + 1;
+      file_info_ext.type = 0;
+      file_info_ext.size = 0;
       ((struct file_info_ext*)block)[j] = file_info_ext;
     }
 
