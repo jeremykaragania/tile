@@ -48,10 +48,10 @@ void filesystem_init() {
 }
 
 /*
-  file_info_to_addr returns the filesystem address at the byte offset "offset"
-  in the file represented by the file information "info".
+  file_offset_to_addr returns the filesystem address at the byte offset
+  "offset" in the file represented by the file information "info".
 */
-struct filesystem_addr file_info_to_addr(const struct file_info_int* file_info, uint32_t offset) {
+struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info, uint32_t offset) {
   struct filesystem_addr ret = {0, 0};
   struct buffer_info* buffer_info;
   size_t level;
@@ -144,17 +144,16 @@ uint32_t next_block_index(size_t level, uint32_t offset) {
 struct file_info_int* file_info_get(uint32_t file_info_num) {
   struct file_info_int* ret = NULL;
   struct buffer_info* buffer_info = NULL;
-  uint32_t block_num = 1 + (file_info_num - 1) / FILE_INFO_PER_BLOCK;
-  uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
+  struct filesystem_addr addr = file_info_to_addr(file_info_num);
 
-  buffer_info = buffer_info_get(block_num);
+  buffer_info = buffer_info_get(addr.num);
   ret = file_info_pop(&free_file_infos);
 
   if (!buffer_info || !ret) {
     return NULL;
   }
 
-  ret->ext = *(struct file_info_ext*)(buffer_info->data + block_offset);
+  ret->ext = *(struct file_info_ext*)(buffer_info->data + addr.offset);
   return ret;
 }
 
@@ -164,11 +163,10 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
 */
 void file_info_put(const struct file_info_int* file_info) {
   struct buffer_info* buffer_info = NULL;
-  uint32_t block_num = 1 + (file_info->ext.num - 1) / FILE_INFO_PER_BLOCK;
-  uint32_t block_offset = sizeof(struct file_info_ext) * ((file_info->ext.num - 1) % FILE_INFO_PER_BLOCK);
+  struct filesystem_addr addr = file_info_to_addr(file_info->ext.num);
 
-  buffer_info = buffer_info_get(block_num);
-  *(struct file_info_ext*)(buffer_info->data + block_offset) = file_info->ext;
+  buffer_info = buffer_info_get(addr.num);
+  *(struct file_info_ext*)(buffer_info->data + addr.offset) = file_info->ext;
   buffer_info_put(buffer_info);
 }
 
@@ -310,4 +308,16 @@ void block_free(struct buffer_info* buffer_info) {
     filesystem_info.free_blocks_cache[filesystem_info.free_blocks_size] = buffer_info->num;
     ++filesystem_info.free_blocks_size;
   }
+}
+
+/*
+  file_info_to_addr returns the filesystem address specified by the external
+  file information number "file_info_num".
+*/
+struct filesystem_addr file_info_to_addr(uint32_t file_info_num) {
+  struct filesystem_addr ret;
+
+  ret.num = 1 + (file_info_num - 1) / FILE_INFO_PER_BLOCK;
+  ret.offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
+  return ret;
 }
