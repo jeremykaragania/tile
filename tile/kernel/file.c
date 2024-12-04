@@ -2,7 +2,7 @@
 
 struct filesystem_info filesystem_info;
 struct file_info_int* file_info_pool;
-struct file_info_int file_info_cache;
+struct file_info_int file_infos;
 struct file_info_int free_file_infos;
 
 /*
@@ -26,8 +26,8 @@ void filesystem_init() {
   */
   file_info_pool = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE, 1);
 
-  file_info_cache.next = &file_info_cache;
-  file_info_cache.prev = &file_info_cache;
+  file_infos.next = &file_infos;
+  file_infos.prev = &file_infos;
 
   free_file_infos.next = &file_info_pool[0];
   free_file_infos.prev = &file_info_pool[FILE_INFO_CACHE_SIZE - 1];
@@ -229,7 +229,7 @@ struct file_info_int* file_info_alloc() {
 
         /* External file information is free if its type is zero. */
         if (!file_info_exts[j].type) {
-          filesystem_info.free_file_infos_cache[filesystem_info.free_file_infos_size] = file_info_exts[j].num;
+          filesystem_info.free_file_infos[filesystem_info.free_file_infos_size] = file_info_exts[j].num;
           ++filesystem_info.free_file_infos_size;
         }
       }
@@ -243,7 +243,7 @@ struct file_info_int* file_info_alloc() {
   }
 
   --filesystem_info.free_file_infos_size;
-  num = filesystem_info.free_file_infos_cache[filesystem_info.free_file_infos_size];
+  num = filesystem_info.free_file_infos[filesystem_info.free_file_infos_size];
   ret = file_info_get(num);
   ret->ext.type = 1;
   file_info_put(ret);
@@ -260,7 +260,7 @@ void file_info_free(const struct file_info_int* file_info) {
     return;
   }
 
-  filesystem_info.free_file_infos_cache[filesystem_info.free_file_infos_size] = file_info->ext.num;
+  filesystem_info.free_file_infos[filesystem_info.free_file_infos_size] = file_info->ext.num;
   ++filesystem_info.free_file_infos_size;
 }
 
@@ -272,7 +272,7 @@ struct buffer_info* block_alloc() {
   struct buffer_info* ret;
 
   --filesystem_info.free_blocks_size;
-  num = filesystem_info.free_blocks_cache[filesystem_info.free_blocks_size];
+  num = filesystem_info.free_blocks[filesystem_info.free_blocks_size];
   ret = buffer_info_get(num);
 
   /*
@@ -281,7 +281,7 @@ struct buffer_info* block_alloc() {
   */
   if (!filesystem_info.free_blocks_size) {
     filesystem_info.free_blocks_size = *((uint32_t*)ret->data);
-    memcpy(filesystem_info.free_blocks_cache, (uint32_t*)ret->data + 1, filesystem_info.free_blocks_size * sizeof(uint32_t));
+    memcpy(filesystem_info.free_blocks, (uint32_t*)ret->data + 1, filesystem_info.free_blocks_size * sizeof(uint32_t));
   }
 
   memset(ret->data, 0, FILE_BLOCK_SIZE);
@@ -299,13 +299,13 @@ void block_free(struct buffer_info* buffer_info) {
   */
   if (filesystem_info.free_blocks_size + 1 > FILESYSTEM_INFO_CACHE_SIZE) {
     *((uint32_t*)buffer_info->data) = filesystem_info.free_blocks_size;
-    memcpy((uint32_t*)buffer_info->data + 1, filesystem_info.free_blocks_cache, filesystem_info.free_blocks_size * sizeof(uint32_t));
+    memcpy((uint32_t*)buffer_info->data + 1, filesystem_info.free_blocks, filesystem_info.free_blocks_size * sizeof(uint32_t));
     filesystem_info.free_blocks_size = 1;
-    *filesystem_info.free_blocks_cache = buffer_info->num;
+    *filesystem_info.free_blocks = buffer_info->num;
     buffer_info_put(buffer_info);
   }
   else {
-    filesystem_info.free_blocks_cache[filesystem_info.free_blocks_size] = buffer_info->num;
+    filesystem_info.free_blocks[filesystem_info.free_blocks_size] = buffer_info->num;
     ++filesystem_info.free_blocks_size;
   }
 }

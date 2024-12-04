@@ -54,10 +54,10 @@ int main(int argc, char* argv[]) {
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
   info.next_free_file_info = 0;
 
-  write_free_block_list(&info, info.free_blocks_cache, 0, FILESYSTEM_INFO_CACHE_SIZE);
+  write_free_block_list(&info, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
 
   for (size_t i = 0; i < info.free_file_infos_size; ++i) {
-    info.free_file_infos_cache[i] = i + 1;
+    info.free_file_infos[i] = i + 1;
   }
 
   /* Initialize the filesystem information block. */

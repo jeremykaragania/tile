@@ -2,7 +2,7 @@
 
 char** buffer_pool;
 struct buffer_info* buffer_info_pool;
-struct buffer_info buffer_info_cache;
+struct buffer_info buffer_infos;
 struct buffer_info free_buffer_infos;
 
 void buffer_init() {
@@ -22,8 +22,8 @@ void buffer_init() {
   */
   buffer_info_pool = memory_alloc(sizeof(struct buffer_info) * BUFFER_INFO_POOL_SIZE, 1);
 
-  buffer_info_cache.next = &buffer_info_cache;
-  buffer_info_cache.prev = &buffer_info_cache;
+  buffer_infos.next = &buffer_infos;
+  buffer_infos.prev = &buffer_infos;
 
   free_buffer_infos.next = &buffer_info_pool[0];
   free_buffer_infos.prev = &buffer_info_pool[BUFFER_INFO_POOL_SIZE - 1];
@@ -49,13 +49,13 @@ void buffer_init() {
   buffer information for it.
 */
 struct buffer_info* buffer_info_get(uint32_t num) {
-  struct buffer_info* curr = buffer_info_cache.next;
+  struct buffer_info* curr = buffer_infos.next;
 
   /*
     We first check if the buffer information is in the cache. If it is, then we
     return it.
   */
-  while (curr != &buffer_info_cache) {
+  while (curr != &buffer_infos) {
     if (curr->num == num) {
       return curr;
     }
@@ -77,7 +77,7 @@ struct buffer_info* buffer_info_get(uint32_t num) {
 
   curr->num = num;
   mci_read(FILE_BLOCK_SIZE * num, curr->data);
-  buffer_info_push(&buffer_info_cache, curr);
+  buffer_info_push(&buffer_infos, curr);
   return curr;
 }
 
@@ -87,7 +87,7 @@ struct buffer_info* buffer_info_get(uint32_t num) {
 */
 void buffer_info_put(struct buffer_info* buffer_info) {
   mci_write(FILE_BLOCK_SIZE * buffer_info->num, buffer_info->data);
-  buffer_info_remove(&buffer_info_cache, buffer_info);
+  buffer_info_remove(&buffer_infos, buffer_info);
   buffer_info_push(&free_buffer_infos, buffer_info);
 }
 

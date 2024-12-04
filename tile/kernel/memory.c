@@ -31,7 +31,7 @@ struct memory_bitmap virt_bitmap = {
   NULL
 };
 
-struct memory_page_info memory_page_info_cache = {
+struct memory_page_info memory_page_infos = {
   NULL,
   NULL
 };
@@ -570,7 +570,7 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   and returns a pointer to it.
 */
 void* memory_alloc(size_t size, size_t align) {
-  struct memory_page_info* curr = &memory_page_info_cache;
+  struct memory_page_info* curr = &memory_page_infos;
   struct memory_page_info tmp;
   void* ret = NULL;
 

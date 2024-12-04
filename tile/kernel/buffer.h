@@ -21,9 +21,9 @@ extern char** buffer_pool;
 extern struct buffer_info* buffer_info_pool;
 
 /*
-  "buffer_info_cache" is a cache for buffer information.
+  "buffer_infos" is a cache for buffer information.
 */
-extern struct buffer_info buffer_info_cache;
+extern struct buffer_info buffer_infos;
 
 /*
   "free_buffer_infos" is a doubly linked list which stores the buffer

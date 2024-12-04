@@ -46,9 +46,9 @@ extern struct filesystem_info filesystem_info;
 extern struct file_info_int* file_info_pool;
 
 /*
-  "file_info_cache" is a cache for internal file information.
+  "file_infos" is a cache for internal file information.
 */
-extern struct file_info_int file_info_cache;
+extern struct file_info_int file_infos;
 
 /*
   "free_file_infos" is a doubly linked list which stores the internal file
@@ -92,11 +92,11 @@ enum file_access {
 struct filesystem_info {
   uint32_t size;
   uint32_t free_blocks_size;
-  uint32_t free_blocks_cache[FILESYSTEM_INFO_CACHE_SIZE];
+  uint32_t free_blocks[FILESYSTEM_INFO_CACHE_SIZE];
   uint8_t next_free_block;
   uint32_t file_infos_size;
   uint32_t free_file_infos_size;
-  uint32_t free_file_infos_cache[FILESYSTEM_INFO_CACHE_SIZE];
+  uint32_t free_file_infos[FILESYSTEM_INFO_CACHE_SIZE];
   uint8_t next_free_file_info;
 };
 
@@ -139,7 +139,7 @@ struct file_info_int {
 */
 struct block_info_ext {
   uint32_t free_blocks_size;
-  uint32_t free_blocks_cache[FILESYSTEM_INFO_CACHE_SIZE];
+  uint32_t free_blocks[FILESYSTEM_INFO_CACHE_SIZE];
 };
 
 void filesystem_init();

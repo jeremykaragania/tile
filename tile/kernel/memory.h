@@ -32,7 +32,7 @@ extern struct memory_map memory_map;
 extern struct memory_manager memory_manager;
 extern struct memory_bitmap phys_bitmaps;
 extern struct memory_bitmap virt_bitmap;
-extern struct memory_page_info memory_page_info_cache;
+extern struct memory_page_info memory_page_infos;
 
 extern uint32_t high_memory;
 
