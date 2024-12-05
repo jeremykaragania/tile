@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
   info.file_infos_size = (info.size - 1) / 2;
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
   info.next_free_file_info = 0;
+  info.root_file_info = 0;
 
   write_free_block_list(&info, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
 

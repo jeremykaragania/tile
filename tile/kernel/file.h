@@ -98,6 +98,7 @@ struct filesystem_info {
   uint32_t free_file_infos_size;
   uint32_t free_file_infos[FILESYSTEM_INFO_CACHE_SIZE];
   uint8_t next_free_file_info;
+  uint32_t root_file_info;
 };
 
 /*
