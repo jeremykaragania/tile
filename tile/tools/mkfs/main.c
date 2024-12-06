@@ -20,7 +20,7 @@ void write_free_block_list(struct filesystem_info* info, void* ptr, size_t num, 
   ((uint32_t*)(ptr))[0] = info->file_infos_size + num + 1;
 
   for (size_t i = 0; i < size - 1; ++i) {
-    ((uint32_t*)(ptr))[i + 1] = free_data_blocks_count + (num * (FILESYSTEM_INFO_CACHE_SIZE - 1)) + i;
+    ((uint32_t*)(ptr))[i + 1] = info->file_infos_size + free_data_blocks_count + (num * (FILESYSTEM_INFO_CACHE_SIZE - 1)) + i;
   }
 }
 
