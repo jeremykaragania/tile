@@ -317,7 +317,7 @@ void block_free(struct buffer_info* buffer_info) {
 struct filesystem_addr file_info_to_addr(uint32_t file_info_num) {
   struct filesystem_addr ret;
 
-  ret.num = 1 + (file_info_num - 1) / FILE_INFO_PER_BLOCK;
-  ret.offset = sizeof(struct file_info_ext) * ((file_info_num - 1) % FILE_INFO_PER_BLOCK);
+  ret.num = file_num_to_block_num(file_info_num);
+  ret.offset = file_num_to_block_offset(file_info_num);
   return ret;
 }
