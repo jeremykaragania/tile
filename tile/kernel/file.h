@@ -133,16 +133,6 @@ struct file_info_int {
   struct file_info_int* prev;
 };
 
-/*
-  struct block_info_ext represents external block information for block
-  information that is in secondary memory. Some external blocks may store a
-  list of other free blocks.
-*/
-struct block_info_ext {
-  uint32_t free_blocks_size;
-  uint32_t free_blocks[FILESYSTEM_INFO_CACHE_SIZE];
-};
-
 void filesystem_init();
 
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
