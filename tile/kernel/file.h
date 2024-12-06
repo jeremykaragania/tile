@@ -11,6 +11,7 @@
 #define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILE_INFO_CACHE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
+#define FILE_NAME_SIZE 32
 
 #define BLOCK_NUMS_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(uint32_t))
 
@@ -131,6 +132,16 @@ struct file_info_int {
   size_t offset;
   struct file_info_int* next;
   struct file_info_int* prev;
+};
+
+/*
+  directory_info represents the information which is stored in a directory. It
+  contains a file information number "num" and the name of the associated file
+  "name".
+*/
+struct directory_info {
+  uint32_t num;
+  char name[FILE_NAME_SIZE];
 };
 
 void filesystem_init();
