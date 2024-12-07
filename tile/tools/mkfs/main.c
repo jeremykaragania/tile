@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
   FILE* f;
   struct filesystem_info info;
   char block[FILE_BLOCK_SIZE];
+  struct file_info_ext root;
   struct mkfs_context ctx;
 
   if (argc != 3) {
@@ -76,7 +77,7 @@ int main(int argc, char* argv[]) {
 
   /* Initialize the context. */
   ctx.file = f;
-  ctx.next_file_info = 1;
+  ctx.next_file_info = 2;
   ctx.reserved_data_blocks = 0;
   ctx.info = &info;
 
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]) {
   info.file_infos_size = (info.size - 1) / 2;
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
   info.next_free_file_info = 0;
-  info.root_file_info = 0;
+  info.root_file_info = 1;
 
   write_free_block_list(&ctx, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
 
@@ -113,6 +114,13 @@ int main(int argc, char* argv[]) {
 
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
   }
+
+  /* Initialize the root filesystem. */
+  root.num = 1;
+  root.type = FT_DIRECTORY;
+  root.size = 0;
+
+  write_file_info(&ctx, &root);
 
   /* Initialize the free data blocks. */
   fseek(f, data_blocks_begin(&ctx) * FILE_BLOCK_SIZE, SEEK_SET);
