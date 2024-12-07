@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define file_num_to_offset(num) (file_num_to_block_num(num) * FILE_BLOCK_SIZE + file_num_to_block_offset(num))
+
 char command[] = "mkfs";
 char usage[] = "Usage: mkfs device blocks-count";
 
@@ -29,6 +31,14 @@ uint32_t data_blocks_begin(struct mkfs_context* ctx) {
 */
 uint32_t free_data_blocks(struct mkfs_context* ctx) {
   return (data_blocks_begin(ctx) - 1) / FILESYSTEM_INFO_CACHE_SIZE;
+}
+
+/*
+  write_file_info writes the file information "file" given the context "ctx".
+*/
+void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
+  fseek(ctx->file, file_num_to_offset(file->num), SEEK_SET);
+  fwrite(file, sizeof(struct file_info_ext), 1, ctx->file);
 }
 
 /*
