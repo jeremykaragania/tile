@@ -16,25 +16,36 @@ struct mkfs_context {
 };
 
 /*
+  data_blocks_begin returns the beginning data block number from the context
+  "ctx".
+*/
+uint32_t data_blocks_begin(struct mkfs_context* ctx) {
+  return ctx->info->size - ctx->info->file_infos_size;
+}
+
+/*
+  free_data_blocks returns the number of data blocsk with a free data block
+  list from the context "ctx".
+*/
+uint32_t free_data_blocks(struct mkfs_context* ctx) {
+  return (data_blocks_begin(ctx) - 1) / FILESYSTEM_INFO_CACHE_SIZE;
+}
+
+/*
   write_free_block_list writes a free block list to the location given by "ptr"
   from the context "ctx", block number "num" and the size of the list "size".
 */
 void write_free_block_list(struct mkfs_context* ctx, void* ptr, size_t num, size_t size) {
-  uint32_t data_blocks_count = ctx->info->size - 1 - ctx->info->file_infos_size;
-  uint32_t free_data_blocks_count = data_blocks_count / FILESYSTEM_INFO_CACHE_SIZE;
-
-  ((uint32_t*)(ptr))[0] = ctx->info->file_infos_size + num + 1;
+  ((uint32_t*)(ptr))[0] = data_blocks_begin(ctx) + num;
 
   for (size_t i = 0; i < size - 1; ++i) {
-    ((uint32_t*)(ptr))[i + 1] = ctx->info->file_infos_size + free_data_blocks_count + (num * (FILESYSTEM_INFO_CACHE_SIZE - 1)) + i;
+    ((uint32_t*)(ptr))[i + 1] = data_blocks_begin(ctx) + free_data_blocks(ctx) + ctx->reserved_data_blocks + (num * (FILESYSTEM_INFO_CACHE_SIZE - 1)) + i;
   }
 }
 
 int main(int argc, char* argv[]) {
   char* device;
   size_t blocks_count;
-  size_t data_blocks_count;
-  size_t free_data_blocks_count;
   FILE* f;
   struct filesystem_info info;
   char block[FILE_BLOCK_SIZE];
@@ -93,11 +104,10 @@ int main(int argc, char* argv[]) {
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
   }
 
-  data_blocks_count = info.size - 1 - info.file_infos_size;
-  free_data_blocks_count = data_blocks_count / FILESYSTEM_INFO_CACHE_SIZE;
-
   /* Initialize the free data blocks. */
-  for (size_t i = 0; i < free_data_blocks_count; ++i) {
+  fseek(f, data_blocks_begin(&ctx) * FILE_BLOCK_SIZE, SEEK_SET);
+
+  for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
     memset(block, 0, FILE_BLOCK_SIZE);
     ((uint32_t*)(block))[0] = FILESYSTEM_INFO_CACHE_SIZE;
     write_free_block_list(&ctx, (uint32_t*)block + 1, i + 1, FILESYSTEM_INFO_CACHE_SIZE);
@@ -107,7 +117,7 @@ int main(int argc, char* argv[]) {
   /* Initialize the data blocks. */
   memset(block, 0, FILE_BLOCK_SIZE);
 
-  for (size_t i = 0; i < info.size - 1 - info.file_infos_size - free_data_blocks_count; ++i) {
+  for (size_t i = 0; i < info.size - data_blocks_begin(&ctx) - free_data_blocks(&ctx) + 1; ++i) {
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
   }
 
