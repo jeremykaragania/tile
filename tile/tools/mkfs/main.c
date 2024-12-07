@@ -5,10 +5,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#define DIRECTORIES_SIZE 14
+
 #define file_num_to_offset(num) (file_num_to_block_num(num) * FILE_BLOCK_SIZE + file_num_to_block_offset(num))
 
 char command[] = "mkfs";
 char usage[] = "Usage: mkfs device blocks-count";
+char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
 
 struct mkfs_context {
   FILE* file;
@@ -51,6 +54,44 @@ void write_free_block_list(struct mkfs_context* ctx, void* ptr, size_t num, size
   for (size_t i = 0; i < size - 1; ++i) {
     ((uint32_t*)(ptr))[i + 1] = data_blocks_begin(ctx) + free_data_blocks(ctx) + ctx->reserved_data_blocks + (num * (FILESYSTEM_INFO_CACHE_SIZE - 1)) + i;
   }
+}
+
+/*
+  mkdir makes a directory under "parent" with the name "name".
+*/
+void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
+  struct file_info_ext file;
+  struct directory_info directory;
+  size_t prev_block;
+  size_t curr_block;
+  size_t offset;
+
+  file.num = ctx->next_file_info;
+  ++ctx->next_file_info;
+  file.type = FT_DIRECTORY;
+
+  directory.num = file.num;
+  strcpy(directory.name, name);
+
+  prev_block = parent->size / sizeof(directory) / DIRECTORIES_PER_BLOCK;
+  curr_block = (parent->size + sizeof(directory)) / sizeof(directory) / DIRECTORIES_PER_BLOCK;
+
+  /*
+    If there are no blocks, or the current block is full, then allocate another
+    one.
+  */
+  if (!parent->size || curr_block > prev_block) {
+    parent->blocks[curr_block] = data_blocks_begin(ctx) + ctx->reserved_data_blocks;
+    ++ctx->reserved_data_blocks;
+  }
+
+  parent->size += sizeof(directory);
+
+  write_file_info(ctx, &file);
+
+  offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % FILE_BLOCK_SIZE;
+  fseek(ctx->file, offset, SEEK_SET);
+  fwrite(&directory, sizeof(directory), 1, ctx->file);
 }
 
 int main(int argc, char* argv[]) {
@@ -119,6 +160,10 @@ int main(int argc, char* argv[]) {
   root.num = 1;
   root.type = FT_DIRECTORY;
   root.size = 0;
+
+  for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
+    mkdir(&ctx, &root, directories[i]);
+  }
 
   write_file_info(&ctx, &root);
 

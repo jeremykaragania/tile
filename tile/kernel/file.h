@@ -11,9 +11,10 @@
 #define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILE_INFO_CACHE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
-#define FILE_NAME_SIZE 32
+#define FILE_NAME_SIZE 28
 
 #define BLOCK_NUMS_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(uint32_t))
+#define DIRECTORIES_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct directory_info))
 
 /*
   A file's data is accessed through four levels of indirection. Zeroth level
