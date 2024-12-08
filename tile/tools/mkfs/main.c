@@ -85,6 +85,20 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
 }
 
 /*
+  init_directory initializes the required directory entries of the directory
+  "file" given the context "ctx".
+*/
+void init_directory(struct mkfs_context* ctx, struct file_info_ext* file) {
+  struct directory_info directory;
+
+  directory.num = file->num;
+  strcpy(directory.name, ".");
+  write_directory_info(ctx, file, &directory);
+  strcpy(directory.name, "..");
+  write_directory_info(ctx, file, &directory);
+}
+
+/*
   mkdir makes a directory under "parent" with the name "name".
 */
 void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
@@ -94,9 +108,11 @@ void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
   file.num = ctx->next_file_info;
   ++ctx->next_file_info;
   file.type = FT_DIRECTORY;
+  file.size = 0;
 
   directory.num = file.num;
   strcpy(directory.name, name);
+  init_directory(ctx, &file);
 
   write_file_info(ctx, &file);
   write_directory_info(ctx, parent, &directory);
@@ -166,6 +182,8 @@ int main(int argc, char* argv[]) {
   root.num = 1;
   root.type = FT_DIRECTORY;
   root.size = 0;
+
+  init_directory(&ctx, &root);
 
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
     mkdir(&ctx, &root, directories[i]);
