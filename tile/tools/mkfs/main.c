@@ -57,24 +57,16 @@ void write_free_block_list(struct mkfs_context* ctx, void* ptr, size_t num, size
 }
 
 /*
-  mkdir makes a directory under "parent" with the name "name".
+  write_directory_info writes the directory information "directory" under
+  "parent" from the context "ctx".
 */
-void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
-  struct file_info_ext file;
-  struct directory_info directory;
+void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent, struct directory_info* directory) {
   size_t prev_block;
   size_t curr_block;
   size_t offset;
 
-  file.num = ctx->next_file_info;
-  ++ctx->next_file_info;
-  file.type = FT_DIRECTORY;
-
-  directory.num = file.num;
-  strcpy(directory.name, name);
-
-  prev_block = parent->size / sizeof(directory) / DIRECTORIES_PER_BLOCK;
-  curr_block = (parent->size + sizeof(directory)) / sizeof(directory) / DIRECTORIES_PER_BLOCK;
+  prev_block = parent->size / sizeof(struct directory_info) / DIRECTORIES_PER_BLOCK;
+  curr_block = (parent->size + sizeof(struct directory_info)) / sizeof(struct directory_info) / DIRECTORIES_PER_BLOCK;
 
   /*
     If there are no blocks, or the current block is full, then allocate another
@@ -85,13 +77,29 @@ void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
     ++ctx->reserved_data_blocks;
   }
 
-  parent->size += sizeof(directory);
-
-  write_file_info(ctx, &file);
+  parent->size += sizeof(struct directory_info);
 
   offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % FILE_BLOCK_SIZE;
   fseek(ctx->file, offset, SEEK_SET);
-  fwrite(&directory, sizeof(directory), 1, ctx->file);
+  fwrite(&directory, sizeof(struct directory_info), 1, ctx->file);
+}
+
+/*
+  mkdir makes a directory under "parent" with the name "name".
+*/
+void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
+  struct file_info_ext file;
+  struct directory_info directory;
+
+  file.num = ctx->next_file_info;
+  ++ctx->next_file_info;
+  file.type = FT_DIRECTORY;
+
+  directory.num = file.num;
+  strcpy(directory.name, name);
+
+  write_file_info(ctx, &file);
+  write_directory_info(ctx, parent, &directory);
 }
 
 int main(int argc, char* argv[]) {
