@@ -18,7 +18,7 @@ void filesystem_init() {
     The first block contains information about the filesystem. The memory
     layout is specified by struct filesystem_info.
   */
-  buffer_info = buffer_info_get(0);
+  buffer_info = buffer_get(0);
   filesystem_info = *(struct filesystem_info*)buffer_info->data;
 
   /*
@@ -86,9 +86,9 @@ struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info
 
   if (level) {
     for (size_t i = 0; i < level; ++i) {
-      buffer_info = buffer_info_get(ret.num);
+      buffer_info = buffer_get(ret.num);
       ret.num = ((uint32_t*)buffer_info->data)[next_block_index(level - i, offset)];
-      buffer_info_put(buffer_info);
+      buffer_put(buffer_info);
     }
   }
 
@@ -138,16 +138,16 @@ uint32_t next_block_index(size_t level, uint32_t offset) {
 }
 
 /*
-  file_info_int_get returns internal file information from an external file
-  information number "file_info_num".
+  file_get returns internal file information from an external file information
+  number "file_info_num".
 */
-struct file_info_int* file_info_get(uint32_t file_info_num) {
+struct file_info_int* file_get(uint32_t file_info_num) {
   struct file_info_int* ret = NULL;
   struct buffer_info* buffer_info = NULL;
-  struct filesystem_addr addr = file_info_to_addr(file_info_num);
+  struct filesystem_addr addr = file_to_addr(file_info_num);
 
-  buffer_info = buffer_info_get(addr.num);
-  ret = file_info_pop(&free_file_infos);
+  buffer_info = buffer_get(addr.num);
+  ret = file_pop(&free_file_infos);
 
   if (!buffer_info || !ret) {
     return NULL;
@@ -158,23 +158,23 @@ struct file_info_int* file_info_get(uint32_t file_info_num) {
 }
 
 /*
-  file_info_int_put writes the external file information from the internal file
+  file_put writes the external file information from the internal file
   information "file_info" to the SD card.
 */
-void file_info_put(const struct file_info_int* file_info) {
+void file_put(const struct file_info_int* file_info) {
   struct buffer_info* buffer_info = NULL;
-  struct filesystem_addr addr = file_info_to_addr(file_info->ext.num);
+  struct filesystem_addr addr = file_to_addr(file_info->ext.num);
 
-  buffer_info = buffer_info_get(addr.num);
+  buffer_info = buffer_get(addr.num);
   *(struct file_info_ext*)(buffer_info->data + addr.offset) = file_info->ext;
-  buffer_info_put(buffer_info);
+  buffer_put(buffer_info);
 }
 
 /*
-  file_info_push adds an element "file_info" to the free file information list
+  file_push adds an element "file_info" to the free file information list
   "list".
 */
-void file_info_push(struct file_info_int* list, struct file_info_int* file_info) {
+void file_push(struct file_info_int* list, struct file_info_int* file_info) {
   file_info->next = list->next;
   file_info->prev = list;
   list->next->prev = file_info;
@@ -182,10 +182,10 @@ void file_info_push(struct file_info_int* list, struct file_info_int* file_info)
 }
 
 /*
-  file_info_pop removes the first element of the free file information list
-  "list" and returns it.
+  file_pop removes the first element of the free file information list "list"
+  and returns it.
 */
-struct file_info_int* file_info_pop(struct file_info_int* list) {
+struct file_info_int* file_pop(struct file_info_int* list) {
   struct file_info_int* ret = list->next;
 
   if (ret == list) {
@@ -198,10 +198,10 @@ struct file_info_int* file_info_pop(struct file_info_int* list) {
 }
 
 /*
-  file_info_alloc allocates a struct file_info_int using the free file file
+  file_alloc allocates a struct file_info_int using the free file file
   information list and returns it.
 */
-struct file_info_int* file_info_alloc() {
+struct file_info_int* file_alloc() {
   uint32_t num;
   struct file_info_int* ret;
 
@@ -218,7 +218,7 @@ struct file_info_int* file_info_alloc() {
       The file information blocks begin after the filesystem information block.
     */
     for (size_t i = 1; i < filesystem_info.file_infos_size; ++i) {
-      buffer_info = buffer_info_get(i);
+      buffer_info = buffer_get(i);
       file_info_exts = (struct file_info_ext*)buffer_info->data;
 
       for (size_t j = 0; j < FILE_INFO_PER_BLOCK; ++j) {
@@ -234,7 +234,7 @@ struct file_info_int* file_info_alloc() {
         }
       }
 
-      buffer_info_put(buffer_info);
+      buffer_put(buffer_info);
 
       if (is_full) {
         break;
@@ -244,18 +244,18 @@ struct file_info_int* file_info_alloc() {
 
   --filesystem_info.free_file_infos_size;
   num = filesystem_info.free_file_infos[filesystem_info.free_file_infos_size];
-  ret = file_info_get(num);
+  ret = file_get(num);
   ret->ext.type = 1;
-  file_info_put(ret);
+  file_put(ret);
   return ret;
 }
 
 /*
-  file_info_free frees the internal file information specified by "file_info".
-  It tries to push the internal file information to the free file information
+  file_free frees the internal file information specified by "file_info". It
+  tries to push the internal file information to the free file information
   list.
 */
-void file_info_free(const struct file_info_int* file_info) {
+void file_free(const struct file_info_int* file_info) {
   if (filesystem_info.free_file_infos_size == FILESYSTEM_INFO_CACHE_SIZE) {
     return;
   }
@@ -273,7 +273,7 @@ struct buffer_info* block_alloc() {
 
   --filesystem_info.free_blocks_size;
   num = filesystem_info.free_blocks[filesystem_info.free_blocks_size];
-  ret = buffer_info_get(num);
+  ret = buffer_get(num);
 
   /*
     If we just read the last block from the free block list, then we replenish
@@ -302,7 +302,7 @@ void block_free(struct buffer_info* buffer_info) {
     memcpy((uint32_t*)buffer_info->data + 1, filesystem_info.free_blocks, filesystem_info.free_blocks_size * sizeof(uint32_t));
     filesystem_info.free_blocks_size = 1;
     *filesystem_info.free_blocks = buffer_info->num;
-    buffer_info_put(buffer_info);
+    buffer_put(buffer_info);
   }
   else {
     filesystem_info.free_blocks[filesystem_info.free_blocks_size] = buffer_info->num;
@@ -311,10 +311,10 @@ void block_free(struct buffer_info* buffer_info) {
 }
 
 /*
-  file_info_to_addr returns the filesystem address specified by the external
-  file information number "file_info_num".
+  file_to_addr returns the filesystem address specified by the external file
+  information number "file_info_num".
 */
-struct filesystem_addr file_info_to_addr(uint32_t file_info_num) {
+struct filesystem_addr file_to_addr(uint32_t file_info_num) {
   struct filesystem_addr ret;
 
   ret.num = file_num_to_block_num(file_info_num);

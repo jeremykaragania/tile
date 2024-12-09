@@ -40,11 +40,11 @@ struct buffer_info {
 
 void buffer_init();
 
-struct buffer_info* buffer_info_get(uint32_t num);
-void buffer_info_put(struct buffer_info* buffer_info);
+struct buffer_info* buffer_get(uint32_t num);
+void buffer_put(struct buffer_info* buffer_info);
 
-void buffer_info_push(struct buffer_info* list, struct buffer_info* buffer_info);
-struct buffer_info* buffer_info_pop(struct buffer_info* list);
-void buffer_info_remove(struct buffer_info* list, struct buffer_info* buffer_info);
+void buffer_push(struct buffer_info* list, struct buffer_info* buffer_info);
+struct buffer_info* buffer_pop(struct buffer_info* list);
+void buffer_remove(struct buffer_info* list, struct buffer_info* buffer_info);
 
 #endif

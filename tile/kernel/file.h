@@ -153,18 +153,18 @@ void filesystem_init();
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
 uint32_t next_block_index(size_t level, uint32_t offset);
 
-struct file_info_int* file_info_get(uint32_t file_info_num);
-void file_info_put(const struct file_info_int* file_info);
+struct file_info_int* file_get(uint32_t file_info_num);
+void file_put(const struct file_info_int* file_info);
 
-void file_info_push(struct file_info_int* list, struct file_info_int* file_info);
-struct file_info_int* file_info_pop(struct file_info_int* list);
+void file_push(struct file_info_int* list, struct file_info_int* file_info);
+struct file_info_int* file_pop(struct file_info_int* list);
 
-struct file_info_int* file_info_alloc();
-void file_info_free(const struct file_info_int* file_info);
+struct file_info_int* file_alloc();
+void file_free(const struct file_info_int* file_info);
 
 struct buffer_info* block_alloc();
 void block_free(struct buffer_info* buffer_info);
 
-struct filesystem_addr file_info_to_addr(uint32_t file_info_num);
+struct filesystem_addr file_to_addr(uint32_t file_info_num);
 
 #endif

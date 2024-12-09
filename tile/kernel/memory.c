@@ -481,10 +481,10 @@ int memory_map_free(void* ptr) {
 }
 
 /*
-  memory_page_info_data_alloc allocates a page for memory allocation. The first
-  byte of a page used for memory allocation contains an empty memory map block.
+  memory_page_data_alloc allocates a page for memory allocation. The first byte
+  of a page used for memory allocation contains an empty memory map block.
 */
-void* memory_page_info_data_alloc() {
+void* memory_page_data_alloc() {
   char* data = (char*)bitmap_alloc(&virt_bitmap, (uint32_t)&VIRT_OFFSET);
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
@@ -583,7 +583,7 @@ void* memory_alloc(size_t size, size_t align) {
   */
   while (curr) {
     if (!curr->data) {
-      curr->data = memory_page_info_data_alloc();
+      curr->data = memory_page_data_alloc();
     }
 
     ret = memory_alloc_page(curr, size, align);
@@ -608,7 +608,7 @@ void* memory_alloc(size_t size, size_t align) {
     page, allocate that page information within it, and then initialize that
     page information.
   */
-  tmp.data = memory_page_info_data_alloc();
+  tmp.data = memory_page_data_alloc();
   tmp.next = NULL;
   curr->next = memory_alloc_page(&tmp, sizeof(struct memory_page_info), 1);
   curr->next->data = tmp.data;

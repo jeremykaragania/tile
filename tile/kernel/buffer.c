@@ -45,10 +45,10 @@ void buffer_init() {
 }
 
 /*
-  buffer_info_get reads the filesystem for the block number "num" and returns
-  buffer information for it.
+  buffer_get reads the filesystem for the block number "num" and returns buffer
+  information for it.
 */
-struct buffer_info* buffer_info_get(uint32_t num) {
+struct buffer_info* buffer_get(uint32_t num) {
   struct buffer_info* curr = buffer_infos.next;
 
   /*
@@ -66,36 +66,36 @@ struct buffer_info* buffer_info_get(uint32_t num) {
   /*
     If the buffer information isn't in the cache, then we allocate it.
   */
-  curr = buffer_info_pop(&free_buffer_infos);
+  curr = buffer_pop(&free_buffer_infos);
 
   /*
     If there are no free buffers, then we wait.
   */
   while (!curr) {
-    curr = buffer_info_pop(&free_buffer_infos);
+    curr = buffer_pop(&free_buffer_infos);
   }
 
   curr->num = num;
   mci_read(FILE_BLOCK_SIZE * num, curr->data);
-  buffer_info_push(&buffer_infos, curr);
+  buffer_push(&buffer_infos, curr);
   return curr;
 }
 
 /*
-  buffer_info_put writes the buffer information "buffer_info" to the filesystem
-  and frees it.
+  buffer_put writes the buffer information "buffer_info" to the filesystem and
+  frees it.
 */
-void buffer_info_put(struct buffer_info* buffer_info) {
+void buffer_put(struct buffer_info* buffer_info) {
   mci_write(FILE_BLOCK_SIZE * buffer_info->num, buffer_info->data);
-  buffer_info_remove(&buffer_infos, buffer_info);
-  buffer_info_push(&free_buffer_infos, buffer_info);
+  buffer_remove(&buffer_infos, buffer_info);
+  buffer_push(&free_buffer_infos, buffer_info);
 }
 
 /*
-  buffer_info_push adds an element "buffer_info" to the buffer information list
+  buffer_push adds an element "buffer_info" to the buffer information list
   "list".
 */
-void buffer_info_push(struct buffer_info* list, struct buffer_info* buffer_info) {
+void buffer_push(struct buffer_info* list, struct buffer_info* buffer_info) {
   buffer_info->next = list->next;
   buffer_info->prev = list;
   list->next->prev = buffer_info;
@@ -103,10 +103,10 @@ void buffer_info_push(struct buffer_info* list, struct buffer_info* buffer_info)
 }
 
 /*
-  buffer_info_pop removes the first element of the buffer information list
-  "list" and returns it.
+  buffer_pop removes the first element of the buffer information list "list"
+  and returns it.
 */
-struct buffer_info* buffer_info_pop(struct buffer_info* list) {
+struct buffer_info* buffer_pop(struct buffer_info* list) {
   struct buffer_info* ret = list->next;
 
   if (ret == list) {
@@ -119,10 +119,10 @@ struct buffer_info* buffer_info_pop(struct buffer_info* list) {
 }
 
 /*
-  buffer_info_remove removes the buffer information "buffer_info" from the
+  buffer_remove removes the buffer information "buffer_info" from the
   buffer information list "list".
 */
-void buffer_info_remove(struct buffer_info* list, struct buffer_info* buffer_info) {
+void buffer_remove(struct buffer_info* list, struct buffer_info* buffer_info) {
   /*
     Not allowed to remove the head buffer information element or remove from an
     empty list.
