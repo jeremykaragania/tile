@@ -505,7 +505,7 @@ void* memory_page_data_alloc() {
 */
 void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align) {
   struct memory_map_block* curr = (struct memory_map_block*)page->data;
-  uint32_t distance = 0;
+  struct memory_map_block* next;
 
   if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
     return NULL;
@@ -526,37 +526,28 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   }
 
   while (curr) {
+    next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
+    next->begin = (uint32_t)next + sizeof(struct memory_map_block);
+    next->size = size;
+    next->flags = BLOCK_RW;
+    next->prev = curr;
+
     /* We allocate after the current block. */
     if (!curr->next) {
-      struct memory_map_block* next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
-      uint32_t next_begin = (uint32_t)next + sizeof(struct memory_map_block);
-
-      if (next_begin + size >= (uint32_t)page->data + PAGE_SIZE) {
-        break;
+      if (next->begin + size >= (uint32_t)page->data + PAGE_SIZE) {
+        return NULL;
       }
 
+      next->next = NULL;
       curr->next = next;
-      curr->next->begin = next_begin;
-      curr->next->size = size;
-      curr->next->flags = BLOCK_RW;
-      curr->next->next = NULL;
-      curr->next->prev = curr;
-      return (uint32_t*)curr->next->begin;
+      return (uint32_t*)next->begin;
     }
 
-    distance = (uint32_t)curr->next - (curr->begin + curr->size);
-
     /* We allocate between the current block and the next block. */
-    if (distance >= size + sizeof(struct memory_map_block)) {
-      struct memory_map_block* next = curr->next;
-
-      curr->next = (struct memory_map_block*)(curr->begin + curr->size);
-      curr->next->begin = (uint32_t)curr->next + sizeof(struct memory_map_block);
-      curr->next->size = size;
-      curr->next->flags = BLOCK_RW;
-      curr->next->next = next;
-      curr->next->prev = curr;
-      return (uint32_t*)curr->next->begin;
+    if (next->begin + size < (uint32_t)curr->next) {
+      next->next = curr->next;
+      curr->next = next;
+      return (uint32_t*)next->begin;
     }
 
     curr = curr->next;
