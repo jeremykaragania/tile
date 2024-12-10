@@ -557,16 +557,21 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
 }
 
 /*
-  memory_alloc allocates a block of size "size" bytes aligned to "align" bytes
-  and returns a pointer to it.
+  memory_alloc allocates a naturally aligned block of size "size" bytes and
+  returns a pointer to it.
 */
-void* memory_alloc(size_t size, size_t align) {
+void* memory_alloc(size_t size) {
   struct memory_page_info* curr = &memory_page_infos;
   struct memory_page_info tmp;
   void* ret = NULL;
+  size_t align = 1;
 
   if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
     return NULL;
+  }
+
+  if (IS_ALIGNED(size, 2)) {
+    align = size;
   }
 
   /*

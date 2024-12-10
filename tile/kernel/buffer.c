@@ -11,16 +11,16 @@ void buffer_init() {
   /*
     Initialize the buffer pool.
   */
-  buffer_pool = memory_alloc(sizeof(char*) * BUFFER_INFO_POOL_SIZE, 1);
+  buffer_pool = memory_alloc(sizeof(char*) * BUFFER_INFO_POOL_SIZE);
 
   for (size_t i = 0; i < BUFFER_INFO_POOL_SIZE; ++i) {
-    buffer_pool[i] = memory_alloc(FILE_BLOCK_SIZE, 1);
+    buffer_pool[i] = memory_alloc(FILE_BLOCK_SIZE);
   }
 
   /*
     Initialize the buffer information pool and the free buffer information list.
   */
-  buffer_info_pool = memory_alloc(sizeof(struct buffer_info) * BUFFER_INFO_POOL_SIZE, 1);
+  buffer_info_pool = memory_alloc(sizeof(struct buffer_info) * BUFFER_INFO_POOL_SIZE);
 
   buffer_infos.next = &buffer_infos;
   buffer_infos.prev = &buffer_infos;

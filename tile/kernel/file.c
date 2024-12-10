@@ -24,7 +24,7 @@ void filesystem_init() {
   /*
     Initialize the file information pool and the free file information list.
   */
-  file_info_pool = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE, 1);
+  file_info_pool = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE);
 
   file_infos.next = &file_infos;
   file_infos.prev = &file_infos;
