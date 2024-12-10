@@ -77,11 +77,11 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
     ++ctx->reserved_data_blocks;
   }
 
-  parent->size += sizeof(struct directory_info);
-
   offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % FILE_BLOCK_SIZE;
   fseek(ctx->file, offset, SEEK_SET);
-  fwrite(&directory, sizeof(struct directory_info), 1, ctx->file);
+  fwrite(directory, sizeof(struct directory_info), 1, ctx->file);
+
+  parent->size += sizeof(struct directory_info);
 }
 
 /*
@@ -101,7 +101,7 @@ void init_directory(struct mkfs_context* ctx, struct file_info_ext* file) {
 /*
   mkdir makes a directory under "parent" with the name "name".
 */
-void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
+struct file_info_ext mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
   struct file_info_ext file;
   struct directory_info directory;
 
@@ -111,11 +111,28 @@ void mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
   file.size = 0;
 
   directory.num = file.num;
-  strcpy(directory.name, name);
-  init_directory(ctx, &file);
+  strcpy(directory.name, ".");
+  write_directory_info(ctx, &file, &directory);
+
+  if (!parent) {
+    directory.num = file.num;
+  }
+  else {
+    directory.num = parent->num;
+  }
+
+  strcpy(directory.name, "..");
+  write_directory_info(ctx, &file, &directory);
+
+  if (parent) {
+    directory.num = file.num;
+    strcpy(directory.name, name);
+    write_directory_info(ctx, parent, &directory);
+  }
 
   write_file_info(ctx, &file);
-  write_directory_info(ctx, parent, &directory);
+
+  return file;
 }
 
 int main(int argc, char* argv[]) {
@@ -142,7 +159,7 @@ int main(int argc, char* argv[]) {
 
   /* Initialize the context. */
   ctx.file = f;
-  ctx.next_file_info = 2;
+  ctx.next_file_info = 1;
   ctx.reserved_data_blocks = 0;
   ctx.info = &info;
 
@@ -152,7 +169,7 @@ int main(int argc, char* argv[]) {
   info.next_free_block = 0;
   info.file_infos_size = (info.size - 1) / 2;
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
-  info.next_free_file_info = 0;
+  info.next_free_file_info = 1;
   info.root_file_info = 1;
 
   for (size_t i = 0; i < info.free_file_infos_size; ++i) {
@@ -179,11 +196,7 @@ int main(int argc, char* argv[]) {
   }
 
   /* Initialize the root filesystem. */
-  root.num = 1;
-  root.type = FT_DIRECTORY;
-  root.size = 0;
-
-  init_directory(&ctx, &root);
+  root = mkdir(&ctx, NULL, "/");
 
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
     mkdir(&ctx, &root, directories[i]);
