@@ -172,10 +172,6 @@ int main(int argc, char* argv[]) {
   info.next_free_file_info = 1;
   info.root_file_info = 1;
 
-  for (size_t i = 0; i < info.free_file_infos_size; ++i) {
-    info.free_file_infos[i] = i + 1;
-  }
-
   /* Initialize the filesystem information block. */
   memset(block, 0, FILE_BLOCK_SIZE);
   fwrite(block, FILE_BLOCK_SIZE, 1, f);
@@ -203,6 +199,11 @@ int main(int argc, char* argv[]) {
   }
 
   write_file_info(&ctx, &root);
+
+  /* Initialize the free file information list. */
+  for (size_t i = 0; i < info.free_file_infos_size; ++i) {
+    info.free_file_infos[i] = ctx.next_file_info + i;
+  }
 
   /* Initialize the free data blocks. */
   write_free_block_list(&ctx, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
