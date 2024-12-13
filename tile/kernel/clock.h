@@ -11,7 +11,9 @@ extern struct clock_info clock_info;
   clock_info represents clock information.
 */
 struct clock_info {
-  uint32_t frequency;
+  uint32_t frequency_mhz;
 };
+
+uint64_t get_ns();
 
 #endif
