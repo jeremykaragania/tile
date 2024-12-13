@@ -19,7 +19,7 @@ void init_paging() {
 */
 void init_pgd() {
   /* Clear page table entries below the kernel. */
-  for (uint32_t i = 0; i < (uint32_t)&VIRT_OFFSET; i += PMD_SIZE) {
+  for (uint32_t i = 0; i < VIRT_OFFSET; i += PMD_SIZE) {
     pmd_clear(memory_manager.pgd, i);
   }
 
@@ -51,7 +51,7 @@ void map_kernel() {
   create_mapping(ALIGN(memory_manager.text_end, PAGE_SIZE), virt_to_phys(ALIGN(memory_manager.text_end, PAGE_SIZE)), text_end - memory_manager.text_end, BLOCK_RW);
 
   /* Map the kernel memory before the ".text" section. */
-  create_mapping((uint32_t)&VIRT_OFFSET, virt_to_phys((uint32_t)&VIRT_OFFSET), ALIGN(text_begin - (uint32_t)&VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
+  create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
 
   /* Map the kernel memory after the ".text" section. */
   create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), BLOCK_RW);

@@ -42,14 +42,14 @@ uint32_t high_memory;
   virt_to_phys returns a physical address from a virtual address "x".
 */
 uint32_t virt_to_phys(uint32_t x) {
-  return x - ((uint32_t)&VIRT_OFFSET - (uint32_t)&PHYS_OFFSET);
+  return x - (VIRT_OFFSET - PHYS_OFFSET);
 }
 
 /*
   phys_to_virt returns a virtual address from a physical address "x".
 */
 uint32_t phys_to_virt(uint32_t x) {
-  return x + ((uint32_t)&VIRT_OFFSET - (uint32_t)&PHYS_OFFSET);
+  return x + (VIRT_OFFSET - PHYS_OFFSET);
 }
 
 /*
@@ -485,7 +485,7 @@ int memory_map_free(void* ptr) {
   of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_data_alloc() {
-  char* data = (char*)bitmap_alloc(&virt_bitmap, (uint32_t)&VIRT_OFFSET);
+  char* data = (char*)bitmap_alloc(&virt_bitmap, VIRT_OFFSET);
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
