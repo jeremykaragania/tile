@@ -66,7 +66,7 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
   size_t offset;
 
   prev_block = parent->size / sizeof(struct directory_info) / DIRECTORIES_PER_BLOCK;
-  curr_block = (parent->size + sizeof(struct directory_info)) / sizeof(struct directory_info) / DIRECTORIES_PER_BLOCK;
+  curr_block = (parent->size + sizeof(struct directory_info) - 1) / sizeof(struct directory_info) / DIRECTORIES_PER_BLOCK;
 
   /*
     If there are no blocks, or the current block is full, then allocate another
@@ -77,7 +77,7 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
     ++ctx->reserved_data_blocks;
   }
 
-  offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % FILE_BLOCK_SIZE;
+  offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % (sizeof(struct directory_info) * DIRECTORIES_PER_BLOCK);
   fseek(ctx->file, offset, SEEK_SET);
   fwrite(directory, sizeof(struct directory_info), 1, ctx->file);
 
