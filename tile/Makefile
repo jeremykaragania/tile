@@ -5,12 +5,13 @@ AS = as
 ASFLAGS = -I.
 LD = ld
 
+tile.ld: CFLAGS := $(CFLAGS) -E -x c -P
 tile lib: CC := $(HOST)-$(CC)
 tile lib: CFLAGS := $(CFLAGS) -ffreestanding
 tile lib: AS := $(HOST)-$(AS)
 tile lib: ASFLAGS := $(ASFLAGS) -mcpu=cortex-a15
 tile lib: LD := $(HOST)-$(LD)
-tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld.S
+tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld
 
 %: CFLAGS := $(CFLAGS)
 
@@ -26,8 +27,11 @@ TOOLS_OBJS = mkfs
 .PHONY: all
 all: tile drivers lib tools
 
-tile: $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS)
-	$(LD) $^ -o$@ $(LDFLAGS)
+tile.ld:
+	$(CC) $(CFLAGS) tile.ld.S -o$@
+
+tile: tile.ld $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS)
+	$(LD) $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) -o$@ $(LDFLAGS)
 
 .PHONY: drivers
 drivers: $(DRIVERS_OBJS)
@@ -43,4 +47,4 @@ tools: $(TOOLS_OBJS)
 
 .PHONY: clean
 clean:
-	rm tile $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) $(TOOLS_OBJS)
+	rm tile.ld tile $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) $(TOOLS_OBJS)
