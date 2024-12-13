@@ -39,20 +39,6 @@ struct memory_page_info memory_page_infos = {
 uint32_t high_memory;
 
 /*
-  virt_to_phys returns a physical address from a virtual address "x".
-*/
-uint32_t virt_to_phys(uint32_t x) {
-  return x - (VIRT_OFFSET - PHYS_OFFSET);
-}
-
-/*
-  phys_to_virt returns a virtual address from a physical address "x".
-*/
-uint32_t phys_to_virt(uint32_t x) {
-  return x + (VIRT_OFFSET - PHYS_OFFSET);
-}
-
-/*
   init_memory_map initializes the kernel's memory map.
 */
 void init_memory_map() {

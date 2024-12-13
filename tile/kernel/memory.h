@@ -11,6 +11,16 @@
 
 #define VIRT_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
 
+/*
+  virt_to_phys returns a physical address from a virtual address "x".
+*/
+#define virt_to_phys(x) ((x) - (VIRT_OFFSET - PHYS_OFFSET))
+
+/*
+  phys_to_virt returns a virtual address from a physical address "x".
+*/
+#define phys_to_virt(x) ((x) + (VIRT_OFFSET - PHYS_OFFSET))
+
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
@@ -112,9 +122,6 @@ struct memory_manager {
   uint32_t bss_begin;
   uint32_t bss_end;
 };
-
-uint32_t virt_to_phys(uint32_t x);
-uint32_t phys_to_virt(uint32_t x);
 
 void init_memory_map();
 void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
