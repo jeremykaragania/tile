@@ -10,7 +10,7 @@ tile lib: CFLAGS := $(CFLAGS) -ffreestanding
 tile lib: AS := $(HOST)-$(AS)
 tile lib: ASFLAGS := $(ASFLAGS) -mcpu=cortex-a15
 tile lib: LD := $(HOST)-$(LD)
-tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld
+tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld.S
 
 %: CFLAGS := $(CFLAGS)
 
