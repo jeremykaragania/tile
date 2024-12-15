@@ -3,6 +3,8 @@
 struct process_info init_process __attribute__((section(".init_process"))) = {
   0,
   PS_CREATED,
+  0,
+  (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   &init_process_stack
 };
 

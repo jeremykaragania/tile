@@ -1,6 +1,8 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#include <kernel/asm/memory.h>
+#include <kernel/memory.h>
 #include <stdint.h>
 
 #define STACK_END_MAGIC 0x57ac6e9d
@@ -28,8 +30,10 @@ enum process_state  {
   struct process_info represents a process.
 */
 struct process_info {
-  int id;
+  int num;
   int state;
+  uint32_t file_num;
+  uint32_t* pgd;
   void* stack;
 };
 
