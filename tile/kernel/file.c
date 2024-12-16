@@ -138,6 +138,72 @@ uint32_t next_block_index(size_t level, uint32_t offset) {
 }
 
 /*
+  name_to_file returns internal file information from a path name "name".
+*/
+struct file_info_int* name_to_file(const char* name) {
+  uint32_t num = filesystem_info.root_file_info;
+  char component[FILE_NAME_SIZE];
+  struct file_info_int* f;
+  size_t i = FILE_NAME_SIZE;
+
+  if (*name == '/') {
+    num = filesystem_info.root_file_info;
+  }
+  else {
+    num = current_process()->file_num;
+  }
+
+  f = file_get(num);
+
+  while (*name) {
+    int found = 0;
+    struct directory_info d;
+
+    memset(component, 0, i);
+    i = 0;
+
+    while(*name && *name != '/') {
+      component[i] = *name;
+      ++i;
+      ++name;
+    }
+
+    if (!*component) {
+      ++name;
+      continue;
+    }
+
+    /*
+      Search for the file in the directory.
+    */
+    for (size_t j = 0; j < (f->ext.size / sizeof(struct directory_info)); ++j) {
+      struct filesystem_addr addr;
+      struct buffer_info* b;
+
+      addr = file_offset_to_addr(f, j * sizeof(struct directory_info));
+      b = buffer_get(addr.num);
+      d = *((struct directory_info*)b->data + j);
+      buffer_put(b);
+
+      if (strcmp(d.name, component) == 0) {
+        found = 1;
+        break;
+      }
+    }
+
+    if (found) {
+      file_put(f);
+      f = file_get(d.num);
+    }
+    else {
+      return NULL;
+    }
+  }
+
+  return f;
+}
+
+/*
   file_get returns internal file information from an external file information
   number "file_info_num".
 */
