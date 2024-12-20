@@ -149,6 +149,14 @@ struct directory_info {
   char name[FILE_NAME_SIZE];
 };
 
+/*
+  struct file_table_entry represents an entry in the file table.
+*/
+struct file_table_entry {
+  int status;
+  uint32_t offset;
+};
+
 void filesystem_init();
 
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
