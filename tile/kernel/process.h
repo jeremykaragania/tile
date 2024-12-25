@@ -2,6 +2,7 @@
 #define PROCESS_H
 
 #include <kernel/asm/memory.h>
+#include <kernel/file.h>
 #include <kernel/memory.h>
 #include <stdint.h>
 
@@ -33,6 +34,7 @@ struct process_info {
   int num;
   int state;
   uint32_t file_num;
+  struct file_table_entry* file_tab;
   uint32_t* pgd;
   void* stack;
 };
