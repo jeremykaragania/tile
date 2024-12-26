@@ -44,6 +44,9 @@
 #define file_num_to_block_num(num) (1 + (num - 1) / FILE_INFO_PER_BLOCK)
 #define file_num_to_block_offset(num) (sizeof(struct file_info_ext) * ((num - 1) % FILE_INFO_PER_BLOCK))
 
+extern const char* current_directory;
+extern const char* parent_directory;
+
 extern struct filesystem_info filesystem_info;
 
 /*

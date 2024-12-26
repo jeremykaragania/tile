@@ -1,5 +1,8 @@
 #include <kernel/file.h>
 
+const char* current_directory = ".";
+const char* parent_directory = "..";
+
 struct filesystem_info filesystem_info;
 struct file_info_int* file_info_pool;
 struct file_info_int file_infos;
