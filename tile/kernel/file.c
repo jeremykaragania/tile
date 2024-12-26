@@ -53,6 +53,38 @@ void filesystem_init() {
 }
 
 /*
+  file_open opens a file specified by its name "name" and the access modes
+  specified by "flags".
+*/
+int file_open(const char* name, int flags) {
+  struct process_info* proc;
+  struct file_info_int* file;
+  struct file_table_entry* file_tab;
+  int ret;
+
+  file = name_to_file(name);
+
+  if (!file) {
+    return -1;
+  }
+
+  proc = current_process();
+  ret = proc->next_file_tab;
+
+  if (ret >= FILE_TABLE_SIZE) {
+    return -1;
+  }
+
+  file_tab = &proc->file_tab[ret];
+  file_tab->file_int = file;
+  file_tab->status = flags;
+
+  ++proc->next_file_tab;
+
+  return ret;
+}
+
+/*
   file_offset_to_addr returns the filesystem address at the byte offset
   "offset" in the file represented by the file information "info".
 */

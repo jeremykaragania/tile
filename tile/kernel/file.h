@@ -160,6 +160,8 @@ struct file_table_entry {
 
 void filesystem_init();
 
+int file_open(const char* name, int flags);
+
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
 uint32_t next_block_index(size_t level, uint32_t offset);
 
