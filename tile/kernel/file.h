@@ -170,6 +170,7 @@ struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uin
 uint32_t next_block_index(size_t level, uint32_t offset);
 
 struct file_info_int* name_to_file(const char* name);
+char* name_to_parent(const char* name, char* parent);
 
 struct file_info_int* file_get(uint32_t file_info_num);
 void file_put(const struct file_info_int* file_info);

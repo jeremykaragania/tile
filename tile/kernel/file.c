@@ -269,6 +269,42 @@ struct file_info_int* name_to_file(const char* name) {
 }
 
 /*
+  name_to_parent returns the parent name of the file name "name" in the buffer
+  pointed to by "parent" which must be the same size as "name".
+*/
+char* name_to_parent(const char* name, char* parent) {
+  size_t len = strlen(name);
+  size_t i = 0;
+
+  memcpy(parent, (void*)name, len);
+
+  if (strlen(name) == 1 && *name == '/') {
+    return parent;
+  }
+
+  while (name[len - i - 1] == '/') {
+    ++i;
+  }
+
+  while (i < len) {
+    if (name[len - i - 1] == '/') {
+      while (name[len - i - 1] == '/') {
+        ++i;
+      }
+
+      parent[len - i + 1] = 0;
+      return parent;
+    }
+
+    ++i;
+  }
+
+  memcpy(parent, (void*)current_directory, len);
+
+  return parent;
+}
+
+/*
   file_get returns internal file information from an external file information
   number "file_info_num".
 */
