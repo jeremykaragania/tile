@@ -93,6 +93,23 @@ int file_open(const char* name, int flags) {
 }
 
 /*
+  file_close closes the file specified by the file descriptor "fd". On sucess 1
+  is returned, and on failure 0 is returned.
+*/
+int file_close(int fd) {
+  struct process_info* proc;
+
+  if (fd < 1 || fd >= FILE_TABLE_SIZE) {
+    return 0;
+  }
+
+  proc = current_process();
+  proc->file_tab[fd].file_int = NULL;
+
+  return 1;
+}
+
+/*
   file_offset_to_addr returns the filesystem address at the byte offset
   "offset" in the file represented by the file information "info".
 */
