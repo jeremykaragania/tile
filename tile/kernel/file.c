@@ -15,6 +15,11 @@ void filesystem_init() {
   struct file_info_int* curr;
 
   /*
+    Initialize the file table of the kernel's init process.
+  */
+  current_process()->file_tab = file_table_alloc();
+
+  /*
     The first block contains information about the filesystem. The memory
     layout is specified by struct filesystem_info.
   */
@@ -386,4 +391,11 @@ struct filesystem_addr file_to_addr(uint32_t file_info_num) {
   ret.num = file_num_to_block_num(file_info_num);
   ret.offset = file_num_to_block_offset(file_info_num);
   return ret;
+}
+
+/*
+  file_table_alloc allocates a file table and returns a pointer to it.
+*/
+struct file_table_entry* file_table_alloc() {
+  return memory_alloc(sizeof(struct file_table_entry) * FILE_TABLE_SIZE);
 }

@@ -11,6 +11,7 @@
 
 #define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILE_INFO_CACHE_SIZE 32
+#define FILE_TABLE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 #define FILE_NAME_SIZE 28
 
@@ -134,7 +135,6 @@ struct file_info_ext {
 struct file_info_int {
   struct file_info_ext ext;
   int status;
-  size_t offset;
   struct file_info_int* next;
   struct file_info_int* prev;
 };
@@ -155,6 +155,7 @@ struct directory_info {
 struct file_table_entry {
   int status;
   uint32_t offset;
+  struct file_info_int* file_int;
 };
 
 void filesystem_init();
@@ -177,5 +178,7 @@ struct buffer_info* block_alloc();
 void block_free(struct buffer_info* buffer_info);
 
 struct filesystem_addr file_to_addr(uint32_t file_info_num);
+
+struct file_table_entry* file_table_alloc();
 
 #endif
