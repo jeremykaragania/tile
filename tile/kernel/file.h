@@ -121,6 +121,15 @@ struct filesystem_addr {
 };
 
 /*
+  struct block_info represents block information. It contains a block's level
+  and index.
+*/
+struct block_info {
+  uint32_t level;
+  uint32_t index;
+};
+
+/*
   struct file_info_ext represents external file information for file
   information that is in secondary memory. They are like UNIX disk inodes.
 */
@@ -167,6 +176,7 @@ int file_open(const char* name, int flags);
 int file_close(int fd);
 
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
+struct block_info file_offset_to_block(uint32_t offset);
 uint32_t next_block_index(size_t level, uint32_t offset);
 
 struct file_info_int* name_to_file(const char* name);

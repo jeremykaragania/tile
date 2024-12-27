@@ -119,42 +119,53 @@ int file_close(int fd) {
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info, uint32_t offset) {
   struct filesystem_addr ret = {0, 0};
   struct buffer_info* buffer_info;
-  size_t level;
-  uint32_t blocks_index;
+  struct block_info block_info;
+
+  if (offset > L3_BLOCKS_END) {
+    return ret;
+  }
+
+  block_info = file_offset_to_block(offset);
+  ret.num = file_info->ext.blocks[block_info.index];
+  ret.offset = offset % 512;
+
+  if (block_info.level) {
+    for (size_t i = 0; i < block_info.level; ++i) {
+      buffer_info = buffer_get(ret.num);
+      ret.num = ((uint32_t*)buffer_info->data)[next_block_index(block_info.level - i, offset)];
+      buffer_put(buffer_info);
+    }
+  }
+
+  return ret;
+}
+
+/*
+  file_offset_to_block converts an offset in a file "offset" to a block's level
+  and index.
+*/
+struct block_info file_offset_to_block(uint32_t offset) {
+  struct block_info ret = {0, 0};
 
   /*
     We determine which block level "offset" is at and the corresponding block
     index inside "file_info".
   */
   if (offset < L0_BLOCKS_END) {
-    level = 0;
-    blocks_index = offset / FILE_BLOCK_SIZE;
+    ret.level = 0;
+    ret.index = offset / FILE_BLOCK_SIZE;
   }
   else if (offset < L1_BLOCKS_END) {
-    level = 1;
-    blocks_index = L0_BLOCKS_SIZE;
+    ret.level = 1;
+    ret.index = L0_BLOCKS_SIZE;
   }
   else if (offset < L2_BLOCKS_END) {
-    level = 2;
-    blocks_index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE;
+    ret.level = 2;
+    ret.index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE;
   }
   else if (offset < L3_BLOCKS_END) {
-    level = 3;
-    blocks_index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE;
-  }
-  else {
-    return ret;
-  }
-
-  ret.num = file_info->ext.blocks[blocks_index];
-  ret.offset = offset % 512;
-
-  if (level) {
-    for (size_t i = 0; i < level; ++i) {
-      buffer_info = buffer_get(ret.num);
-      ret.num = ((uint32_t*)buffer_info->data)[next_block_index(level - i, offset)];
-      buffer_put(buffer_info);
-    }
+    ret.level = 3;
+    ret.index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE;
   }
 
   return ret;
