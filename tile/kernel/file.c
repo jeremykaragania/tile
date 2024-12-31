@@ -141,6 +141,13 @@ struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info
 }
 
 /*
+  blocks_in_file returns the number of blocks in the file "file".
+*/
+size_t blocks_in_file(const struct file_info_int* file) {
+  return file->ext.size / FILE_BLOCK_SIZE;
+}
+
+/*
   file_offset_to_block converts an offset in a file "offset" to a block's level
   and index.
 */

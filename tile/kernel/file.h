@@ -178,6 +178,7 @@ int file_close(int fd);
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
 struct block_info file_offset_to_block(uint32_t offset);
 uint32_t next_block_index(size_t level, uint32_t offset);
+size_t blocks_in_file(const struct file_info_int* file);
 
 struct file_info_int* name_to_file(const char* name);
 char* name_to_parent(const char* name, char* parent);
