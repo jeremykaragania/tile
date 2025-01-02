@@ -184,7 +184,7 @@ struct file_info_int* name_to_file(const char* name);
 char* name_to_parent(const char* name, char* parent);
 
 struct file_info_int* file_get(uint32_t file_info_num);
-void file_put(const struct file_info_int* file_info);
+void file_put(struct file_info_int* file_info);
 
 void file_push(struct file_info_int* list, struct file_info_int* file_info);
 struct file_info_int* file_pop(struct file_info_int* list);

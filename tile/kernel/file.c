@@ -347,13 +347,9 @@ struct file_info_int* file_get(uint32_t file_info_num) {
   file_put writes the external file information from the internal file
   information "file_info" to the SD card.
 */
-void file_put(const struct file_info_int* file_info) {
-  struct buffer_info* buffer_info = NULL;
-  struct filesystem_addr addr = file_to_addr(file_info->ext.num);
-
-  buffer_info = buffer_get(addr.num);
-  *(struct file_info_ext*)(buffer_info->data + addr.offset) = file_info->ext;
-  buffer_put(buffer_info);
+void file_put(struct file_info_int* file_info) {
+  file_remove(&file_infos, file_info);
+  file_push(&free_file_infos, file_info);
 }
 
 /*
