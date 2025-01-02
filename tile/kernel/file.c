@@ -317,22 +317,30 @@ char* name_to_parent(const char* name, char* parent) {
 
 /*
   file_get returns internal file information from an external file information
-  number "file_info_num".
+  number "file_info_num". It is similar to buffer_get except we don't wait for
+  free internal file information.
 */
 struct file_info_int* file_get(uint32_t file_info_num) {
-  struct file_info_int* ret = NULL;
-  struct buffer_info* buffer_info = NULL;
+  struct file_info_int* curr = file_infos.next;
   struct filesystem_addr addr = file_to_addr(file_info_num);
+  struct buffer_info* buffer_info = buffer_get(addr.num);
 
-  buffer_info = buffer_get(addr.num);
-  ret = file_pop(&free_file_infos);
-
-  if (!buffer_info || !ret) {
+  if (!buffer_info) {
     return NULL;
   }
 
-  ret->ext = *(struct file_info_ext*)(buffer_info->data + addr.offset);
-  return ret;
+  while (curr != &file_infos) {
+    if (curr->ext.num == file_info_num) {
+      return curr;
+    }
+
+    curr = curr->next;
+  }
+
+  curr = file_pop(&free_file_infos);
+  curr->ext = *(struct file_info_ext*)(buffer_info->data + addr.offset);
+  file_push(&file_infos, curr);
+  return curr;
 }
 
 /*
