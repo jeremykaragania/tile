@@ -384,6 +384,19 @@ struct file_info_int* file_pop(struct file_info_int* list) {
 }
 
 /*
+  file_remove removes the internal file information "file_info" from the
+  internal file information list "list".
+*/
+void file_remove(struct file_info_int* list, struct file_info_int* file_info) {
+  if (list == file_info || list->next == list) {
+    return;
+  }
+
+  file_info->next->prev = file_info->prev;
+  file_info->prev->next = file_info->next;
+}
+
+/*
   file_alloc allocates a struct file_info_int using the free file file
   information list and returns it.
 */

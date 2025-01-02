@@ -188,6 +188,7 @@ void file_put(const struct file_info_int* file_info);
 
 void file_push(struct file_info_int* list, struct file_info_int* file_info);
 struct file_info_int* file_pop(struct file_info_int* list);
+void file_remove(struct file_info_int* list, struct file_info_int* file_info);
 
 struct file_info_int* file_alloc();
 void file_free(const struct file_info_int* file_info);
