@@ -348,6 +348,11 @@ struct file_info_int* file_get(uint32_t file_info_num) {
   information "file_info" to the SD card.
 */
 void file_put(struct file_info_int* file_info) {
+  struct filesystem_addr addr = file_to_addr(file_info->ext.num);
+  struct buffer_info* buffer = buffer_get(addr.num);
+
+  memcpy(buffer->data + addr.offset, &file_info->ext, sizeof(struct file_info_ext));
+  buffer_put(buffer);
   file_remove(&file_infos, file_info);
   file_push(&free_file_infos, file_info);
 }
