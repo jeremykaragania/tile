@@ -76,7 +76,7 @@ void* memset(void *s, int c, size_t n) {
   memcpy copies "n" bytes from the buffer "src" to "dest". The buffers must not
   overlap.
 */
-void* memcpy(void *dest, void *src, size_t n) {
+void* memcpy(void *dest, const void *src, size_t n) {
   for (size_t i = 0; i < n; ++i) {
     ((char*)dest)[i] = ((char*)src)[i];
   }
@@ -88,7 +88,7 @@ void* memcpy(void *dest, void *src, size_t n) {
   memmove copies "n" bytes from the buffer "src" to "dest". The buffers can
   overlap.
 */
-void *memmove(void *dest, void *src, size_t n) {
+void *memmove(void *dest, const void *src, size_t n) {
   if (dest <= src) {
     memcpy(dest, src, n);
   }
