@@ -132,7 +132,7 @@ struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info
   if (block_info.level) {
     for (size_t i = 0; i < block_info.level; ++i) {
       buffer_info = buffer_get(ret.num);
-      ret.num = ((uint32_t*)buffer_info->data)[next_block_index(block_info.level - i, offset)];
+      ret.num = ((uint32_t*)buffer_info->data)[block_num_index(block_info.level - i, offset)];
       buffer_put(buffer_info);
     }
   }
@@ -172,10 +172,10 @@ struct block_info file_offset_to_block(uint32_t offset) {
 }
 
 /*
-  next_block_index returns the index of a block number at the next block level
-  from a block level "level" and a file byte offset "offset".
+  block_num_index returns the index of a block number at the block level
+  "level" and a file byte offset "offset".
 */
-uint32_t next_block_index(size_t level, uint32_t offset) {
+uint32_t block_num_index(size_t level, uint32_t offset) {
   uint32_t begin;
   uint32_t step;
 
@@ -185,32 +185,22 @@ uint32_t next_block_index(size_t level, uint32_t offset) {
   */
   switch (level) {
     case 1:
-      begin = L0_BLOCKS_END;
-      step = L1_BLOCKS_COUNT * FILE_BLOCK_SIZE;
+      begin = L0_BLOCKS_END + 1;
+      step = FILE_BLOCK_SIZE;
       break;
     case 2:
-      begin = L1_BLOCKS_END;
+      begin = L1_BLOCKS_END + 1;
       step = L2_BLOCKS_COUNT * FILE_BLOCK_SIZE;
       break;
     case 3:
-      begin = L2_BLOCKS_END;
+      begin = L2_BLOCKS_END + 1;
       step = L3_BLOCKS_COUNT * FILE_BLOCK_SIZE;
       break;
     default:
       return 0;
   }
 
-  /*
-    We imagine that we are at the beginning address and determine which block
-    index contains the "offset".
-  */
-  for (size_t i = 0; i < BLOCK_NUMS_PER_BLOCK; ++i) {
-    if (begin + i * step >= offset) {
-      return i;
-    }
-  }
-
-  return 0;
+  return (offset - begin) / step % 128;
 }
 
 /*
