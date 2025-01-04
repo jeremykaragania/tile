@@ -151,19 +151,19 @@ struct block_info file_offset_to_block(uint32_t offset) {
     We determine which block level "offset" is at and the corresponding block
     index inside "file_info".
   */
-  if (offset < L0_BLOCKS_END) {
+  if (offset <= L0_BLOCKS_END) {
     ret.level = 0;
     ret.index = offset / FILE_BLOCK_SIZE;
   }
-  else if (offset < L1_BLOCKS_END) {
+  else if (offset <= L1_BLOCKS_END) {
     ret.level = 1;
     ret.index = L0_BLOCKS_SIZE;
   }
-  else if (offset < L2_BLOCKS_END) {
+  else if (offset <= L2_BLOCKS_END) {
     ret.level = 2;
     ret.index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE;
   }
-  else if (offset < L3_BLOCKS_END) {
+  else if (offset <= L3_BLOCKS_END) {
     ret.level = 3;
     ret.index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE;
   }
