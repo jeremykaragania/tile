@@ -113,6 +113,98 @@ int file_close(int fd) {
 }
 
 /*
+  file_push_blocks pushes "count" blocks to the file "file".
+*/
+void file_push_blocks(struct file_info_int* file, size_t count) {
+  size_t curr_blocks = blocks_in_file(file->ext.size);
+  size_t offset;
+  struct block_info block_info;
+  uint32_t block_num;
+  struct buffer_info* alloc_buffer;
+  struct buffer_info* get_buffer;
+
+  for (size_t i = 0; i < count; ++i) {
+    offset = FILE_BLOCK_SIZE * (curr_blocks + i);
+    block_info = file_offset_to_block(offset);
+    block_num = file->ext.blocks[block_info.index];
+
+    /*
+      If the previous block index is different from the current block index, or
+      this is the first block then we allocate it.
+    */
+    if (file_offset_to_block(offset - FILE_BLOCK_SIZE).index != block_info.index || !block_info.index) {
+      alloc_buffer = block_alloc();
+      file->ext.blocks[block_info.index] = alloc_buffer->num;
+      block_num = alloc_buffer->num;
+      buffer_put(alloc_buffer);
+    }
+
+    for (size_t i = 0; i < block_info.level; ++i) {
+      get_buffer = buffer_get(block_num);
+
+      /*
+        If the previous block number index is different from the current block
+        index, then we allocate one. This is a hack which works due to how a
+        block number index depends on the offset and the level.
+      */
+      if (block_num_index(block_info.level - i, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - i, offset)) {
+        alloc_buffer = block_alloc();
+        ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - i, offset)] = alloc_buffer->num;
+        buffer_put(alloc_buffer);
+      }
+
+      block_num = ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - i, offset)];
+      buffer_put(get_buffer);
+    }
+  }
+}
+
+/*
+  file_pop_blocks pops "count" blocks from the file "file".
+*/
+void file_pop_blocks(struct file_info_int* file, size_t count) {
+  size_t curr_blocks = blocks_in_file(file->ext.size);
+  size_t offset;
+  struct block_info block_info;
+  uint32_t block_num;
+  struct buffer_info* get_buffers[2];
+
+  for (size_t i = 0; i < count; ++i) {
+    offset = FILE_BLOCK_SIZE * (curr_blocks - (i + 1));
+    block_info = file_offset_to_block(offset);
+    block_num = file->ext.blocks[block_info.index];
+
+    for (size_t i = 0; i < block_info.level; ++i) {
+      get_buffers[0] = buffer_get(block_num);
+
+      /*
+        If the previous block number index is different from the current block
+        index, then we allocate one. This is a hack which works due to how a
+        block number index depends on the offset and the level.
+      */
+      if (block_num_index(block_info.level - i, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - i, offset)) {
+        get_buffers[1] = buffer_get(((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - i, offset)]);
+        block_free(get_buffers[1]);
+        buffer_put(get_buffers[1]);
+      }
+
+      block_num = ((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - i, offset)];
+      buffer_put(get_buffers[0]);
+    }
+
+    /*
+      If the next block index is different from the current block index, or
+      this is the first block then we free it.
+    */
+    if (file_offset_to_block(offset - FILE_BLOCK_SIZE).index != block_info.index || !block_info.index) {
+      get_buffers[0] = buffer_get(file->ext.blocks[block_info.index]);
+      block_free(get_buffers[0]);
+      buffer_put(get_buffers[1]);
+    }
+  }
+}
+
+/*
   file_offset_to_addr returns the filesystem address at the byte offset
   "offset" in the file represented by the file information "info".
 */

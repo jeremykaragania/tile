@@ -176,6 +176,9 @@ void filesystem_init();
 int file_open(const char* name, int flags);
 int file_close(int fd);
 
+void file_push_blocks(struct file_info_int* file, size_t count);
+void file_pop_blocks(struct file_info_int* file, size_t count);
+
 struct filesystem_addr file_offset_to_addr(const struct file_info_int* info, uint32_t offset);
 struct block_info file_offset_to_block(uint32_t offset);
 uint32_t block_num_index(size_t level, uint32_t offset);
