@@ -8,6 +8,7 @@
 #include <lib/string.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILE_INFO_CACHE_SIZE 32
@@ -176,6 +177,7 @@ void filesystem_init();
 int file_open(const char* name, int flags);
 int file_close(int fd);
 
+void file_resize(struct file_info_int* file, size_t size);
 void file_push_blocks(struct file_info_int* file, size_t count);
 void file_pop_blocks(struct file_info_int* file, size_t count);
 

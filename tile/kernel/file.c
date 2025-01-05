@@ -113,6 +113,26 @@ int file_close(int fd) {
 }
 
 /*
+  file_resize resizes the file specified by "file" until it is at least "size"
+  bytes.
+*/
+void file_resize(struct file_info_int* file, size_t size) {
+  size_t curr_blocks = blocks_in_file(file->ext.size);
+  size_t next_blocks = blocks_in_file(size);
+  int delta = next_blocks - curr_blocks;
+  int sign = delta > 0 ? 1 : -1;
+
+  if (sign > 0) {
+    file_push_blocks(file, abs(delta));
+  }
+  else {
+    file_pop_blocks(file, abs(delta));
+  }
+
+  file->ext.size = size;
+}
+
+/*
   file_push_blocks pushes "count" blocks to the file "file".
 */
 void file_push_blocks(struct file_info_int* file, size_t count) {
