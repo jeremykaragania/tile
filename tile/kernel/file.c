@@ -382,39 +382,33 @@ struct file_info_int* name_to_file(const char* name) {
 }
 
 /*
-  name_to_parent returns the parent name of the file name "name" in the buffer
-  pointed to by "parent" which must be the same size as "name".
+  get_pathname_info returns the parent and file name of the pathname "pathname"
+  respectively in "parent" and "pathname". "parent" and "file" must be the same
+  size as "pathname".
 */
-char* name_to_parent(const char* name, char* parent) {
-  size_t len = strlen(name);
+void get_pathname_info(const char* pathname, char* parent, char* file) {
+  size_t len = strlen(pathname);
   size_t i = 0;
 
-  memcpy(parent, (void*)name, len);
+  memcpy(parent, (void*)pathname, len);
+  memcpy(file, (void*)pathname, len);
 
-  if (strlen(name) == 1 && *name == '/') {
-    return parent;
-  }
-
-  while (name[len - i - 1] == '/') {
-    ++i;
+  if (strlen(pathname) == 1 && *pathname == '/') {
+    return;
   }
 
   while (i < len) {
-    if (name[len - i - 1] == '/') {
-      while (name[len - i - 1] == '/') {
-        ++i;
-      }
-
-      parent[len - i + 1] = 0;
-      return parent;
+    if (pathname[len - i - 1] == '/') {
+      parent[len - i] = 0;
+      memcpy(file, pathname + len - i, i);
+      file[i] = 0;
+      return;
     }
 
     ++i;
   }
 
   memcpy(parent, (void*)current_directory, len);
-
-  return parent;
 }
 
 /*

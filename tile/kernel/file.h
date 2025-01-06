@@ -186,7 +186,7 @@ struct block_info file_offset_to_block(uint32_t offset);
 uint32_t block_num_index(size_t level, uint32_t offset);
 
 struct file_info_int* name_to_file(const char* name);
-char* name_to_parent(const char* name, char* parent);
+void get_pathname_info(const char* pathname, char* parent, char* file);
 char* normalize_pathname(char* pathname);
 
 struct file_info_int* file_get(uint32_t file_info_num);
