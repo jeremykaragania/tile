@@ -74,19 +74,7 @@ int file_open(const char* name, int flags) {
 
   proc = current_process();
 
-  /*
-    Search for a free file descriptor in the file table.
-  */
-  for (size_t i = 3; i < FILE_TABLE_SIZE; ++i) {
-    if (!proc->file_tab[i].file_int) {
-      ret = i;
-      break;
-    }
-
-    if (i == FILE_TABLE_SIZE - 1) {
-      return -1;
-    }
-  }
+  ret = get_file_descriptor(proc->file_tab);
 
   file_tab = &proc->file_tab[ret];
   file_tab->file_int = file;
@@ -110,6 +98,27 @@ int file_close(int fd) {
   proc->file_tab[fd].file_int = NULL;
 
   return 1;
+}
+
+/*
+  get_file_descriptor searches for a free file descriptor in the file table
+  "file_tab" and returns it on success, and -1 on failure.
+*/
+int get_file_descriptor(const struct file_table_entry* file_tab) {
+  int ret = -1;
+
+  for (size_t i = 3; i < FILE_TABLE_SIZE; ++i) {
+    if (!file_tab[i].file_int) {
+      ret = i;
+      break;
+    }
+
+    if (i == FILE_TABLE_SIZE - 1) {
+      return -1;
+    }
+  }
+
+  return ret;
 }
 
 /*
