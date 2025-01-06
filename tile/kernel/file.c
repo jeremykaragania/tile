@@ -101,6 +101,71 @@ int file_close(int fd) {
 }
 
 /*
+  file_creat creates a file specified by "name" with the flags "flags" and
+  returns a file descriptor to it.
+*/
+int file_creat(const char* name, int flags) {
+  struct file_info_int* file = name_to_file(name);
+  char* parent_name;
+  char* file_name;
+  struct file_info_int* parent;
+  size_t parent_size;
+  struct filesystem_addr addr;
+  struct directory_info directory;
+  struct buffer_info* buffer;
+  struct process_info* proc;
+  struct file_table_entry* file_tab;
+  int ret;
+
+  if (file) {
+    return -1;
+  }
+
+  parent_name = memory_alloc(strlen(name));
+  file_name = memory_alloc(strlen(name));
+  get_pathname_info(name, parent_name, file_name);
+
+  parent = name_to_file(parent_name);
+
+  /*
+    A file can only be created in a directory.
+  */
+  if (!parent || parent->ext.type != FT_DIRECTORY) {
+    return -1;
+  }
+
+  parent_size = parent->ext.size;
+
+  /*
+    Allocate a new file and allocate enough space in the parent block for a
+    directory entry for the new file.
+  */
+  file = file_alloc();
+  file_resize(parent, parent_size + sizeof(struct directory_info));
+
+  addr = file_offset_to_addr(parent, parent_size);
+
+  directory.num = file->ext.num;
+  memcpy(directory.name, file_name, strlen(name) + 1);
+
+  buffer = buffer_get(addr.num);
+  memcpy(buffer->data + addr.offset, &directory, sizeof(directory));
+
+  /*
+    Search for a file descriptor to return for the newly created file and
+    allocate the relevant file table.
+  */
+  proc = current_process();
+  ret = get_file_descriptor(proc->file_tab);
+
+  file_tab = &proc->file_tab[ret];
+  file_tab->file_int = file;
+  file_tab->status = flags;
+
+  return ret;
+}
+
+/*
   get_file_descriptor searches for a free file descriptor in the file table
   "file_tab" and returns it on success, and -1 on failure.
 */

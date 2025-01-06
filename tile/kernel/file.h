@@ -176,6 +176,7 @@ void filesystem_init();
 
 int file_open(const char* name, int flags);
 int file_close(int fd);
+int file_creat(const char* name, int flags);
 int get_file_descriptor(const struct file_table_entry* file_tab);
 
 void file_resize(struct file_info_int* file, size_t size);
