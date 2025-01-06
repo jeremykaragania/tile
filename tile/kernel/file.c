@@ -307,7 +307,7 @@ struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info
   struct buffer_info* buffer_info;
   struct block_info block_info;
 
-  if (offset > L3_BLOCKS_END) {
+  if (offset > file_info->ext.size) {
     return ret;
   }
 
@@ -434,7 +434,7 @@ struct file_info_int* name_to_file(const char* name) {
 
       addr = file_offset_to_addr(f, j * sizeof(struct directory_info));
       b = buffer_get(addr.num);
-      d = *((struct directory_info*)b->data + j);
+      d = *((struct directory_info*)b->data + (j % DIRECTORIES_PER_BLOCK));
       buffer_put(b);
 
       if (strcmp(d.name, component) == 0) {
@@ -541,6 +541,7 @@ struct file_info_int* file_get(uint32_t file_info_num) {
   file_push(&file_infos, curr);
   return curr;
 }
+
 
 /*
   file_put writes the external file information from the internal file
