@@ -418,6 +418,35 @@ char* name_to_parent(const char* name, char* parent) {
 }
 
 /*
+  normalize_pathname normalizes a path name "pathname" and returns it. It
+  removes superfluos '/' characters.
+*/
+char* normalize_pathname(char* pathname) {
+  size_t len = strlen(pathname);
+  size_t i = 0;
+  size_t j = 0;
+
+  while (i < len) {
+    if (pathname[i] == '/') {
+      while (pathname[i] == '/') {
+        ++i;
+      }
+      pathname[j] = '/';
+      ++j;
+    }
+
+    pathname[j] = pathname[i];
+
+    ++j;
+    ++i;
+  }
+
+  pathname[j] = 0;
+
+  return pathname;
+}
+
+/*
   file_get returns internal file information from an external file information
   number "file_info_num". It is similar to buffer_get except we don't wait for
   free internal file information.
