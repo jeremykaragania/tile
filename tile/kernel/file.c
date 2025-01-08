@@ -84,6 +84,96 @@ int file_open(const char* name, int flags) {
 }
 
 /*
+  file_read tries to read up to "count" bytes from the file specified by the
+  file descriptor "fd" into the buffer "buf". It returns the number of bytes
+  read.
+*/
+int file_read(int fd, void* buf, size_t count) {
+  struct process_info* proc;
+  struct file_info_int* file;
+  struct filesystem_addr addr;
+  struct buffer_info* buffer;
+  int ret = 0;
+
+  proc = current_process();
+  file = proc->file_tab[fd].file_int;
+
+  /*
+    We cap "count" at the file's size.
+  */
+  if (count > file->ext.size) {
+    count = file->ext.size;
+  }
+
+  /*
+    Read as many blocks as we can without exceeding "count".
+  */
+  for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE);
+    buffer = buffer_get(addr.num);
+    memcpy((char*)buf + ret, buffer->data, FILE_BLOCK_SIZE);
+    buffer_put(buffer);
+    ret += FILE_BLOCK_SIZE;
+  }
+
+  /*
+    Read the remaining bytes.
+  */
+  addr = file_offset_to_addr(file, ret);
+  buffer = buffer_get(addr.num);
+  memcpy((char*)buf + ret, buffer->data, count % FILE_BLOCK_SIZE);
+  buffer_put(buffer);
+  ret += count % FILE_BLOCK_SIZE;
+
+  return ret;
+}
+
+/*
+  file_write tries to write up to "count" bytes from the buffer "buf" into the
+  file specified by the file descriptor "fd". It returns the number of bytes
+  written.
+*/
+int file_write(int fd, const void* buf, size_t count) {
+  struct process_info* proc;
+  struct file_info_int* file;
+  struct filesystem_addr addr;
+  struct buffer_info* buffer;
+  int ret = 0;
+
+  proc = current_process();
+  file = proc->file_tab[fd].file_int;
+
+  /*
+    We cap "count" at the file's size.
+  */
+  if (count > file->ext.size) {
+    count = file->ext.size;
+  }
+
+  /*
+    Write as many blocks as we can without exceeding "count".
+  */
+  for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE);
+    buffer = buffer_get(addr.num);
+    memcpy(buffer->data, (char*)buf + ret, FILE_BLOCK_SIZE);
+    buffer_put(buffer);
+    ret += FILE_BLOCK_SIZE;
+  }
+
+  /*
+    Write the remaining bytes.
+  */
+  addr = file_offset_to_addr(file, ret);
+  buffer = buffer_get(addr.num);
+  memcpy(buffer->data, (char*)buf + ret, count % FILE_BLOCK_SIZE);
+  buffer_put(buffer);
+  ret += count % FILE_BLOCK_SIZE;
+
+  return ret;
+}
+
+/*
   file_close closes the file specified by the file descriptor "fd". On sucess 1
   is returned, and on failure 0 is returned.
 */
