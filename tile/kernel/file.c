@@ -112,7 +112,7 @@ int file_read(int fd, void* buf, size_t count) {
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
     addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE);
     buffer = buffer_get(addr.num);
-    memcpy((char*)buf + ret, buffer->data, FILE_BLOCK_SIZE);
+    memcpy((char*)buf + ret, buffer->data + addr.offset, FILE_BLOCK_SIZE);
     buffer_put(buffer);
     ret += FILE_BLOCK_SIZE;
   }
@@ -122,7 +122,7 @@ int file_read(int fd, void* buf, size_t count) {
   */
   addr = file_offset_to_addr(file, ret);
   buffer = buffer_get(addr.num);
-  memcpy((char*)buf + ret, buffer->data, count % FILE_BLOCK_SIZE);
+  memcpy((char*)buf + ret, buffer->data + addr.offset, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
 
@@ -157,7 +157,7 @@ int file_write(int fd, const void* buf, size_t count) {
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
     addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE);
     buffer = buffer_get(addr.num);
-    memcpy(buffer->data, (char*)buf + ret, FILE_BLOCK_SIZE);
+    memcpy(buffer->data + addr.offset, (char*)buf + ret, FILE_BLOCK_SIZE);
     buffer_put(buffer);
     ret += FILE_BLOCK_SIZE;
   }
@@ -167,7 +167,7 @@ int file_write(int fd, const void* buf, size_t count) {
   */
   addr = file_offset_to_addr(file, ret);
   buffer = buffer_get(addr.num);
-  memcpy(buffer->data, (char*)buf + ret, count % FILE_BLOCK_SIZE);
+  memcpy(buffer->data + addr.offset, (char*)buf + ret, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
 
