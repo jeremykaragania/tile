@@ -77,8 +77,9 @@ int file_open(const char* name, int flags) {
   ret = get_file_descriptor(proc->file_tab);
 
   file_tab = &proc->file_tab[ret];
-  file_tab->file_int = file;
   file_tab->status = flags;
+  file_tab->offset = 0;
+  file_tab->file_int = file;
 
   return ret;
 }
@@ -249,8 +250,9 @@ int file_creat(const char* name, int flags) {
   ret = get_file_descriptor(proc->file_tab);
 
   file_tab = &proc->file_tab[ret];
-  file_tab->file_int = file;
   file_tab->status = flags;
+  file_tab->offset = 0;
+  file_tab->file_int = file;
 
   return ret;
 }
