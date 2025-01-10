@@ -110,7 +110,7 @@ int file_read(int fd, void* buf, size_t count) {
     Read as many blocks as we can without exceeding "count".
   */
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE);
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + proc->file_tab[fd].offset);
     buffer = buffer_get(addr.num);
     memcpy((char*)buf + ret, buffer->data + addr.offset, FILE_BLOCK_SIZE);
     buffer_put(buffer);
@@ -120,11 +120,13 @@ int file_read(int fd, void* buf, size_t count) {
   /*
     Read the remaining bytes.
   */
-  addr = file_offset_to_addr(file, ret);
+  addr = file_offset_to_addr(file, ret + proc->file_tab[fd].offset);
   buffer = buffer_get(addr.num);
   memcpy((char*)buf + ret, buffer->data + addr.offset, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
+
+  proc->file_tab[fd].offset += ret;
 
   return ret;
 }
@@ -155,7 +157,7 @@ int file_write(int fd, const void* buf, size_t count) {
     Write as many blocks as we can without exceeding "count".
   */
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE);
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + proc->file_tab[fd].offset);
     buffer = buffer_get(addr.num);
     memcpy(buffer->data + addr.offset, (char*)buf + ret, FILE_BLOCK_SIZE);
     buffer_put(buffer);
@@ -165,11 +167,13 @@ int file_write(int fd, const void* buf, size_t count) {
   /*
     Write the remaining bytes.
   */
-  addr = file_offset_to_addr(file, ret);
+  addr = file_offset_to_addr(file, ret + proc->file_tab[fd].offset);
   buffer = buffer_get(addr.num);
   memcpy(buffer->data + addr.offset, (char*)buf + ret, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
+
+  proc->file_tab[fd].offset += ret;
 
   return ret;
 }
