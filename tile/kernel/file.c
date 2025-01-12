@@ -20,7 +20,7 @@ void filesystem_init() {
   /*
     Initialize the file table of the kernel's init process.
   */
-  current_process()->file_tab = file_table_alloc();
+  current->file_tab = file_table_alloc();
 
   /*
     The first block contains information about the filesystem. The memory
@@ -61,7 +61,6 @@ void filesystem_init() {
   the file.
 */
 int file_open(const char* name, int flags) {
-  struct process_info* proc;
   struct file_info_int* file;
   struct file_table_entry* file_tab;
   int ret;
@@ -72,11 +71,9 @@ int file_open(const char* name, int flags) {
     return -1;
   }
 
-  proc = current_process();
+  ret = get_file_descriptor(current->file_tab);
 
-  ret = get_file_descriptor(proc->file_tab);
-
-  file_tab = &proc->file_tab[ret];
+  file_tab = &current->file_tab[ret];
   file_tab->status = flags;
   file_tab->offset = 0;
   file_tab->file_int = file;
@@ -90,14 +87,12 @@ int file_open(const char* name, int flags) {
   read.
 */
 int file_read(int fd, void* buf, size_t count) {
-  struct process_info* proc;
   struct file_info_int* file;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
   int ret = 0;
 
-  proc = current_process();
-  file = proc->file_tab[fd].file_int;
+  file = current->file_tab[fd].file_int;
 
   /*
     We cap "count" at the file's size.
@@ -110,7 +105,7 @@ int file_read(int fd, void* buf, size_t count) {
     Read as many blocks as we can without exceeding "count".
   */
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + proc->file_tab[fd].offset);
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + current->file_tab[fd].offset);
     buffer = buffer_get(addr.num);
     memcpy((char*)buf + ret, buffer->data + addr.offset, FILE_BLOCK_SIZE);
     buffer_put(buffer);
@@ -120,13 +115,13 @@ int file_read(int fd, void* buf, size_t count) {
   /*
     Read the remaining bytes.
   */
-  addr = file_offset_to_addr(file, ret + proc->file_tab[fd].offset);
+  addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
   buffer = buffer_get(addr.num);
   memcpy((char*)buf + ret, buffer->data + addr.offset, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
 
-  proc->file_tab[fd].offset += ret;
+  current->file_tab[fd].offset += ret;
 
   return ret;
 }
@@ -137,14 +132,12 @@ int file_read(int fd, void* buf, size_t count) {
   written.
 */
 int file_write(int fd, const void* buf, size_t count) {
-  struct process_info* proc;
   struct file_info_int* file;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
   int ret = 0;
 
-  proc = current_process();
-  file = proc->file_tab[fd].file_int;
+  file = current->file_tab[fd].file_int;
 
   /*
     We cap "count" at the file's size.
@@ -157,7 +150,7 @@ int file_write(int fd, const void* buf, size_t count) {
     Write as many blocks as we can without exceeding "count".
   */
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + proc->file_tab[fd].offset);
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + current->file_tab[fd].offset);
     buffer = buffer_get(addr.num);
     memcpy(buffer->data + addr.offset, (char*)buf + ret, FILE_BLOCK_SIZE);
     buffer_put(buffer);
@@ -167,13 +160,13 @@ int file_write(int fd, const void* buf, size_t count) {
   /*
     Write the remaining bytes.
   */
-  addr = file_offset_to_addr(file, ret + proc->file_tab[fd].offset);
+  addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
   buffer = buffer_get(addr.num);
   memcpy(buffer->data + addr.offset, (char*)buf + ret, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
 
-  proc->file_tab[fd].offset += ret;
+  current->file_tab[fd].offset += ret;
 
   return ret;
 }
@@ -183,14 +176,11 @@ int file_write(int fd, const void* buf, size_t count) {
   is returned, and on failure 0 is returned.
 */
 int file_close(int fd) {
-  struct process_info* proc;
-
   if (fd < 1 || fd >= FILE_TABLE_SIZE) {
     return 0;
   }
 
-  proc = current_process();
-  proc->file_tab[fd].file_int = NULL;
+  current->file_tab[fd].file_int = NULL;
 
   return 1;
 }
@@ -208,7 +198,6 @@ int file_creat(const char* name, int flags) {
   struct filesystem_addr addr;
   struct directory_info directory;
   struct buffer_info* buffer;
-  struct process_info* proc;
   struct file_table_entry* file_tab;
   int ret;
 
@@ -250,10 +239,9 @@ int file_creat(const char* name, int flags) {
     Search for a file descriptor to return for the newly created file and
     allocate the relevant file table.
   */
-  proc = current_process();
-  ret = get_file_descriptor(proc->file_tab);
+  ret = get_file_descriptor(current->file_tab);
 
-  file_tab = &proc->file_tab[ret];
+  file_tab = &current->file_tab[ret];
   file_tab->status = flags;
   file_tab->offset = 0;
   file_tab->file_int = file;
@@ -498,7 +486,7 @@ struct file_info_int* name_to_file(const char* name) {
     num = filesystem_info.root_file_info;
   }
   else {
-    num = current_process()->file_num;
+    num = current->file_num;
   }
 
   f = file_get(num);

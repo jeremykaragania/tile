@@ -9,6 +9,8 @@
 #define STACK_END_MAGIC 0x57ac6e9d
 #define THREAD_SIZE 0x00002000
 
+#define current current_process()
+
 extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
