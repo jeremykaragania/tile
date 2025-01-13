@@ -97,6 +97,20 @@ enum file_access {
 };
 
 /*
+  file_open_flag represents the flags which can be passed when opening a file.
+  They are the same as the POSIX ones.
+*/
+enum file_open_flag {
+  O_RDONLY = (1 << 0),
+  O_RDWR = 3,
+  O_WRONLY = (1 << 1),
+  O_APPEND = (1 << 2),
+  O_CREAT = (1 << 3),
+  O_EXCL = (1 << 4),
+  O_TRUNC = (1 << 5)
+};
+
+/*
   struct filesystem_info represents the information of a filesystem. It is
   always the first block of the filesystem and tracks blocks and external file
   information.
