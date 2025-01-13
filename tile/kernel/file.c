@@ -64,6 +64,7 @@ int file_open(const char* name, int flags) {
   struct file_info_int* file;
   struct file_table_entry* file_tab;
   int ret;
+  int status = 0;
 
   file = name_to_file(name);
 
@@ -71,10 +72,25 @@ int file_open(const char* name, int flags) {
     return -1;
   }
 
+  /*
+    Convert the flags to a the file's status.
+  */
+  if (flags & O_RDONLY) {
+    status |= FS_READ;
+  }
+
+  if (flags & O_WRONLY) {
+    status |= FS_WRITE;
+  }
+
+  if (!status) {
+    return -1;
+  }
+
   ret = get_file_descriptor(current->file_tab);
 
   file_tab = &current->file_tab[ret];
-  file_tab->status = flags;
+  file_tab->status = status;
   file_tab->offset = 0;
   file_tab->file_int = file;
 
