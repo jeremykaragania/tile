@@ -72,8 +72,8 @@ extern struct file_info_int free_file_infos;
   enum file_status represents the status of an operation on a file.
 */
 enum file_status {
-  FS_READ,
-  FS_WRITE
+  FS_READ = (1 << 0),
+  FS_WRITE = (1 << 1)
 };
 
 /*

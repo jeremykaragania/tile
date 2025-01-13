@@ -103,12 +103,18 @@ int file_open(const char* name, int flags) {
   read.
 */
 int file_read(int fd, void* buf, size_t count) {
+  struct file_table_entry* file_tab;
   struct file_info_int* file;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
   int ret = 0;
 
-  file = current->file_tab[fd].file_int;
+  file_tab = &current->file_tab[fd];
+  file = file_tab->file_int;
+
+  if (!(file_tab->status & FS_READ)) {
+    return -1;
+  }
 
   /*
     We cap "count" at the file's size.
@@ -148,12 +154,18 @@ int file_read(int fd, void* buf, size_t count) {
   written.
 */
 int file_write(int fd, const void* buf, size_t count) {
+  struct file_table_entry* file_tab;
   struct file_info_int* file;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
   int ret = 0;
 
-  file = current->file_tab[fd].file_int;
+  file_tab = &current->file_tab[fd];
+  file = file_tab->file_int;
+
+  if (!(file_tab->status & FS_WRITE)) {
+    return -1;
+  }
 
   /*
     We cap "count" at the file's size.
