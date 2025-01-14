@@ -1,5 +1,26 @@
 #include <kernel/memory.h>
 
+/*
+  memory.c handles physical memory management.
+
+  There are two memory allocators: a secondary memory allocator and a primary
+  memory allocator. The secondary memory allocator bootstraps the primary
+  memory allocator.
+
+  The secondary memory allocator initializes the memory map of the machine. It
+  deals with memory groups which are abstractions of memory. It's heavily
+  inspired by Linux's boot time memory management and memblock allocator.
+
+  The primary memory allocator is a first-fit allocator. It uses page bitmaps
+  for backing memory. These pages serve as the foundation for further, more
+  granular allocations to be made on top of.
+
+  Both memory allocators deal with memory blocks which represent contiguous
+  free or reserved memory. A memory block is defined by its beginning and its
+  size in bytes. Memory blocks are stored in a doubly linked which is sorted by
+  the bounds of its entries.
+*/
+
 static struct memory_map_block memory_map_memory_blocks[MEMORY_MAP_GROUP_LENGTH];
 static struct memory_map_group memory_map_memory_group = {
   0,
