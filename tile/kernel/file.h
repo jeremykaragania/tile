@@ -192,8 +192,10 @@ int file_open(const char* name, int flags);
 int file_read(int fd, void* buf, size_t count);
 int file_write(int fd, const void* buf, size_t count);
 int file_close(int fd);
+int file_mknod(const char* pathname, int type);
 int file_creat(const char* name, int flags);
 int file_seek(int fd, size_t offset);
+
 int get_file_descriptor(const struct file_table_entry* file_tab);
 
 void file_resize(struct file_info_int* file, size_t size);

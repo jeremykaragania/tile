@@ -214,6 +214,60 @@ int file_close(int fd) {
 }
 
 /*
+  file_mkdnod tries to create a node specified by "pathname" of type "type". It
+  returns 1 on success, and 0 on failure.
+*/
+int file_mknod(const char* pathname, int type) {
+  struct file_info_int* file = name_to_file(pathname);
+  char* parent_name;
+  char* file_name;
+  struct file_info_int* parent;
+  size_t parent_size;
+  struct filesystem_addr addr;
+  struct directory_info directory;
+  struct buffer_info* buffer;
+
+  if (file) {
+    return 0;
+  }
+
+  parent_name = memory_alloc(strlen(pathname));
+  file_name = memory_alloc(strlen(pathname));
+  get_pathname_info(pathname, parent_name, file_name);
+
+  parent = name_to_file(parent_name);
+
+  /*
+    A file can only be created in a directory.
+  */
+  if (!parent || parent->ext.type != FT_DIRECTORY) {
+    return 0;
+  }
+
+  parent_size = parent->ext.size;
+
+  /*
+    Allocate a new file and allocate enough space in the parent block for a
+    directory entry for the new file.
+  */
+  file = file_alloc();
+  file->ext.type = type;
+  file_resize(parent, parent_size + sizeof(struct directory_info));
+
+  addr = file_offset_to_addr(parent, parent_size);
+
+  directory.num = file->ext.num;
+  memcpy(directory.name, file_name, strlen(pathname) + 1);
+
+  buffer = buffer_get(addr.num);
+  memcpy(buffer->data + addr.offset, &directory, sizeof(directory));
+
+  buffer_put(buffer);
+
+  return 1;
+}
+
+/*
   file_creat creates a file specified by "name" with the flags "flags" and
   returns a file descriptor to it.
 */
