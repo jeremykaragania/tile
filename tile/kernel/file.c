@@ -268,59 +268,19 @@ int file_mknod(const char* pathname, int type) {
 }
 
 /*
-  file_creat creates a file specified by "name" with the flags "flags" and
+  file_creat creates a file specified by "pathname" with the flags "flags" and
   returns a file descriptor to it.
 */
-int file_creat(const char* name, int flags) {
-  struct file_info_int* file = name_to_file(name);
-  char* parent_name;
-  char* file_name;
-  struct file_info_int* parent;
-  size_t parent_size;
-  struct filesystem_addr addr;
-  struct directory_info directory;
-  struct buffer_info* buffer;
+int file_creat(const char* pathname, int flags) {
+  struct file_info_int* file;
   struct file_table_entry* file_tab;
   int ret;
 
-  if (file) {
+  if (!file_mknod(pathname, FT_REGULAR)) {
     return -1;
   }
 
-  parent_name = memory_alloc(strlen(name));
-  file_name = memory_alloc(strlen(name));
-  get_pathname_info(name, parent_name, file_name);
-
-  parent = name_to_file(parent_name);
-
-  /*
-    A file can only be created in a directory.
-  */
-  if (!parent || parent->ext.type != FT_DIRECTORY) {
-    return -1;
-  }
-
-  parent_size = parent->ext.size;
-
-  /*
-    Allocate a new file and allocate enough space in the parent block for a
-    directory entry for the new file.
-  */
-  file = file_alloc();
-  file_resize(parent, parent_size + sizeof(struct directory_info));
-
-  addr = file_offset_to_addr(parent, parent_size);
-
-  directory.num = file->ext.num;
-  memcpy(directory.name, file_name, strlen(name) + 1);
-
-  buffer = buffer_get(addr.num);
-  memcpy(buffer->data + addr.offset, &directory, sizeof(directory));
-
-  /*
-    Search for a file descriptor to return for the newly created file and
-    allocate the relevant file table.
-  */
+  file = name_to_file(pathname);
   ret = get_file_descriptor(current->file_tab);
 
   file_tab = &current->file_tab[ret];
