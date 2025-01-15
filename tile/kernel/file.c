@@ -278,6 +278,15 @@ int file_creat(const char* name, int flags) {
 }
 
 /*
+  file_seek sets the offset of a file descriptor "fd" to "offset".
+*/
+int file_seek(int fd, size_t offset) {
+  current->file_tab[fd].offset = offset;
+
+  return offset;
+}
+
+/*
   get_file_descriptor searches for a free file descriptor in the file table
   "file_tab" and returns it on success, and -1 on failure.
 */
