@@ -4,6 +4,7 @@
 #include <kernel/asm/memory.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
+#include <kernel/processor.h>
 #include <stdint.h>
 
 #define STACK_END_MAGIC 0x57ac6e9d
@@ -38,6 +39,7 @@ struct process_info {
   uint32_t file_num;
   struct file_table_entry* file_tab;
   uint32_t* pgd;
+  struct processor_info processor;
   void* stack;
 };
 
