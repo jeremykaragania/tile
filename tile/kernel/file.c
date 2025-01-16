@@ -1,5 +1,31 @@
 #include <kernel/file.h>
 
+/*
+  file.c handles the filesystem.
+
+  The filesystem is a UNIX-like one and the structures it uses are analogous.
+  There are three structures in a filesystem: super blocks, file information
+  structures, and data blocks.
+
+  The filesystem is split into blocks of size FILE_BLOCK_SIZE. Each block is
+  represented by its block number. A filesystem address is specified by a block
+  number and the offset within that block.
+
+  There is a single super block per filesystem represented by struct filesystem
+  info. The super block is the first block of a filesystem and contains all the
+  necessary information about the filesystem.
+
+  There are two intimately related file information structures simply called
+  external file information and internal file information which both store
+  information about files. External file information is stored in secondary
+  memory, while internal file information is stored in primary memory. When a
+  file is read, its external file information is copied to an internal file
+  information structure.
+
+  File blocks store the underlying data of files. A file's data is accessed via
+  up to four levels of indirection depending on its offset.
+*/
+
 const char* current_directory = ".";
 const char* parent_directory = "..";
 
@@ -200,7 +226,7 @@ int file_write(int fd, const void* buf, size_t count) {
 }
 
 /*
-  file_close closes the file specified by the file descriptor "fd". On sucess 1
+  file_close closes the file specified by the file descriptor "fd". On success 1
   is returned, and on failure 0 is returned.
 */
 int file_close(int fd) {
@@ -643,7 +669,7 @@ void get_pathname_info(const char* pathname, char* parent, char* file) {
 
 /*
   normalize_pathname normalizes a path name "pathname" and returns it. It
-  removes superfluos '/' characters.
+  removes superfluous '/' characters.
 */
 char* normalize_pathname(char* pathname) {
   size_t len = strlen(pathname);
