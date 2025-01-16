@@ -301,6 +301,27 @@ int file_seek(int fd, size_t offset) {
 }
 
 /*
+  file_chdir changes the current directory to the directory specified by
+  "pathname". It returns 1 on success, and 0 on failure.
+*/
+int file_chdir(const char* pathname) {
+  struct file_info_int* file = name_to_file(pathname);
+
+  if (!file || file->ext.type != FT_DIRECTORY) {
+    return 0;
+  }
+
+  /*
+    Release the old directory and set the current directory to the directory
+    specified by "pathname".
+  */
+  file_put(file_get(current->file_num));
+  current->file_num = file->ext.num;
+
+  return 1;
+}
+
+/*
   get_file_descriptor searches for a free file descriptor in the file table
   "file_tab" and returns it on success, and -1 on failure.
 */
