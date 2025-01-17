@@ -146,6 +146,15 @@ struct block_info {
 };
 
 /*
+  struct file_owner represents the owner of a file. A file has a user owner and
+  a group owner.
+*/
+struct file_owner {
+  uint32_t user;
+  uint32_t group;
+};
+
+/*
   struct file_info_ext represents external file information for file
   information that is in secondary memory. They are like UNIX disk inodes.
 */
