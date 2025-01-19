@@ -1,6 +1,24 @@
 #include <kernel/page.h>
 
 /*
+  page.c handles virtual memory.
+
+  When translating a virtual address into a physical address there can be up to
+  two levels of translation. This mirrors the ARMv7-A virtual Memory System
+  Architecture (VMSA) in semantics. However, the virtual memory terminology
+  used is similar to that of Linux.
+
+  A page global directory (PGD) is the first level of translation. Each of its
+  entries maps 1MB of virtual memory. It can either map to a page middle
+  directory (PMD) a section. If it maps to a section, the translation stops
+  here, otherwise it continues to a PMD.
+
+  A PMD is the optional second level of translation. Each of its entries maps
+  page (4KB) of virtual memory. It maps to a page table entry (PTE).
+  Translation stops here.
+*/
+
+/*
   init_paging initializes the kernel's paging and maps required memory regions.
   Currently the kernel is mapped using 1MB sections. These sections are
   replaced with 4KB small pages where required.
