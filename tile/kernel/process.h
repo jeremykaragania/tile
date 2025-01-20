@@ -48,6 +48,7 @@ struct process_info {
   int state;
   uint32_t file_num;
   struct file_table_entry* file_tab;
+  struct process_table_entry* process_tab;
   uint32_t* pgd;
   struct processor_info processor;
   void* stack;
