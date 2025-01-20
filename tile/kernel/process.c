@@ -1,5 +1,7 @@
 #include <kernel/process.h>
 
+struct process_table_entry process_table;
+
 struct process_info init_process __attribute__((section(".init_process"))) = {
   0,
   PS_CREATED,

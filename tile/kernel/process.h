@@ -16,6 +16,7 @@ extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
 
+extern struct process_table_entry process_table;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
 
@@ -28,6 +29,15 @@ enum process_state  {
   PS_RUNNING,
   PS_BLOCKED,
   PS_TERMINATED
+};
+
+/*
+  struct process_table_entry represents an entry in the process table. Process
+  table entries are stored in a singly linked list.
+*/
+struct process_table_entry {
+  struct process_info* info;
+  struct proces_table_entry* next;
 };
 
 /*
