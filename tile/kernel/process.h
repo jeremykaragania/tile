@@ -46,6 +46,7 @@ struct process_table_entry {
 struct process_info {
   int num;
   int state;
+  int owner;
   uint32_t file_num;
   struct file_table_entry* file_tab;
   struct process_table_entry* process_tab;
