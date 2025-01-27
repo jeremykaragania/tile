@@ -1,5 +1,9 @@
 #include <drivers/pl011.h>
 
+/*
+  pl011.c provides an ARM PrimeCell UART (PL011) driver.
+*/
+
 volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc90000;
 
 char uart_buf[256];
