@@ -1,6 +1,6 @@
 #include <kernel/process.h>
 
-struct process_table_entry process_table;
+static struct process_info process_table[PROCESS_TABLE_SIZE];
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
   0,
@@ -8,7 +8,6 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   1,
   0,
   NULL,
-  &process_table,
   (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   {{0}},
   &init_process_stack

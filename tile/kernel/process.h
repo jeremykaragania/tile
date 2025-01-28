@@ -7,6 +7,7 @@
 #include <kernel/processor.h>
 #include <stdint.h>
 
+#define PROCESS_TABLE_SIZE 32
 #define STACK_END_MAGIC 0x57ac6e9d
 #define THREAD_SIZE 0x00002000
 
@@ -16,7 +17,6 @@ extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
 
-extern struct process_table_entry process_table;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
 
@@ -32,15 +32,6 @@ enum process_state  {
 };
 
 /*
-  struct process_table_entry represents an entry in the process table. Process
-  table entries are stored in a singly linked list.
-*/
-struct process_table_entry {
-  struct process_info* info;
-  struct proces_table_entry* next;
-};
-
-/*
   struct process_info represents a process.
 */
 struct process_info {
@@ -49,7 +40,6 @@ struct process_info {
   int owner;
   uint32_t file_num;
   struct file_table_entry* file_tab;
-  struct process_table_entry* process_tab;
   uint32_t* pgd;
   struct processor_info processor;
   void* stack;
