@@ -33,21 +33,6 @@ virt_to_phys:
   sub r4, r4, r5
   sub r0, r0, r4
   bx lr
-/*
-  enable_interrupts enables the I and F bits in the Current Program Status
-  Register (CPSR).
-*/
-.global enable_interrupts
-enable_interrupts:
-  cpsie if
-  bx lr
-/*
-  disable_interrupts disables the I and F bits in the CPSR.
-*/
-.global disable_interrupts
-disable_interrupts:
-  cpsid if
-  bx lr
 .global _start
 _start:
   cps #0x13 // Set processor mode to supervisor.

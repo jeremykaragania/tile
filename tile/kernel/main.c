@@ -9,9 +9,6 @@
 #include <kernel/page.h>
 #include <kernel/process.h>
 
-extern void enable_interrupts();
-extern void disable_interrupts();
-
 char tile_banner[] = "Tile\n";
 
 /*

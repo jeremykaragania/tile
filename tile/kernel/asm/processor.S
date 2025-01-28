@@ -1,3 +1,20 @@
+/*
+  enable_interrupts enables the I and F bits in the Current Program Status
+  Register (CPSR).
+*/
+.global enable_interrupts
+enable_interrupts:
+  cpsie if
+  bx lr
+
+/*
+  disable_interrupts disables the I and F bits in the CPSR.
+*/
+.global disable_interrupts
+disable_interrupts:
+  cpsid if
+  bx lr
+
 .global set_processor_mode
 set_processor_mode:
   mrs r1, cpsr
