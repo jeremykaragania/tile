@@ -30,3 +30,13 @@ void set_process_stack_end_token(const struct process_info* proc) {
 struct process_info* current_process() {
   return (struct process_info*) (current_stack_pointer() & ~(THREAD_SIZE - 1));
 }
+
+/*
+  function_to_process returns a process through "proc" from the function
+  "func". It initializes the processor context of "proc" using "func".
+*/
+void function_to_process(struct process_info* proc, struct function_info* func) {
+  proc->processor.reg.r0 = (uint32_t)func->arg;
+  proc->processor.reg.pc = (uint32_t)func->ptr;
+  proc->processor.mode = PM_SVC;
+}

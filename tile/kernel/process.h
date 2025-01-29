@@ -45,7 +45,16 @@ struct process_info {
   void* stack;
 };
 
+/*
+  struct funciton_info represents a function which can be scheduled.
+*/
+struct function_info {
+  int (*ptr)(void*);
+  void* arg;
+};
+
 void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();
+void function_to_process(struct process_info* proc, struct function_info* func);
 
 #endif
