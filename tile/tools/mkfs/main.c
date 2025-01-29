@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
   blocks_count = strtoull(argv[2], NULL, 10);
   f = fopen(device, "wb");
 
-  if (f == NULL) {
+  if (f == NULL || !blocks_count) {
     return 0;
   }
 
