@@ -182,7 +182,7 @@ extern struct filesystem_info filesystem_info;
   "file_info_pool" is a pool for internal file information. It is the memory
   backing all internal file information read from secondary memory.
 */
-extern struct file_info_int* file_info_pool;
+extern struct file_info_int file_info_pool[FILE_INFO_CACHE_SIZE];
 
 /*
   "file_infos" is a cache for internal file information.

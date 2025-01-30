@@ -16,18 +16,6 @@ struct buffer_info {
 };
 
 /*
-  "buffer_pool" is a pool for buffers. It is the memory backing all buffer
-  data.
-*/
-extern char** buffer_pool;
-
-/*
-  "buffer_info_pool" is a pool for buffer information. It is the memory
-  backing all buffer information.
-*/
-extern struct buffer_info* buffer_info_pool;
-
-/*
   "buffer_infos" is a cache for buffer information.
 */
 extern struct buffer_info buffer_infos;

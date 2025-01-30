@@ -30,7 +30,7 @@ const char* current_directory = ".";
 const char* parent_directory = "..";
 
 struct filesystem_info filesystem_info;
-struct file_info_int* file_info_pool;
+struct file_info_int file_info_pool[FILE_INFO_CACHE_SIZE];
 struct file_info_int file_infos;
 struct file_info_int free_file_infos;
 
@@ -56,10 +56,8 @@ void filesystem_init() {
   filesystem_info = *(struct filesystem_info*)buffer_info->data;
 
   /*
-    Initialize the file information pool and the free file information list.
+    Initialize the free file information list.
   */
-  file_info_pool = memory_alloc(sizeof(struct file_info_int) * FILE_INFO_CACHE_SIZE);
-
   file_infos.next = &file_infos;
   file_infos.prev = &file_infos;
 

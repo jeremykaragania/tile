@@ -1,7 +1,17 @@
 #include <kernel/buffer.h>
 
-char** buffer_pool;
-struct buffer_info* buffer_info_pool;
+/*
+  "buffer_pool" is a pool for buffers. It is the memory backing all buffer
+  data.
+*/
+static char buffer_pool[BUFFER_INFO_POOL_SIZE * FILE_BLOCK_SIZE];
+
+/*
+  "buffer_info_pool" is a pool for buffer information. It is the memory
+  backing all buffer information.
+*/
+static struct buffer_info buffer_info_pool[BUFFER_INFO_POOL_SIZE];
+
 struct buffer_info buffer_infos;
 struct buffer_info free_buffer_infos;
 
@@ -9,19 +19,8 @@ void buffer_init() {
   struct buffer_info* curr;
 
   /*
-    Initialize the buffer pool.
+    Initialize the free buffer information list.
   */
-  buffer_pool = memory_alloc(sizeof(char*) * BUFFER_INFO_POOL_SIZE);
-
-  for (size_t i = 0; i < BUFFER_INFO_POOL_SIZE; ++i) {
-    buffer_pool[i] = memory_alloc(FILE_BLOCK_SIZE);
-  }
-
-  /*
-    Initialize the buffer information pool and the free buffer information list.
-  */
-  buffer_info_pool = memory_alloc(sizeof(struct buffer_info) * BUFFER_INFO_POOL_SIZE);
-
   buffer_infos.next = &buffer_infos;
   buffer_infos.prev = &buffer_infos;
 
@@ -38,7 +37,7 @@ void buffer_init() {
       curr->next = &buffer_info_pool[i + 1];
     }
 
-    curr->data = buffer_pool[i];
+    curr->data = &buffer_pool[i * FILE_BLOCK_SIZE];
     curr->prev = &buffer_info_pool[i - 1];
     curr = curr->next;
   }
