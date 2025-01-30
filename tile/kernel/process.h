@@ -32,10 +32,20 @@ enum process_state  {
 };
 
 /*
+  enum process_type represents the type of a process. A process can either be a
+  user process or a kernel process.
+*/
+enum process_type {
+  PT_USER,
+  PT_KERNEL
+};
+
+/*
   struct process_info represents a process.
 */
 struct process_info {
   int num;
+  int type;
   int state;
   int owner;
   uint32_t file_num;

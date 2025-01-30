@@ -4,6 +4,7 @@ static struct process_info process_table[PROCESS_TABLE_SIZE];
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
   0,
+  PT_KERNEL,
   PS_CREATED,
   1,
   0,
