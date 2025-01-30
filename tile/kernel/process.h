@@ -13,13 +13,6 @@
 
 #define current current_process()
 
-extern void* init_process_begin;
-extern void* init_process_end;
-extern void* init_process_stack;
-
-extern struct process_info init_process;
-extern uint32_t current_stack_pointer();
-
 /*
   enum process_state represents the state of a process.
 */
@@ -54,6 +47,13 @@ struct process_info {
   struct processor_info processor;
   void* stack;
 };
+
+extern void* init_process_begin;
+extern void* init_process_end;
+extern void* init_process_stack;
+
+extern struct process_info init_process;
+extern uint32_t current_stack_pointer();
 
 /*
   struct funciton_info represents a function which can be scheduled.

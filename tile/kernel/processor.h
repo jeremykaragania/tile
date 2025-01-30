@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-extern void set_processor_mode(uint32_t mode);
-
 /*
   struct processor_registers represents the core ARMv7-A processor registers.
 */
@@ -49,5 +47,7 @@ struct processor_info {
   struct processor_registers reg;
   int mode;
 };
+
+extern void set_processor_mode(uint32_t mode);
 
 #endif

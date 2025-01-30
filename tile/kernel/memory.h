@@ -24,25 +24,6 @@
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
-const extern uint32_t* text_begin;
-const extern uint32_t* text_end;
-const extern uint32_t* data_begin;
-const extern uint32_t* data_end;
-const extern uint32_t* vector_table_begin;
-const extern uint32_t* vector_table_end;
-const extern uint32_t* interrupts_begin;
-const extern uint32_t* interrupts_end;
-const extern uint32_t* bss_begin;
-const extern uint32_t* bss_end;
-
-extern struct memory_map memory_map;
-extern struct memory_manager memory_manager;
-extern struct memory_bitmap phys_bitmaps;
-extern struct memory_bitmap virt_bitmap;
-extern struct memory_page_info memory_page_infos;
-
-extern uint32_t high_memory;
-
 /*
   enum memory_flags represents the attributes of a memory region.
 */
@@ -122,6 +103,25 @@ struct memory_manager {
   uint32_t bss_begin;
   uint32_t bss_end;
 };
+
+const extern uint32_t* text_begin;
+const extern uint32_t* text_end;
+const extern uint32_t* data_begin;
+const extern uint32_t* data_end;
+const extern uint32_t* vector_table_begin;
+const extern uint32_t* vector_table_end;
+const extern uint32_t* interrupts_begin;
+const extern uint32_t* interrupts_end;
+const extern uint32_t* bss_begin;
+const extern uint32_t* bss_end;
+
+extern struct memory_map memory_map;
+extern struct memory_manager memory_manager;
+extern struct memory_bitmap phys_bitmaps;
+extern struct memory_bitmap virt_bitmap;
+extern struct memory_page_info memory_page_infos;
+
+extern uint32_t high_memory;
 
 void init_memory_map();
 void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);

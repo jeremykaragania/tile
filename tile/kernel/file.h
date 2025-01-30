@@ -46,28 +46,6 @@
 #define file_num_to_block_offset(num) (sizeof(struct file_info_ext) * ((num - 1) % FILE_INFO_PER_BLOCK))
 #define blocks_in_file(size) ((size + FILE_BLOCK_SIZE - 1) / FILE_BLOCK_SIZE)
 
-extern const char* current_directory;
-extern const char* parent_directory;
-
-extern struct filesystem_info filesystem_info;
-
-/*
-  "file_info_pool" is a pool for internal file information. It is the memory
-  backing all internal file information read from secondary memory.
-*/
-extern struct file_info_int* file_info_pool;
-
-/*
-  "file_infos" is a cache for internal file information.
-*/
-extern struct file_info_int file_infos;
-
-/*
-  "free_file_infos" is a doubly linked list which stores the internal file
-  information in "file_info_pool" which are not being used.
-*/
-extern struct file_info_int free_file_infos;
-
 /*
   enum file_status represents the status of an operation on a file.
 */
@@ -194,6 +172,28 @@ struct file_table_entry {
   uint32_t offset;
   struct file_info_int* file_int;
 };
+
+extern const char* current_directory;
+extern const char* parent_directory;
+
+extern struct filesystem_info filesystem_info;
+
+/*
+  "file_info_pool" is a pool for internal file information. It is the memory
+  backing all internal file information read from secondary memory.
+*/
+extern struct file_info_int* file_info_pool;
+
+/*
+  "file_infos" is a cache for internal file information.
+*/
+extern struct file_info_int file_infos;
+
+/*
+  "free_file_infos" is a doubly linked list which stores the internal file
+  information in "file_info_pool" which are not being used.
+*/
+extern struct file_info_int free_file_infos;
 
 void filesystem_init();
 

@@ -8,6 +8,13 @@
 
 #define BUFFER_INFO_POOL_SIZE 32
 
+struct buffer_info {
+  uint32_t num;
+  char* data;
+  struct buffer_info* next;
+  struct buffer_info* prev;
+};
+
 /*
   "buffer_pool" is a pool for buffers. It is the memory backing all buffer
   data.
@@ -30,13 +37,6 @@ extern struct buffer_info buffer_infos;
   information in "buffer_info_pool" which are not being used.
 */
 extern struct buffer_info free_buffer_infos;
-
-struct buffer_info {
-  uint32_t num;
-  char* data;
-  struct buffer_info* next;
-  struct buffer_info* prev;
-};
 
 void buffer_init();
 

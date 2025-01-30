@@ -1,8 +1,6 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
-extern void value_in_regs();
-
 /*
   struct signed_divide_return represents the return result of a signed integer
   division.
@@ -20,6 +18,8 @@ struct unsigned_divide_return {
   unsigned long long quotient;
   unsigned long long remainder;
 };
+
+extern void value_in_regs();
 
 static struct signed_divide_return signed_divide(long long numerator, long long denominator);
 static struct unsigned_divide_return unsigned_divide(unsigned long long numerator, unsigned long long denominator);
