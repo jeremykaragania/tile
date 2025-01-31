@@ -1,6 +1,6 @@
 #include <kernel/process.h>
 
-static struct process_info process_table[PROCESS_TABLE_SIZE];
+struct process_info process_table[PROCESS_TABLE_SIZE];
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
   0,
