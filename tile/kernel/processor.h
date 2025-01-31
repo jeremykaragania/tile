@@ -48,6 +48,8 @@ struct processor_info {
   int mode;
 };
 
+extern void enable_interrupts();
+extern void disable_interrupts();
 extern void set_processor_mode(uint32_t mode);
 
 #endif
