@@ -350,20 +350,13 @@ int file_chdir(const char* pathname) {
   "file_tab" and returns it on success, and -1 on failure.
 */
 int get_file_descriptor(const struct file_table_entry* file_tab) {
-  int ret = -1;
-
   for (size_t i = 3; i < FILE_TABLE_SIZE; ++i) {
     if (!file_tab[i].file_int) {
-      ret = i;
-      break;
-    }
-
-    if (i == FILE_TABLE_SIZE - 1) {
-      return -1;
+      return i;
     }
   }
 
-  return ret;
+  return -1;
 }
 
 /*
