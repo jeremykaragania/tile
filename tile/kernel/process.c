@@ -15,6 +15,28 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
 };
 
 /*
+  process_clone creates a child process of type "type" from the function
+  specified by "func" and returns its process number.
+*/
+int process_clone(int type, struct function_info* func) {
+  int num = 0;
+  struct process_info* proc;
+
+  num = get_process_number();
+
+  if (!num) {
+    return -1;
+  }
+
+  proc = &process_table[num - 1];
+  proc->num = num;
+  proc->type = type;
+  function_to_process(proc, func);
+
+  return num;
+}
+
+/*
   get_process_number tries to find a free process number. A positive process
   number is returned if one exists, otherwise, a negative result is returned.
 */
