@@ -15,6 +15,21 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
 };
 
 /*
+  get_process_number tries to find a free process number. A positive process
+  number is returned if one exists, otherwise, a negative result is returned.
+*/
+int get_process_number() {
+  for (size_t i = 0; i < PROCESS_TABLE_SIZE; ++i) {
+    if (process_table[i].num == 0) {
+      /* Process numbering begins at 1. */
+      return i + 1;
+    }
+  }
+
+  return -1;
+}
+
+/*
   set_process_stack_end_token receives a struct process_info "proc", and adds a
   magic token to the end of its stack. This allows us to detect the last usable
   uint32_t of the stack.
