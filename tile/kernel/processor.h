@@ -50,6 +50,7 @@ struct processor_info {
 
 extern void enable_interrupts();
 extern void disable_interrupts();
+extern void init_stack_pointers();
 extern void set_processor_mode(uint32_t mode);
 
 #endif
