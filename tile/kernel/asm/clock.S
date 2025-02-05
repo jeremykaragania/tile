@@ -13,3 +13,11 @@ init_clock:
 get_counter:
   mrrc p15, 0, r0, r1, c14
   bx lr
+
+/*
+  get_timer returns the contents of the physical timer register.
+*/
+.global get_timer
+get_timer:
+  mrc p15, 0, r0, c14, c2, 0
+  bx lr
