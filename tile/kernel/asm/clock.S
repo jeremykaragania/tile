@@ -21,3 +21,11 @@ get_counter:
 get_timer:
   mrc p15, 0, r0, c14, c2, 0
   bx lr
+
+/*
+  set_timer sets the contents of the physical timer register.
+*/
+.global set_timer
+set_timer:
+  mcr p15, 0, r0, c14, c2, 0
+  bx lr
