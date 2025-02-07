@@ -26,9 +26,9 @@
 struct uart_registers {
   uint32_t dr;
   uint32_t rsr_ecr;
-  uint32_t reserved_0[4];
+  const uint32_t reserved_0[4];
   const uint32_t fr;
-  uint32_t reserved_1;
+  const uint32_t reserved_1;
   uint32_t ilpr;
   uint32_t ibrd;
   uint32_t fbrd;

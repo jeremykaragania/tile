@@ -36,9 +36,9 @@ struct mci_registers {
   uint32_t mask[2];
   uint32_t select;
   uint32_t fifo_cnt;
-  uint32_t reserved_0[13];
+  const uint32_t reserved_0[13];
   uint32_t fifo[16];
-  uint32_t reserved_1[968];
+  const uint32_t reserved_1[968];
   uint32_t periph_id[4];
   uint32_t p_cell_d[4];
 };
