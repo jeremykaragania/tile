@@ -20,7 +20,7 @@ DRIVERS_DIR = drivers
 LIB_DIR = lib
 TOOLS_DIR = tools
 KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/clock.o asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o asm/processor.o buffer.o clock.o file.o helpers.o interrupts.o main.o memory.o page.o process.o processor.o)
-DRIVERS_OBJS = $(addprefix $(DRIVERS_DIR)/, pl011.o pl180.o)
+DRIVERS_OBJS = $(addprefix $(DRIVERS_DIR)/, gic_400.o pl011.o pl180.o)
 LIB_OBJS = $(addprefix $(LIB_DIR)/, string.o)
 TOOLS_OBJS = mkfs
 
