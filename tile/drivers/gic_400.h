@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+/*
+  struct gic_distributor_registers represents the registers of the distributor
+  of the GIC-400.
+*/
 struct gic_distributor_registers {
   uint32_t ctlr;
   const uint32_t type;
