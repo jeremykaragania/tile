@@ -1,9 +1,15 @@
 #define STRING_H
+#define _GNU_SOURCE
 
 #include <kernel/file.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define DIRECTORIES_SIZE 14
 
@@ -14,6 +20,7 @@ char usage[] = "Usage: mkfs device blocks-count";
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
 
 struct mkfs_context {
+  void* addr;
   FILE* file;
   size_t next_file_info;
   size_t reserved_data_blocks;
@@ -42,6 +49,7 @@ uint32_t free_data_blocks(struct mkfs_context* ctx) {
 void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
   fseek(ctx->file, file_num_to_offset(file->num), SEEK_SET);
   fwrite(file, sizeof(struct file_info_ext), 1, ctx->file);
+  *((struct file_info_ext*)((uint64_t)ctx->addr + file_num_to_offset(file->num))) = *file;
 }
 
 /*
@@ -80,6 +88,7 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
   offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % (sizeof(struct directory_info) * DIRECTORIES_PER_BLOCK);
   fseek(ctx->file, offset, SEEK_SET);
   fwrite(directory, sizeof(struct directory_info), 1, ctx->file);
+  *((struct directory_info*)((uint64_t)ctx->addr + offset)) = *directory;
 
   parent->size += sizeof(struct directory_info);
 }
@@ -99,9 +108,9 @@ void init_directory(struct mkfs_context* ctx, struct file_info_ext* file) {
 }
 
 /*
-  mkdir makes a directory under "parent" with the name "name".
+  mkdir_ makes a directory under "parent" with the name "name".
 */
-struct file_info_ext mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
+struct file_info_ext mkdir_(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
   struct file_info_ext file;
   struct directory_info directory;
 
@@ -138,7 +147,10 @@ struct file_info_ext mkdir(struct mkfs_context* ctx, struct file_info_ext* paren
 int main(int argc, char* argv[]) {
   char* device;
   size_t blocks_count;
+  size_t device_size;
   FILE* f;
+  int fd;
+  void* addr;
   struct filesystem_info info;
   char block[FILE_BLOCK_SIZE];
   struct file_info_ext root;
@@ -151,13 +163,21 @@ int main(int argc, char* argv[]) {
 
   device = argv[1];
   blocks_count = strtoull(argv[2], NULL, 10);
+  device_size = blocks_count * FILE_BLOCK_SIZE;
+
+  fd = open("tmp", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+  fallocate(fd, 0, 0, device_size);
+  addr = mmap(NULL, device_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
   f = fopen(device, "wb");
+
 
   if (f == NULL || !blocks_count) {
     return 0;
   }
 
   /* Initialize the context. */
+  ctx.addr = addr;
   ctx.file = f;
   ctx.next_file_info = 1;
   ctx.reserved_data_blocks = 0;
@@ -176,6 +196,7 @@ int main(int argc, char* argv[]) {
   memset(block, 0, FILE_BLOCK_SIZE);
   fwrite(block, FILE_BLOCK_SIZE, 1, f);
 
+
   /* Initialize the file information blocks. */
   for (size_t i = 0; i < info.file_infos_size; ++i) {
     memset(block, 0, FILE_BLOCK_SIZE);
@@ -186,16 +207,17 @@ int main(int argc, char* argv[]) {
       file_info_ext.type = 0;
       file_info_ext.size = 0;
       ((struct file_info_ext*)block)[j] = file_info_ext;
+      ((struct file_info_ext*)((uint64_t)addr + i * FILE_BLOCK_SIZE))[j] = file_info_ext;
     }
 
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
   }
 
   /* Initialize the root filesystem. */
-  root = mkdir(&ctx, NULL, "/");
+  root = mkdir_(&ctx, NULL, "/");
 
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
-    mkdir(&ctx, &root, directories[i]);
+    mkdir_(&ctx, &root, directories[i]);
   }
 
   write_file_info(&ctx, &root);
@@ -209,12 +231,14 @@ int main(int argc, char* argv[]) {
   write_free_block_list(&ctx, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
 
   fseek(f, (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE, SEEK_SET);
+  uint32_t free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE;
 
   for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
     memset(block, 0, FILE_BLOCK_SIZE);
     ((uint32_t*)(block))[0] = FILESYSTEM_INFO_CACHE_SIZE;
     write_free_block_list(&ctx, (uint32_t*)block + 1, i + 1, FILESYSTEM_INFO_CACHE_SIZE);
     fwrite(block, FILE_BLOCK_SIZE, 1, f);
+    write_free_block_list(&ctx, (void*)(free_blocks_begin + (uint64_t)addr + i * FILE_BLOCK_SIZE + 1), i + 1, FILESYSTEM_INFO_CACHE_SIZE);
   }
 
   /* Initialize the data blocks. */
@@ -227,6 +251,10 @@ int main(int argc, char* argv[]) {
   /* Initialize the filesystem information block. */
   rewind(f);
   fwrite(&info, sizeof(info), 1, f);
+  *((struct filesystem_info*)addr) = info;
+
+  munmap(addr, device_size);
+  close(fd);
 
   return 0;
 }
