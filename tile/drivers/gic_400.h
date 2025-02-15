@@ -53,4 +53,30 @@ struct gic_distributor_registers {
   uint32_t cid3;
 };
 
+/*
+  struct gic_cpu_interface_registers represents the registers of the CPU
+  interface of the GIC-400.
+*/
+struct gic_cpu_interface_registers {
+  uint32_t ctl;
+  uint32_t pm;
+  uint32_t bp;
+  uint32_t ia;
+  uint32_t eoi;
+  uint32_t rp;
+  uint32_t hppi;
+  uint32_t abp;
+  uint32_t aia;
+  uint32_t aeoi;
+  uint32_t ahppi;
+  uint32_t reserved_0[42];
+  uint32_t ap;
+  uint32_t reserved_1;
+  uint32_t nsap;
+  uint32_t reserved_2[7];
+  uint32_t iid;
+  uint32_t reserved_3[961];
+  uint32_t di;
+};
+
 #endif
