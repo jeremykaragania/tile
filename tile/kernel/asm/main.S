@@ -14,6 +14,8 @@ pgd_index:
   lsr r0, r0, r1
   mov r1, #0x4
   mul r0, r0, r1
+  ldr r1, =PG_DIR_PADDR
+  add r0, r0, r1
   bx lr
 /*
   phys_to_virt returns a virtual address from a physical address "x".
@@ -60,8 +62,6 @@ map_turn_mmu_on:
   bl virt_to_phys
   mov r4, r0
   bl pgd_index
-  ldr r1, =PG_DIR_PADDR
-  add r0, r0, r1
   ldr r1, =#0x402 // Read/write, only at PL1.
   mov r2, r4
   add r3, r4, #0x100000
@@ -74,8 +74,6 @@ map_kernel:
   ldr r0, =KERNEL_SPACE_PADDR
   bl phys_to_virt
   bl pgd_index
-  ldr r1, =PG_DIR_PADDR
-  add r0, r0, r1
   ldr r1, =#0x402 // Read/write, only at PL1.
   ldr r2, =KERNEL_SPACE_PADDR
   ldr r3, =KERNEL_SPACE_PADDR + 0x30000000
@@ -87,8 +85,6 @@ map_kernel:
 map_smc:
   ldr r0, =#0xffc00000
   bl pgd_index
-  ldr r1, =PG_DIR_PADDR
-  add r0, r0, r1
   ldr r1, =#0x402
   ldr r2, =SMC_CS3_PADDR
   ldr r3, =SMC_CS3_PADDR + 0x100000
