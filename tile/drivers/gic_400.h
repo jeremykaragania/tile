@@ -1,6 +1,7 @@
 #ifndef GIC_400
 #define GIC_400
 
+#include <kernel/asm/memory.h>
 #include <stdint.h>
 
 /*
@@ -78,5 +79,8 @@ struct gic_cpu_interface_registers {
   uint32_t reserved_3[961];
   uint32_t di;
 };
+
+extern volatile struct gic_distributor_registers* gicd;
+extern volatile struct gic_cpu_interface_registers* gicc;
 
 #endif
