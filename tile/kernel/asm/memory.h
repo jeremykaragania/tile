@@ -8,6 +8,9 @@
 
 #define KERNEL_SPACE_PADDR 0x80000000ull
 
+#define UART_0_PADDR 0x1c090000ull
+#define UART_0_VADDR 0xffc00000
+
 #define SMC_CS3_PADDR 0x1c000000ull
 #define GIC_400_PADDR 0x2c000000ull
 

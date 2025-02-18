@@ -1,6 +1,7 @@
 #ifndef UART_H
 #define UART_H
 
+#include <kernel/asm/memory.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
