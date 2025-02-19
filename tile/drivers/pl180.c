@@ -4,7 +4,7 @@
   pl180.c provides an ARM PrimeCell Multimedia Card Interface (PL180) driver.
 */
 
-volatile struct mci_registers* mci = (volatile struct mci_registers*)(SMC_CS3_PADDR + 0x50000);
+volatile struct mci_registers* mci = (volatile struct mci_registers*)MCI_PADDR;
 
 /*
   mci_init initializes the multimedia card interface.

@@ -80,7 +80,7 @@ void map_kernel() {
   the memory executable.
 */
 void map_vector_table() {
-  create_mapping(0xffff0000, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, BLOCK_RWX);
+  create_mapping(VECTOR_TABLE_VADDR, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, BLOCK_RWX);
 }
 
 /*
@@ -88,9 +88,10 @@ void map_vector_table() {
   directory and maps the MCI and the UART.
 */
 void map_smc() {
-  create_mapping((uint32_t)mci, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
-  create_mapping(UART_0_VADDR, 0x1c090000, PAGE_SIZE, BLOCK_RW);
+  create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
+  create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, BLOCK_RW);
   uart_0 = (volatile struct uart_registers*)UART_0_VADDR;
+  mci = (volatile struct mci_registers*)MCI_VADDR;
 }
 
 /*
