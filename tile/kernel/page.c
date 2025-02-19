@@ -26,6 +26,7 @@
 void init_paging() {
   init_pgd();
   map_kernel();
+  map_peripherals();
   map_smc();
   map_vector_table();
   invalidate_entire_tlb();
@@ -73,6 +74,17 @@ void map_kernel() {
 
   /* Map the kernel memory after the ".text" section. */
   create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), BLOCK_RW);
+}
+
+/*
+  map_peripherals maps the peripherals. It maps the global interrupt
+  controller.
+*/
+void map_peripherals() {
+  create_mapping(GICD_VADDR, (uint32_t)gicd, PAGE_SIZE, BLOCK_RW);
+  create_mapping(GICC_VADDR, (uint32_t)gicc, PAGE_SIZE, BLOCK_RW);
+  gicd = (volatile struct gic_distributor_registers*)GICD_VADDR;
+  gicc = (volatile struct gic_cpu_interface_registers*)GICC_VADDR;
 }
 
 /*

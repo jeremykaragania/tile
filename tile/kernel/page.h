@@ -1,6 +1,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <drivers/gic_400.h>
 #include <drivers/pl011.h>
 #include <drivers/pl180.h>
 #include <kernel/memory.h>
@@ -18,6 +19,7 @@ void init_paging();
 void init_pgd();
 
 void map_kernel();
+void map_peripherals();
 void map_vector_table();
 void map_smc();
 
