@@ -4,6 +4,10 @@
   pl011.c provides an ARM PrimeCell UART (PL011) driver.
 */
 
+/*
+  The UART is mapped to this initial address as this is where it is mapped in
+  the initial memory map before the proper memory mapping is initialized.
+*/
 volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc90000;
 
 char uart_buf[256];
