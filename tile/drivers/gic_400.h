@@ -83,4 +83,6 @@ struct gic_cpu_interface_registers {
 extern volatile struct gic_distributor_registers* gicd;
 extern volatile struct gic_cpu_interface_registers* gicc;
 
+void gic_init();
+
 #endif

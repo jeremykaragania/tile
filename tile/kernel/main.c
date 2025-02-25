@@ -24,6 +24,7 @@ void start_kernel() {
   init_paging();
   uart_init();
   mci_init();
+  gic_init();
   buffer_init();
   init_clock();
   filesystem_init();
