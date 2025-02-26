@@ -14,8 +14,7 @@
 
 #define file_num_to_offset(num) (file_num_to_block_num(num) * FILE_BLOCK_SIZE + file_num_to_block_offset(num))
 
-char command[] = "mkfs";
-char usage[] = "Usage: mkfs device blocks-count";
+char* program;
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
 
 struct mkfs_context {
@@ -24,6 +23,12 @@ struct mkfs_context {
   size_t reserved_data_blocks;
   struct filesystem_info* info;
 };
+
+void usage() {
+  char* usagestring = "device blocks-count";
+  fprintf(stderr, "Usage: %s %s\n", program, usagestring);
+  exit(EXIT_FAILURE);
+}
 
 /*
   data_blocks_begin returns the beginning data block number from the context
@@ -148,28 +153,36 @@ int main(int argc, char* argv[]) {
   struct file_info_ext root;
   struct mkfs_context ctx;
 
+  program = argv[0];
+
   if (argc != 3) {
-    puts(usage);
-    return 0;
+    usage();
   }
 
   device = argv[1];
   blocks_count = strtoull(argv[2], NULL, 10);
 
   if (!blocks_count) {
-    return 0;
+    fprintf(stderr, "%s: error: invalid blocks count\n", program);
+    exit(EXIT_FAILURE);
   }
 
   device_size = blocks_count * FILE_BLOCK_SIZE;
 
   fd = open(device, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
-  if (!fd) {
-    return 0;
+  if (fd < 0) {
+    fprintf(stderr, "%s: error: open failed\n", program);
+    exit(EXIT_FAILURE);
   }
 
   fallocate(fd, 0, 0, device_size);
   addr = mmap(NULL, device_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+  if (addr == MAP_FAILED) {
+    fprintf(stderr, "%s: error: mmap failed\n", program);
+    exit(EXIT_FAILURE);
+  }
 
   /* Initialize the context. */
   ctx.addr = addr;
