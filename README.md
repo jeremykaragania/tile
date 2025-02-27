@@ -9,8 +9,8 @@ make
 ```
 ## Usage
 ```bash
-./mkfs file 4096
-qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -drive if=sd,driver=file,filename=file -kernel tile -nographic
+./mkfs device
+qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -drive if=sd,driver=file,filename=device -kernel tile -nographic
 ```
 
 ## License
