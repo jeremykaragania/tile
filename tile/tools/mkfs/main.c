@@ -15,6 +15,7 @@
 #define file_num_to_offset(num) (file_num_to_block_num(num) * FILE_BLOCK_SIZE + file_num_to_block_offset(num))
 
 char* program;
+char* optstring = ":b:";
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
 
 struct mkfs_context {
@@ -25,7 +26,7 @@ struct mkfs_context {
 };
 
 void usage() {
-  char* usagestring = "device blocks-count";
+  char* usagestring = "[-b blocks-count] device";
   fprintf(stderr, "Usage: %s %s\n", program, usagestring);
   exit(EXIT_FAILURE);
 }
@@ -144,23 +145,34 @@ struct file_info_ext mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* 
 }
 
 int main(int argc, char* argv[]) {
+  int opt;
   char* device;
-  size_t blocks_count;
+  size_t blocks_count = 4096;
   size_t device_size;
   int fd;
   void* addr;
   struct filesystem_info info;
   struct file_info_ext root;
+  uint32_t free_blocks_begin;
   struct mkfs_context ctx;
 
   program = argv[0];
 
-  if (argc != 3) {
+  while((opt = getopt(argc, argv, optstring)) > 0) {
+    switch (opt) {
+      case 'b':
+        blocks_count = strtoull(optarg, NULL, 10);
+        break;
+      default:
+        usage();
+    }
+  }
+
+  if (optind != argc - 1) {
     usage();
   }
 
-  device = argv[1];
-  blocks_count = strtoull(argv[2], NULL, 10);
+  device = argv[optind];
 
   if (!blocks_count) {
     fprintf(stderr, "%s: error: invalid blocks count\n", program);
@@ -227,7 +239,7 @@ int main(int argc, char* argv[]) {
   /* Initialize the free data blocks. */
   write_free_block_list(&ctx, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
 
-  uint32_t free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE;
+  free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE;
 
   for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
     write_free_block_list(&ctx, (void*)(free_blocks_begin + (uint64_t)addr + i * FILE_BLOCK_SIZE + 1), i + 1, FILESYSTEM_INFO_CACHE_SIZE);
