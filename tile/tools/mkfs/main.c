@@ -241,8 +241,10 @@ int main(int argc, char* argv[]) {
 
   free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE;
 
-  for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
-    write_free_block_list(&ctx, (void*)(free_blocks_begin + (uint64_t)addr + i * FILE_BLOCK_SIZE + 1), i + 1, FILESYSTEM_INFO_CACHE_SIZE);
+  if (free_data_blocks(&ctx)) {
+    for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
+      write_free_block_list(&ctx, (void*)(free_blocks_begin + (uint64_t)addr + i * FILE_BLOCK_SIZE + 1), i + 1, FILESYSTEM_INFO_CACHE_SIZE);
+    }
   }
 
   /* Initialize the filesystem information block. */
