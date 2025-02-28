@@ -319,6 +319,12 @@ int file_creat(const char* pathname, int flags) {
   file_seek sets the offset of a file descriptor "fd" to "offset".
 */
 int file_seek(int fd, size_t offset) {
+  size_t size = current->file_tab[fd].file_int->ext.size;
+
+  if (offset > size) {
+    return size;
+  }
+
   current->file_tab[fd].offset = offset;
 
   return offset;
