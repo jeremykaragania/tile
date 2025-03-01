@@ -383,6 +383,7 @@ void file_resize(struct file_info_int* file, size_t size) {
   }
 
   file->ext.size = size;
+  file_put(file);
 }
 
 /*
