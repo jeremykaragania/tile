@@ -367,13 +367,17 @@ int get_file_descriptor(const struct file_table_entry* file_tab) {
 
 /*
   file_resize resizes the file specified by "file" until it is at least "size"
-  bytes.
+  bytes. It returns 1 on success and 0 on failure.
 */
-void file_resize(struct file_info_int* file, size_t size) {
+int file_resize(struct file_info_int* file, size_t size) {
   size_t curr_blocks = blocks_in_file(file->ext.size);
   size_t next_blocks = blocks_in_file(size);
   int delta = next_blocks - curr_blocks;
   int sign = delta > 0 ? 1 : -1;
+
+  if (size > MAX_FILE_SIZE) {
+    return 0;
+  }
 
   if (sign > 0) {
     file_push_blocks(file, abs(delta));
@@ -384,6 +388,8 @@ void file_resize(struct file_info_int* file, size_t size) {
 
   file->ext.size = size;
   file_put(file);
+
+  return 1;
 }
 
 /*

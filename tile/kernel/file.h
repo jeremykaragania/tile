@@ -41,6 +41,7 @@
 #define L3_BLOCKS_END (L2_BLOCKS_END + L3_BLOCKS_SIZE * L3_BLOCKS_COUNT * FILE_BLOCK_SIZE)
 
 #define FILE_INFO_BLOCKS_SIZE (L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE + L3_BLOCKS_SIZE)
+#define MAX_FILE_SIZE (L0_BLOCKS_COUNT * FILE_BLOCK_SIZE + L1_BLOCKS_COUNT * FILE_BLOCK_SIZE + L2_BLOCKS_COUNT * FILE_BLOCK_SIZE + L3_BLOCKS_COUNT * FILE_BLOCK_SIZE)
 
 #define file_num_to_block_num(num) (1 + (num - 1) / FILE_INFO_PER_BLOCK)
 #define file_num_to_block_offset(num) (sizeof(struct file_info_ext) * ((num - 1) % FILE_INFO_PER_BLOCK))
@@ -209,7 +210,7 @@ int file_chdir(const char* pathname);
 
 int get_file_descriptor(const struct file_table_entry* file_tab);
 
-void file_resize(struct file_info_int* file, size_t size);
+int file_resize(struct file_info_int* file, size_t size);
 void file_push_blocks(struct file_info_int* file, size_t count);
 void file_pop_blocks(struct file_info_int* file, size_t count);
 
