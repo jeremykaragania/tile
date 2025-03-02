@@ -80,6 +80,37 @@ void filesystem_init() {
 }
 
 /*
+  filesystem_put writes all cached filesystem structures back to the
+  filesystem.
+*/
+void filesystem_put() {
+  struct file_info_int* file = file_infos.next;
+  struct buffer_info* buffer;
+
+  while (file != &file_infos) {
+    struct file_info_int* file_next = file->next;
+
+    file_put(file);
+    file = file_next;
+  }
+
+  /*
+    We don't forget to write the filesystem information back to its buffer.
+  */
+  buffer = buffer_get(0);
+  *(struct filesystem_info*)buffer->data = filesystem_info;
+
+  buffer = buffer_infos.next;
+
+  while (buffer != &buffer_infos) {
+    struct buffer_info* buffer_next = buffer->next;
+
+    buffer_put(buffer);
+    buffer = buffer_next;
+  }
+}
+
+/*
   file_open opens a file specified by its name "name" and the access modes
   specified by "flags". On success, it returns a positive file descriptor to
   the file.

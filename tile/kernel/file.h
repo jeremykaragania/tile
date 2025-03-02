@@ -197,6 +197,7 @@ extern struct file_info_int file_infos;
 extern struct file_info_int free_file_infos;
 
 void filesystem_init();
+void filesystem_put();
 
 int file_open(const char* name, int flags);
 int file_read(int fd, void* buf, size_t count);
