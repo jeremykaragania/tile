@@ -222,12 +222,7 @@ int file_write(int fd, const void* buf, size_t count) {
     return -1;
   }
 
-  /*
-    We cap "count" at the file's size.
-  */
-  if (count > file->ext.size) {
-    count = file->ext.size;
-  }
+  file_resize(file, file_tab->offset + count);
 
   /*
     Write as many blocks as we can without exceeding "count".
