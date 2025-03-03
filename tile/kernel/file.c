@@ -233,7 +233,7 @@ int file_write(int fd, const void* buf, size_t count) {
     Write as many blocks as we can without exceeding "count".
   */
   for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + current->file_tab[fd].offset);
+    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + file_tab->offset);
     buffer = buffer_get(addr.num);
     memcpy(buffer->data + addr.offset, (char*)buf + ret, FILE_BLOCK_SIZE);
     buffer_put(buffer);
@@ -243,13 +243,13 @@ int file_write(int fd, const void* buf, size_t count) {
   /*
     Write the remaining bytes.
   */
-  addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
+  addr = file_offset_to_addr(file, ret + file_tab->offset);
   buffer = buffer_get(addr.num);
   memcpy(buffer->data + addr.offset, (char*)buf + ret, count % FILE_BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % FILE_BLOCK_SIZE;
 
-  current->file_tab[fd].offset += ret;
+  file_tab->offset += ret;
 
   return ret;
 }
