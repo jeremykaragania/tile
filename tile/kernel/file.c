@@ -880,20 +880,20 @@ void file_free(const struct file_info_int* file_info) {
   block_alloc allocates a block using the free block list and returns it.
 */
 struct buffer_info* block_alloc() {
-  uint32_t num;
-  struct buffer_info* ret;
-
-  --filesystem_info.free_blocks_size;
-  num = filesystem_info.free_blocks[filesystem_info.free_blocks_size];
-  ret = buffer_get(num);
+  uint32_t num = filesystem_info.free_blocks[filesystem_info.next_free_block];
+  struct buffer_info* ret = buffer_get(num);
 
   /*
     If we just read the last block from the free block list, then we replenish
     the free block list.
   */
-  if (!filesystem_info.free_blocks_size) {
+  if (!filesystem_info.next_free_block) {
     filesystem_info.free_blocks_size = *((uint32_t*)ret->data);
+    filesystem_info.next_free_block = filesystem_info.free_blocks_size - 1;
     memcpy(filesystem_info.free_blocks, (uint32_t*)ret->data + 1, filesystem_info.free_blocks_size * sizeof(uint32_t));
+  }
+  else {
+    --filesystem_info.next_free_block;
   }
 
   memset(ret->data, 0, FILE_BLOCK_SIZE);
@@ -905,20 +905,22 @@ struct buffer_info* block_alloc() {
   block to the free block list.
 */
 void block_free(struct buffer_info* buffer_info) {
+  size_t free_blocks_size = filesystem_info.next_free_block + 1;
+
   /*
     If the free block list is full and we can't push to it, then we write it to
     disk and point to it.
   */
-  if (filesystem_info.free_blocks_size + 1 > FILESYSTEM_INFO_CACHE_SIZE) {
-    *((uint32_t*)buffer_info->data) = filesystem_info.free_blocks_size;
-    memcpy((uint32_t*)buffer_info->data + 1, filesystem_info.free_blocks, filesystem_info.free_blocks_size * sizeof(uint32_t));
-    filesystem_info.free_blocks_size = 1;
+  if (free_blocks_size == FILESYSTEM_INFO_CACHE_SIZE) {
+    *((uint32_t*)buffer_info->data) = free_blocks_size;
+    memcpy((uint32_t*)buffer_info->data + 1, filesystem_info.free_blocks, free_blocks_size * sizeof(uint32_t));
+    filesystem_info.next_free_block = 0;
     *filesystem_info.free_blocks = buffer_info->num;
     buffer_put(buffer_info);
   }
   else {
-    filesystem_info.free_blocks[filesystem_info.free_blocks_size] = buffer_info->num;
-    ++filesystem_info.free_blocks_size;
+    filesystem_info.free_blocks[free_blocks_size] = buffer_info->num;
+    ++filesystem_info.next_free_block;
   }
 }
 
