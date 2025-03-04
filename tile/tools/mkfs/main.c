@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
   /* Initialize the filesystem information. */
   info.size = blocks_count;
   info.free_blocks_size = FILESYSTEM_INFO_CACHE_SIZE;
-  info.next_free_block = 0;
+  info.next_free_block = info.free_blocks_size - 1;
   info.file_infos_size = (info.size - 1) / 2;
   info.free_file_infos_size = FILESYSTEM_INFO_CACHE_SIZE;
   info.next_free_file_info = 1;
@@ -241,9 +241,19 @@ int main(int argc, char* argv[]) {
 
   free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE;
 
+  /*
+    Each free data block contains a list of other free data blocks. The length
+    of the list is stored first in a block. The first free data block in the
+    list also contains a list of data blocks which is how free data blocks are
+    linked.
+  */
   if (free_data_blocks(&ctx)) {
     for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
-      write_free_block_list(&ctx, (void*)(free_blocks_begin + (uint64_t)addr + i * FILE_BLOCK_SIZE + 1), i + 1, FILESYSTEM_INFO_CACHE_SIZE);
+      uint32_t* block = (uint32_t*)((uint64_t)addr + free_blocks_begin + i * FILE_BLOCK_SIZE);
+      size_t size = FILESYSTEM_INFO_CACHE_SIZE;
+
+      *block = size;
+      write_free_block_list(&ctx, block + 1, i + 1, size);
     }
   }
 
