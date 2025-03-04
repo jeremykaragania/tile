@@ -445,7 +445,7 @@ void file_push_blocks(struct file_info_int* file, size_t count) {
       buffer_put(alloc_buffer);
     }
 
-    for (size_t i = 0; i < block_info.level; ++i) {
+    for (size_t j = 0; j < block_info.level; ++j) {
       get_buffer = buffer_get(block_num);
 
       /*
@@ -453,13 +453,13 @@ void file_push_blocks(struct file_info_int* file, size_t count) {
         index, then we allocate one. This is a hack which works due to how a
         block number index depends on the offset and the level.
       */
-      if (block_num_index(block_info.level - i, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - i, offset)) {
+      if (block_num_index(block_info.level - j, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - j, offset)) {
         alloc_buffer = block_alloc();
-        ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - i, offset)] = alloc_buffer->num;
+        ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - j, offset)] = alloc_buffer->num;
         buffer_put(alloc_buffer);
       }
 
-      block_num = ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - i, offset)];
+      block_num = ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - j, offset)];
       buffer_put(get_buffer);
     }
   }
@@ -480,7 +480,7 @@ void file_pop_blocks(struct file_info_int* file, size_t count) {
     block_info = file_offset_to_block(offset);
     block_num = file->ext.blocks[block_info.index];
 
-    for (size_t i = 0; i < block_info.level; ++i) {
+    for (size_t j = 0; j < block_info.level; ++j) {
       get_buffers[0] = buffer_get(block_num);
 
       /*
@@ -488,13 +488,13 @@ void file_pop_blocks(struct file_info_int* file, size_t count) {
         index, then we allocate one. This is a hack which works due to how a
         block number index depends on the offset and the level.
       */
-      if (block_num_index(block_info.level - i, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - i, offset)) {
-        get_buffers[1] = buffer_get(((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - i, offset)]);
+      if (block_num_index(block_info.level - j, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - j, offset)) {
+        get_buffers[1] = buffer_get(((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - j, offset)]);
         block_free(get_buffers[1]);
         buffer_put(get_buffers[1]);
       }
 
-      block_num = ((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - i, offset)];
+      block_num = ((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - j, offset)];
       buffer_put(get_buffers[0]);
     }
 
