@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
       file_info_ext.num = i * FILE_INFO_PER_BLOCK + j + 1;
       file_info_ext.type = 0;
       file_info_ext.size = 0;
-      ((struct file_info_ext*)((uint64_t)addr + i * FILE_BLOCK_SIZE))[j] = file_info_ext;
+      ((struct file_info_ext*)((uint64_t)addr + ((1 + i) * FILE_BLOCK_SIZE)))[j] = file_info_ext;
     }
   }
 
