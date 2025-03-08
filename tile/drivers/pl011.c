@@ -1,8 +1,8 @@
-#include <drivers/pl011.h>
-
 /*
   pl011.c provides an ARM PrimeCell UART (PL011) driver.
 */
+
+#include <drivers/pl011.h>
 
 /*
   The UART is mapped to this initial address as this is where it is mapped in

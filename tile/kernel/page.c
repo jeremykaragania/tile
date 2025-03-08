@@ -1,5 +1,3 @@
-#include <kernel/page.h>
-
 /*
   page.c handles virtual memory.
 
@@ -17,6 +15,8 @@
   page (4KB) of virtual memory. It maps to a page table entry (PTE).
   Translation stops here.
 */
+
+#include <kernel/page.h>
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.

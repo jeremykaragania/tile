@@ -1,8 +1,8 @@
-#include <drivers/pl180.h>
-
 /*
   pl180.c provides an ARM PrimeCell Multimedia Card Interface (PL180) driver.
 */
+
+#include <drivers/pl180.h>
 
 volatile struct mci_registers* mci = (volatile struct mci_registers*)MCI_PADDR;
 

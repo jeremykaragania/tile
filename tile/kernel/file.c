@@ -1,5 +1,3 @@
-#include <kernel/file.h>
-
 /*
   file.c handles the filesystem.
 
@@ -25,6 +23,8 @@
   File blocks store the underlying data of files. A file's data is accessed via
   up to four levels of indirection depending on its offset.
 */
+
+#include <kernel/file.h>
 
 const char* current_directory = ".";
 const char* parent_directory = "..";

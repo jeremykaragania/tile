@@ -1,11 +1,11 @@
-#include <kernel/helpers.h>
-
 /*
   helpers.c provides C library helpers functions for the compiler.
 
   The helpers implement operations which aren't implemented in hardware but
   have to be implemented in code.
 */
+
+#include <kernel/helpers.h>
 
 /*
   signed_divide_return returns the quotient and remainder of "numerator"

@@ -1,5 +1,3 @@
-#include <kernel/memory.h>
-
 /*
   memory.c handles physical memory management.
 
@@ -20,6 +18,8 @@
   size in bytes. Memory blocks are stored in a doubly linked which is sorted by
   the bounds of its entries.
 */
+
+#include <kernel/memory.h>
 
 static struct memory_map_block memory_map_memory_blocks[MEMORY_MAP_GROUP_LENGTH];
 static struct memory_map_group memory_map_memory_group = {
