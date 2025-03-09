@@ -1,3 +1,8 @@
+/*
+  mkfs is a tool for building Tile filesystems. It initializes the root
+  directory, file information, and blocks.
+*/
+
 #define STRING_H
 #define _GNU_SOURCE
 
