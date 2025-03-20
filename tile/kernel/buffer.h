@@ -10,6 +10,7 @@
 
 struct buffer_info {
   uint32_t num;
+  int status;
   char* data;
   struct buffer_info* next;
   struct buffer_info* prev;
