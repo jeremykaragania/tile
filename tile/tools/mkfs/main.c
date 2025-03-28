@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
   device_size = blocks_count * FILE_BLOCK_SIZE;
 
-  fd = open(device, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+  fd = open(device, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
 
   if (fd < 0) {
     fprintf(stderr, "%s: error: open failed\n", program);
