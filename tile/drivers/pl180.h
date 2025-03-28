@@ -1,10 +1,11 @@
 #ifndef MCI_H
 #define MCI_H
 
-#include <kernel/asm/file.h>
 #include <kernel/asm/memory.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#define MCI_BLOCK_SIZE 512
 
 #define MCI_COMMAND_RESPONSE (1 << 6)
 #define MCI_COMMAND_LONG_RSP (1 << 7)
