@@ -10,14 +10,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define FILE_INFO_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct file_info_ext))
+#define FILE_INFO_PER_BLOCK (BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILE_INFO_CACHE_SIZE 32
 #define FILE_TABLE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 #define FILE_NAME_SIZE 28
 
-#define BLOCK_NUMS_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(uint32_t))
-#define DIRECTORIES_PER_BLOCK (FILE_BLOCK_SIZE / sizeof(struct directory_info))
+#define BLOCK_NUMS_PER_BLOCK (BLOCK_SIZE / sizeof(uint32_t))
+#define DIRECTORIES_PER_BLOCK (BLOCK_SIZE / sizeof(struct directory_info))
 
 /*
   A file's data is accessed through four levels of indirection. Zeroth level
@@ -35,17 +35,17 @@
 #define L2_BLOCKS_COUNT (BLOCK_NUMS_PER_BLOCK * BLOCK_NUMS_PER_BLOCK)
 #define L3_BLOCKS_COUNT (BLOCK_NUMS_PER_BLOCK * BLOCK_NUMS_PER_BLOCK * BLOCK_NUMS_PER_BLOCK)
 
-#define L0_BLOCKS_END (L0_BLOCKS_SIZE * L0_BLOCKS_COUNT * FILE_BLOCK_SIZE - 1)
-#define L1_BLOCKS_END (L0_BLOCKS_END + L1_BLOCKS_SIZE * L1_BLOCKS_COUNT * FILE_BLOCK_SIZE)
-#define L2_BLOCKS_END (L1_BLOCKS_END + L2_BLOCKS_SIZE * L2_BLOCKS_COUNT * FILE_BLOCK_SIZE)
-#define L3_BLOCKS_END (L2_BLOCKS_END + L3_BLOCKS_SIZE * L3_BLOCKS_COUNT * FILE_BLOCK_SIZE)
+#define L0_BLOCKS_END (L0_BLOCKS_SIZE * L0_BLOCKS_COUNT * BLOCK_SIZE - 1)
+#define L1_BLOCKS_END (L0_BLOCKS_END + L1_BLOCKS_SIZE * L1_BLOCKS_COUNT * BLOCK_SIZE)
+#define L2_BLOCKS_END (L1_BLOCKS_END + L2_BLOCKS_SIZE * L2_BLOCKS_COUNT * BLOCK_SIZE)
+#define L3_BLOCKS_END (L2_BLOCKS_END + L3_BLOCKS_SIZE * L3_BLOCKS_COUNT * BLOCK_SIZE)
 
 #define FILE_INFO_BLOCKS_SIZE (L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE + L3_BLOCKS_SIZE)
-#define MAX_FILE_SIZE (L0_BLOCKS_COUNT * FILE_BLOCK_SIZE + L1_BLOCKS_COUNT * FILE_BLOCK_SIZE + L2_BLOCKS_COUNT * FILE_BLOCK_SIZE + L3_BLOCKS_COUNT * FILE_BLOCK_SIZE)
+#define MAX_FILE_SIZE (L0_BLOCKS_COUNT * BLOCK_SIZE + L1_BLOCKS_COUNT * BLOCK_SIZE + L2_BLOCKS_COUNT * BLOCK_SIZE + L3_BLOCKS_COUNT * BLOCK_SIZE)
 
 #define file_num_to_block_num(num) (1 + (num - 1) / FILE_INFO_PER_BLOCK)
 #define file_num_to_block_offset(num) (sizeof(struct file_info_ext) * ((num - 1) % FILE_INFO_PER_BLOCK))
-#define blocks_in_file(size) ((size + FILE_BLOCK_SIZE - 1) / FILE_BLOCK_SIZE)
+#define blocks_in_file(size) ((size + BLOCK_SIZE - 1) / BLOCK_SIZE)
 
 /*
   enum file_status represents the status of an operation on a file.

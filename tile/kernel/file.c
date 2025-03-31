@@ -5,7 +5,7 @@
   There are three structures in a filesystem: super blocks, file information
   structures, and data blocks.
 
-  The filesystem is split into blocks of size FILE_BLOCK_SIZE. Each block is
+  The filesystem is split into blocks of size BLOCK_SIZE. Each block is
   represented by its block number. A filesystem address is specified by a block
   number and the offset within that block.
 
@@ -181,12 +181,12 @@ int file_read(int fd, void* buf, size_t count) {
   /*
     Read as many blocks as we can without exceeding "count".
   */
-  for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + current->file_tab[fd].offset);
+  for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
+    addr = file_offset_to_addr(file, i * BLOCK_SIZE + current->file_tab[fd].offset);
     buffer = buffer_get(addr.num);
-    memcpy((char*)buf + ret, buffer->data + addr.offset, FILE_BLOCK_SIZE);
+    memcpy((char*)buf + ret, buffer->data + addr.offset, BLOCK_SIZE);
     buffer_put(buffer);
-    ret += FILE_BLOCK_SIZE;
+    ret += BLOCK_SIZE;
   }
 
   /*
@@ -194,9 +194,9 @@ int file_read(int fd, void* buf, size_t count) {
   */
   addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
   buffer = buffer_get(addr.num);
-  memcpy((char*)buf + ret, buffer->data + addr.offset, count % FILE_BLOCK_SIZE);
+  memcpy((char*)buf + ret, buffer->data + addr.offset, count % BLOCK_SIZE);
   buffer_put(buffer);
-  ret += count % FILE_BLOCK_SIZE;
+  ret += count % BLOCK_SIZE;
 
   current->file_tab[fd].offset += ret;
 
@@ -227,12 +227,12 @@ int file_write(int fd, const void* buf, size_t count) {
   /*
     Write as many blocks as we can without exceeding "count".
   */
-  for (size_t i = 0; i < count / FILE_BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * FILE_BLOCK_SIZE + file_tab->offset);
+  for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
+    addr = file_offset_to_addr(file, i * BLOCK_SIZE + file_tab->offset);
     buffer = buffer_get(addr.num);
-    memcpy(buffer->data + addr.offset, (char*)buf + ret, FILE_BLOCK_SIZE);
+    memcpy(buffer->data + addr.offset, (char*)buf + ret, BLOCK_SIZE);
     buffer_put(buffer);
-    ret += FILE_BLOCK_SIZE;
+    ret += BLOCK_SIZE;
   }
 
   /*
@@ -240,9 +240,9 @@ int file_write(int fd, const void* buf, size_t count) {
   */
   addr = file_offset_to_addr(file, ret + file_tab->offset);
   buffer = buffer_get(addr.num);
-  memcpy(buffer->data + addr.offset, (char*)buf + ret, count % FILE_BLOCK_SIZE);
+  memcpy(buffer->data + addr.offset, (char*)buf + ret, count % BLOCK_SIZE);
   buffer_put(buffer);
-  ret += count % FILE_BLOCK_SIZE;
+  ret += count % BLOCK_SIZE;
 
   file_tab->offset += ret;
 
@@ -430,7 +430,7 @@ void file_push_blocks(struct file_info_int* file, size_t count) {
   struct buffer_info* get_buffer;
 
   for (size_t i = 0; i < count; ++i) {
-    offset = FILE_BLOCK_SIZE * (curr_blocks + i);
+    offset = BLOCK_SIZE * (curr_blocks + i);
     block_info = file_offset_to_block(offset);
     block_num = file->ext.blocks[block_info.index];
 
@@ -438,7 +438,7 @@ void file_push_blocks(struct file_info_int* file, size_t count) {
       If the previous block index is different from the current block index, or
       this is the first block then we allocate it.
     */
-    if (file_offset_to_block(offset - FILE_BLOCK_SIZE).index != block_info.index || !block_info.index) {
+    if (file_offset_to_block(offset - BLOCK_SIZE).index != block_info.index || !block_info.index) {
       alloc_buffer = block_alloc();
       file->ext.blocks[block_info.index] = alloc_buffer->num;
       block_num = alloc_buffer->num;
@@ -453,7 +453,7 @@ void file_push_blocks(struct file_info_int* file, size_t count) {
         index, then we allocate one. This is a hack which works due to how a
         block number index depends on the offset and the level.
       */
-      if (block_num_index(block_info.level - j, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - j, offset)) {
+      if (block_num_index(block_info.level - j, offset - BLOCK_SIZE) != block_num_index(block_info.level - j, offset)) {
         alloc_buffer = block_alloc();
         ((uint32_t*)(get_buffer->data))[block_num_index(block_info.level - j, offset)] = alloc_buffer->num;
         buffer_put(alloc_buffer);
@@ -476,7 +476,7 @@ void file_pop_blocks(struct file_info_int* file, size_t count) {
   struct buffer_info* get_buffers[2];
 
   for (size_t i = 0; i < count; ++i) {
-    offset = FILE_BLOCK_SIZE * (curr_blocks - (i + 1));
+    offset = BLOCK_SIZE * (curr_blocks - (i + 1));
     block_info = file_offset_to_block(offset);
     block_num = file->ext.blocks[block_info.index];
 
@@ -488,7 +488,7 @@ void file_pop_blocks(struct file_info_int* file, size_t count) {
         index, then we allocate one. This is a hack which works due to how a
         block number index depends on the offset and the level.
       */
-      if (block_num_index(block_info.level - j, offset - FILE_BLOCK_SIZE) != block_num_index(block_info.level - j, offset)) {
+      if (block_num_index(block_info.level - j, offset - BLOCK_SIZE) != block_num_index(block_info.level - j, offset)) {
         get_buffers[1] = buffer_get(((uint32_t*)(get_buffers[0]->data))[block_num_index(block_info.level - j, offset)]);
         block_free(get_buffers[1]);
         buffer_put(get_buffers[1]);
@@ -502,7 +502,7 @@ void file_pop_blocks(struct file_info_int* file, size_t count) {
       If the next block index is different from the current block index, or
       this is the first block then we free it.
     */
-    if (file_offset_to_block(offset - FILE_BLOCK_SIZE).index != block_info.index || !block_info.index) {
+    if (file_offset_to_block(offset - BLOCK_SIZE).index != block_info.index || !block_info.index) {
       get_buffers[0] = buffer_get(file->ext.blocks[block_info.index]);
       block_free(get_buffers[0]);
       buffer_put(get_buffers[1]);
@@ -551,7 +551,7 @@ struct block_info file_offset_to_block(uint32_t offset) {
   */
   if (offset <= L0_BLOCKS_END) {
     ret.level = 0;
-    ret.index = offset / FILE_BLOCK_SIZE;
+    ret.index = offset / BLOCK_SIZE;
   }
   else if (offset <= L1_BLOCKS_END) {
     ret.level = 1;
@@ -584,15 +584,15 @@ uint32_t block_num_index(size_t level, uint32_t offset) {
   switch (level) {
     case 1:
       begin = L0_BLOCKS_END + 1;
-      step = FILE_BLOCK_SIZE;
+      step = BLOCK_SIZE;
       break;
     case 2:
       begin = L1_BLOCKS_END + 1;
-      step = L2_BLOCKS_COUNT * FILE_BLOCK_SIZE;
+      step = L2_BLOCKS_COUNT * BLOCK_SIZE;
       break;
     case 3:
       begin = L2_BLOCKS_END + 1;
-      step = L3_BLOCKS_COUNT * FILE_BLOCK_SIZE;
+      step = L3_BLOCKS_COUNT * BLOCK_SIZE;
       break;
     default:
       return 0;
@@ -896,7 +896,7 @@ struct buffer_info* block_alloc() {
     --filesystem_info.next_free_block;
   }
 
-  memset(ret->data, 0, FILE_BLOCK_SIZE);
+  memset(ret->data, 0, BLOCK_SIZE);
   return ret;
 }
 

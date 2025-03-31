@@ -17,7 +17,7 @@
 
 #define DIRECTORIES_SIZE 14
 
-#define file_num_to_offset(num) (file_num_to_block_num(num) * FILE_BLOCK_SIZE + file_num_to_block_offset(num))
+#define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
 
 char* program;
 char* optstring = ":b:";
@@ -92,7 +92,7 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
     ++ctx->reserved_data_blocks;
   }
 
-  offset = parent->blocks[curr_block] * FILE_BLOCK_SIZE + parent->size % (sizeof(struct directory_info) * DIRECTORIES_PER_BLOCK);
+  offset = parent->blocks[curr_block] * BLOCK_SIZE + parent->size % (sizeof(struct directory_info) * DIRECTORIES_PER_BLOCK);
   *((struct directory_info*)((uint64_t)ctx->addr + offset)) = *directory;
 
   parent->size += sizeof(struct directory_info);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  device_size = blocks_count * FILE_BLOCK_SIZE;
+  device_size = blocks_count * BLOCK_SIZE;
 
   fd = open(device, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
 
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
       file_info_ext.num = i * FILE_INFO_PER_BLOCK + j + 1;
       file_info_ext.type = 0;
       file_info_ext.size = 0;
-      ((struct file_info_ext*)((uint64_t)addr + ((1 + i) * FILE_BLOCK_SIZE)))[j] = file_info_ext;
+      ((struct file_info_ext*)((uint64_t)addr + ((1 + i) * BLOCK_SIZE)))[j] = file_info_ext;
     }
   }
 
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
   /* Initialize the free data blocks. */
   write_free_block_list(&ctx, info.free_blocks, 0, FILESYSTEM_INFO_CACHE_SIZE);
 
-  free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * FILE_BLOCK_SIZE;
+  free_blocks_begin = (data_blocks_begin(&ctx) + ctx.reserved_data_blocks) * BLOCK_SIZE;
 
   /*
     Each free data block contains a list of other free data blocks. The length
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
   */
   if (free_data_blocks(&ctx)) {
     for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
-      uint32_t* block = (uint32_t*)((uint64_t)addr + free_blocks_begin + i * FILE_BLOCK_SIZE);
+      uint32_t* block = (uint32_t*)((uint64_t)addr + free_blocks_begin + i * BLOCK_SIZE);
       size_t size = FILESYSTEM_INFO_CACHE_SIZE;
 
       *block = size;

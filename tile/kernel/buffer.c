@@ -4,7 +4,7 @@
   "buffer_pool" is a pool for buffers. It is the memory backing all buffer
   data.
 */
-static char buffer_pool[BUFFER_INFO_POOL_SIZE * FILE_BLOCK_SIZE];
+static char buffer_pool[BUFFER_INFO_POOL_SIZE * BLOCK_SIZE];
 
 /*
   "buffer_info_pool" is a pool for buffer information. It is the memory
@@ -37,7 +37,7 @@ void buffer_init() {
       curr->next = &buffer_info_pool[i + 1];
     }
 
-    curr->data = &buffer_pool[i * FILE_BLOCK_SIZE];
+    curr->data = &buffer_pool[i * BLOCK_SIZE];
     curr->prev = &buffer_info_pool[i - 1];
     curr = curr->next;
   }
@@ -75,7 +75,7 @@ struct buffer_info* buffer_get(uint32_t num) {
   }
 
   curr->num = num;
-  mci_read(FILE_BLOCK_SIZE * num, curr->data);
+  mci_read(BLOCK_SIZE * num, curr->data);
   buffer_push(&buffer_infos, curr);
   return curr;
 }
@@ -94,7 +94,7 @@ void buffer_put(struct buffer_info* buffer_info) {
   buffer_write writes the buffer information "buffer_info" to the filesystem.
 */
 void buffer_write(struct buffer_info* buffer_info) {
-  mci_write(FILE_BLOCK_SIZE * buffer_info->num, buffer_info->data);
+  mci_write(BLOCK_SIZE * buffer_info->num, buffer_info->data);
 }
 
 /*
