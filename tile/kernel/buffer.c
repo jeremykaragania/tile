@@ -75,7 +75,13 @@ struct buffer_info* buffer_get(uint32_t num) {
   }
 
   curr->num = num;
-  mci_read(BLOCK_SIZE * num, curr->data);
+
+  for (size_t i = 0; i < BLOCK_SIZE / MCI_BLOCK_SIZE; ++i) {
+    size_t offset = i * MCI_BLOCK_SIZE;
+
+    mci_read(BLOCK_SIZE * num + offset, curr->data + offset);
+  }
+
   buffer_push(&buffer_infos, curr);
   return curr;
 }
@@ -94,7 +100,11 @@ void buffer_put(struct buffer_info* buffer_info) {
   buffer_write writes the buffer information "buffer_info" to the filesystem.
 */
 void buffer_write(struct buffer_info* buffer_info) {
-  mci_write(BLOCK_SIZE * buffer_info->num, buffer_info->data);
+  for (size_t i = 0; i < BLOCK_SIZE / MCI_BLOCK_SIZE; ++i) {
+    size_t offset = i * MCI_BLOCK_SIZE;
+
+    mci_write(BLOCK_SIZE * buffer_info->num + offset, buffer_info->data + offset);
+  }
 }
 
 /*
