@@ -1,6 +1,8 @@
 #ifndef ASM_FILE_H
 #define ASM_FILE_H
 
-#define BLOCK_SIZE 512
+#include <kernel/asm/page.h>
+
+#define BLOCK_SIZE PAGE_SIZE
 
 #endif
