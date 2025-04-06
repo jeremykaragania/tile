@@ -20,18 +20,18 @@
 #define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
 
 char* program;
-char* optstring = ":b:";
+char* optstring = ":b:i:";
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
 
 struct mkfs_context {
-  void* addr;
+  void* device_addr;
   size_t next_file_info;
   size_t reserved_data_blocks;
   struct filesystem_info* info;
 };
 
 void usage() {
-  char* usagestring = "[-b blocks-count] device";
+  char* usagestring = "[-b blocks-count] [-i init] device";
   fprintf(stderr, "Usage: %s %s\n", program, usagestring);
   exit(EXIT_FAILURE);
 }
@@ -56,7 +56,7 @@ uint32_t free_data_blocks(struct mkfs_context* ctx) {
   write_file_info writes the file information "file" given the context "ctx".
 */
 void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
-  *((struct file_info_ext*)((uint64_t)ctx->addr + file_num_to_offset(file->num))) = *file;
+  *((struct file_info_ext*)((uint64_t)ctx->device_addr + file_num_to_offset(file->num))) = *file;
 }
 
 /*
@@ -93,7 +93,7 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
   }
 
   offset = parent->blocks[curr_block] * BLOCK_SIZE + parent->size % (sizeof(struct directory_info) * DIRECTORIES_PER_BLOCK);
-  *((struct directory_info*)((uint64_t)ctx->addr + offset)) = *directory;
+  *((struct directory_info*)((uint64_t)ctx->device_addr + offset)) = *directory;
 
   parent->size += sizeof(struct directory_info);
 }
@@ -151,11 +151,16 @@ struct file_info_ext mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* 
 
 int main(int argc, char* argv[]) {
   int opt;
-  char* device;
-  size_t blocks_count = 4096;
+  char* device_path = NULL;
+  int device_fd;
+  void* device_addr;
   size_t device_size;
-  int fd;
-  void* addr;
+  char* init_path = NULL;
+  int init_fd;
+  void* init_addr;
+  size_t init_size;
+  struct stat sb;
+  size_t blocks_count = 4096;
   struct filesystem_info info;
   struct file_info_ext root;
   uint32_t free_blocks_begin;
@@ -168,6 +173,9 @@ int main(int argc, char* argv[]) {
       case 'b':
         blocks_count = strtoull(optarg, NULL, 10);
         break;
+      case 'i':
+        init_path = optarg;
+        break;
       default:
         usage();
     }
@@ -177,32 +185,59 @@ int main(int argc, char* argv[]) {
     usage();
   }
 
-  device = argv[optind];
-
   if (!blocks_count) {
     fprintf(stderr, "%s: error: invalid blocks count\n", program);
     exit(EXIT_FAILURE);
   }
 
-  device_size = blocks_count * BLOCK_SIZE;
 
-  fd = open(device, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
+  /*
+    Initialize the output file and an optional input init file.
+  */
+  device_path = argv[optind];
+  device_fd = open(device_path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
 
-  if (fd < 0) {
+  if (device_fd < 0) {
     fprintf(stderr, "%s: error: open failed\n", program);
     exit(EXIT_FAILURE);
   }
 
-  fallocate(fd, 0, 0, device_size);
-  addr = mmap(NULL, device_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  device_size = blocks_count * BLOCK_SIZE;
+  fallocate(device_fd, 0, 0, device_size);
+  device_addr = mmap(NULL, device_size, PROT_READ | PROT_WRITE, MAP_SHARED, device_fd, 0);
 
-  if (addr == MAP_FAILED) {
+  if (device_addr == MAP_FAILED) {
     fprintf(stderr, "%s: error: mmap failed\n", program);
     exit(EXIT_FAILURE);
   }
 
+  close(device_fd);
+
+  if (init_path) {
+    init_fd = open(init_path, O_RDONLY);
+
+    if (init_fd < 0) {
+      fprintf(stderr, "%s: error: open failed\n", program);
+      exit(EXIT_FAILURE);
+    }
+
+    if (fstat(init_fd, &sb) < 0) {
+      fprintf(stderr, "%s: error: fstat failed\n", program);
+    }
+
+    init_size = sb.st_size;
+    init_addr = mmap(NULL, init_size, PROT_READ, MAP_SHARED, init_fd, 0);
+
+    if (init_addr == MAP_FAILED) {
+      fprintf(stderr, "%s: error: mmap failed\n", program);
+      exit(EXIT_FAILURE);
+    }
+
+    close(init_fd);
+  }
+
   /* Initialize the context. */
-  ctx.addr = addr;
+  ctx.device_addr = device_addr;
   ctx.next_file_info = 1;
   ctx.reserved_data_blocks = 0;
   ctx.info = &info;
@@ -223,7 +258,7 @@ int main(int argc, char* argv[]) {
       file_info_ext.num = i * FILE_INFO_PER_BLOCK + j + 1;
       file_info_ext.type = 0;
       file_info_ext.size = 0;
-      ((struct file_info_ext*)((uint64_t)addr + ((1 + i) * BLOCK_SIZE)))[j] = file_info_ext;
+      ((struct file_info_ext*)((uint64_t)device_addr + ((1 + i) * BLOCK_SIZE)))[j] = file_info_ext;
     }
   }
 
@@ -254,7 +289,7 @@ int main(int argc, char* argv[]) {
   */
   if (free_data_blocks(&ctx)) {
     for (size_t i = 0; i < free_data_blocks(&ctx) - 1; ++i) {
-      uint32_t* block = (uint32_t*)((uint64_t)addr + free_blocks_begin + i * BLOCK_SIZE);
+      uint32_t* block = (uint32_t*)((uint64_t)device_addr + free_blocks_begin + i * BLOCK_SIZE);
       size_t size = FILESYSTEM_INFO_CACHE_SIZE;
 
       *block = size;
@@ -263,10 +298,9 @@ int main(int argc, char* argv[]) {
   }
 
   /* Initialize the filesystem information block. */
-  *((struct filesystem_info*)addr) = info;
+  *((struct filesystem_info*)device_addr) = info;
 
-  munmap(addr, device_size);
-  close(fd);
+  munmap(device_addr, device_size);
 
   return 0;
 }
