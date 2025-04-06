@@ -445,6 +445,10 @@ void file_push_blocks(struct file_info_int* file, size_t count) {
       buffer_put(alloc_buffer);
     }
 
+    /*
+      Starting from the first block level, we iterate up to the level of the
+      current block, allocating intermediate blocks where neccessary.
+    */
     for (size_t j = 0; j < block_info.level; ++j) {
       get_buffer = buffer_get(block_num);
 
@@ -480,6 +484,10 @@ void file_pop_blocks(struct file_info_int* file, size_t count) {
     block_info = file_offset_to_block(offset);
     block_num = file->ext.blocks[block_info.index];
 
+    /*
+      Starting from the first block level, we iterate up to the level of the
+      current block, allocating intermediate blocks where neccessary.
+    */
     for (size_t j = 0; j < block_info.level; ++j) {
       get_buffers[0] = buffer_get(block_num);
 
