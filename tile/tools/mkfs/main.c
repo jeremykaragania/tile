@@ -30,6 +30,37 @@ struct mkfs_context {
   struct filesystem_info* info;
 };
 
+/*
+  file_offset_to_block converts an offset in a file "offset" to a block's level
+  and index.
+*/
+struct block_info file_offset_to_block(uint32_t offset) {
+  struct block_info ret = {0, 0};
+
+  /*
+    We determine which block level "offset" is at and the corresponding block
+    index inside "file_info".
+  */
+  if (offset <= L0_BLOCKS_END) {
+    ret.level = 0;
+    ret.index = offset / BLOCK_SIZE;
+  }
+  else if (offset <= L1_BLOCKS_END) {
+    ret.level = 1;
+    ret.index = L0_BLOCKS_SIZE;
+  }
+  else if (offset <= L2_BLOCKS_END) {
+    ret.level = 2;
+    ret.index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE;
+  }
+  else if (offset <= L3_BLOCKS_END) {
+    ret.level = 3;
+    ret.index = L0_BLOCKS_SIZE + L1_BLOCKS_SIZE + L2_BLOCKS_SIZE;
+  }
+
+  return ret;
+}
+
 void usage() {
   char* usagestring = "[-b blocks-count] [-i init] device";
   fprintf(stderr, "Usage: %s %s\n", program, usagestring);
