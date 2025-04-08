@@ -61,6 +61,38 @@ struct block_info file_offset_to_block(uint32_t offset) {
   return ret;
 }
 
+/*
+  block_num_index returns the index of a block number at the block level
+  "level" and a file byte offset "offset".
+*/
+uint32_t block_num_index(size_t level, uint32_t offset) {
+  uint32_t begin;
+  uint32_t step;
+
+  /*
+    At each block level, the beginning file byte offset along with how many
+    bytes a block represents.
+  */
+  switch (level) {
+    case 1:
+      begin = L0_BLOCKS_END + 1;
+      step = BLOCK_SIZE;
+      break;
+    case 2:
+      begin = L1_BLOCKS_END + 1;
+      step = L2_BLOCKS_COUNT * BLOCK_SIZE;
+      break;
+    case 3:
+      begin = L2_BLOCKS_END + 1;
+      step = L3_BLOCKS_COUNT * BLOCK_SIZE;
+      break;
+    default:
+      return 0;
+  }
+
+  return (offset - begin) / step % 128;
+}
+
 void usage() {
   char* usagestring = "[-b blocks-count] [-i init] device";
   fprintf(stderr, "Usage: %s %s\n", program, usagestring);
