@@ -116,6 +116,16 @@ uint32_t free_data_blocks(struct mkfs_context* ctx) {
 }
 
 /*
+  alloc_block allocates a data block from the context "ctx", and returns its
+  number.
+*/
+size_t alloc_block(struct mkfs_context* ctx) {
+  size_t ret = ctx->reserved_data_blocks;
+  ++ctx->reserved_data_blocks;
+  return ret;
+}
+
+/*
   write_file_info writes the file information "file" given the context "ctx".
 */
 void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
