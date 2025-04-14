@@ -18,6 +18,7 @@
 #define DIRECTORIES_SIZE 14
 
 #define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
+#define get_block(ctx, num) ((void*)(num * BLOCK_SIZE + BLOCK_SIZE + (uint64_t)ctx->device_addr))
 
 char* program;
 char* optstring = ":b:i:";
