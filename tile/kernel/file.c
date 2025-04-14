@@ -612,7 +612,7 @@ uint32_t block_num_index(size_t level, uint32_t offset) {
       return 0;
   }
 
-  return (offset - begin) / step % 128;
+  return (offset - begin) / step % BLOCK_NUMS_PER_BLOCK;
 }
 
 /*
