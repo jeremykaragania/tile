@@ -173,6 +173,19 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
 }
 
 /*
+  write_file writes the file "src" to the directory "dest" with the name
+  "name".
+*/
+void write_file(struct mkfs_context* ctx, struct file_info_ext* dest, struct file_info_ext* src, char* name) {
+  struct directory_info directory;
+
+  directory.num = src->num;
+  strncpy(directory.name, name, FILE_NAME_SIZE);
+
+  write_directory_info(ctx, dest, &directory);
+}
+
+/*
   init_directory initializes the required directory entries of the directory
   "file" given the context "ctx".
 */
