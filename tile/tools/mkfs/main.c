@@ -127,6 +127,16 @@ size_t alloc_block(struct mkfs_context* ctx) {
 }
 
 /*
+  alloc_file allocates a file information number from the context "ctx", and
+  returns its number.
+*/
+size_t alloc_file(struct mkfs_context* ctx) {
+  size_t ret = ctx->next_file_info;
+  ++ctx->next_file_info;
+  return ret;
+}
+
+/*
   write_file_info writes the file information "file" given the context "ctx".
 */
 void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
@@ -206,8 +216,7 @@ struct file_info_ext mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* 
   struct file_info_ext file;
   struct directory_info directory;
 
-  file.num = ctx->next_file_info;
-  ++ctx->next_file_info;
+  file.num = alloc_file(ctx);
   file.type = FT_DIRECTORY;
   file.size = 0;
 
