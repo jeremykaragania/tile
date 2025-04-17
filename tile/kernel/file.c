@@ -539,7 +539,7 @@ struct filesystem_addr file_offset_to_addr(const struct file_info_int* file_info
 
   block_info = file_offset_to_block(offset);
   ret.num = file_info->ext.blocks[block_info.index];
-  ret.offset = offset % 512;
+  ret.offset = offset % BLOCK_SIZE;
 
   if (block_info.level) {
     for (size_t i = 0; i < block_info.level; ++i) {
