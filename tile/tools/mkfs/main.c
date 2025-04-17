@@ -144,6 +144,53 @@ void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file)
 }
 
 /*
+  push_block pushes a block to the file "file" and returns its block number.
+*/
+uint32_t push_block(struct mkfs_context* ctx, struct file_info_ext* file) {
+  size_t offset = BLOCK_SIZE * blocks_in_file(file->size);
+  struct block_info block_info = file_offset_to_block(offset);
+  uint32_t block_num = file->num;
+  void* block = get_block(ctx, block_num);
+  uint32_t ret;
+
+  /*
+    If the previous block index is different from the current block index, or
+    this is the first block then we allocate it.
+  */
+  if (file_offset_to_block(offset - BLOCK_SIZE).index != block_info.index || !block_info.index) {
+    ret = alloc_block(ctx);
+    file->blocks[block_info.index] = ret;
+    write_file_info(ctx, file);
+  }
+
+  /*
+    Starting from the first block level, we iterate up to the level of the
+    current block, allocating intermediate blocks where neccessary.
+  */
+  for (size_t i = 0; i < block_info.level; ++i) {
+    size_t prev_index = block_num_index(block_info.level - i, offset - BLOCK_SIZE);
+    size_t curr_index = block_num_index(block_info.level - i, offset);
+
+    block = get_block(ctx, block_num);
+
+    /*
+      If the previous block number index is different from the current block
+      index, then we allocate one. This is a hack which works due to how a
+      block number index depends on the offset and the level.
+    */
+    if (prev_index != curr_index) {
+      ret = alloc_block(ctx);
+      ((uint32_t*)block)[curr_index] = ret;
+    }
+
+    block_num = ((uint32_t*)block)[curr_index];
+  }
+
+  file->size += BLOCK_SIZE;
+  return ret;
+}
+
+/*
   write_free_block_list writes a free block list to the location given by "ptr"
   from the context "ctx", block number "num" and the size of the list "size".
 */
