@@ -18,7 +18,7 @@
 #define DIRECTORIES_SIZE 14
 
 #define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
-#define get_block(ctx, num) ((void*)(num * BLOCK_SIZE + BLOCK_SIZE + (uint64_t)ctx->device_addr))
+#define get_block(ctx, num) ((void*)(num * BLOCK_SIZE + (uint64_t)ctx->device_addr))
 
 char* program;
 char* optstring = ":b:i:";
@@ -67,8 +67,8 @@ struct block_info file_offset_to_block(uint32_t offset) {
   "level" and a file byte offset "offset".
 */
 uint32_t block_num_index(size_t level, uint32_t offset) {
-  uint32_t begin;
-  uint32_t step;
+  size_t begin;
+  size_t step;
 
   /*
     At each block level, the beginning file byte offset along with how many
@@ -147,7 +147,7 @@ void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file)
   push_block pushes a block to the file "file" and returns its block number.
 */
 uint32_t push_block(struct mkfs_context* ctx, struct file_info_ext* file) {
-  size_t offset = BLOCK_SIZE * blocks_in_file(file->size);
+  size_t offset = BLOCK_SIZE * blocks_in_file(file->size) - 1;
   struct block_info block_info = file_offset_to_block(offset);
   uint32_t block_num = file->num;
   void* block = get_block(ctx, block_num);
@@ -186,7 +186,6 @@ uint32_t push_block(struct mkfs_context* ctx, struct file_info_ext* file) {
     block_num = ((uint32_t*)block)[curr_index];
   }
 
-  file->size += BLOCK_SIZE;
   return ret;
 }
 
@@ -292,6 +291,24 @@ struct file_info_ext mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* 
   return file;
 }
 
+/*
+  copy_file copies "size" bytes from the buffer "addr" into the file "file".
+*/
+void copy_file(struct mkfs_context* ctx, struct file_info_ext* file, void* addr, size_t size) {
+  size_t blocks = blocks_in_file(size);
+
+  file->size = size;
+
+  for (size_t i = 0; i < blocks; ++i) {
+    uint32_t block = push_block(ctx, file);
+    uint32_t count = size >= BLOCK_SIZE ? BLOCK_SIZE : size;
+
+    memcpy(get_block(ctx, block), (void*)((uint64_t)addr + i * BLOCK_SIZE), count);
+    size -= count;
+  }
+
+}
+
 int main(int argc, char* argv[]) {
   int opt;
   char* device_path = NULL;
@@ -302,6 +319,7 @@ int main(int argc, char* argv[]) {
   int init_fd;
   void* init_addr;
   size_t init_size;
+  struct file_info_ext init;
   struct stat sb;
   size_t blocks_count = 4096;
   struct filesystem_info info;
@@ -332,7 +350,6 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "%s: error: invalid blocks count\n", program);
     exit(EXIT_FAILURE);
   }
-
 
   /*
     Initialize the output file and an optional input init file.
@@ -405,11 +422,20 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  /* Initialize the root filesystem. */
+  /* Initialize the root filesystem and the init file. */
   root = mkfs_mkdir(&ctx, NULL, "/");
 
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
     mkfs_mkdir(&ctx, &root, directories[i]);
+  }
+
+  if (init_path) {
+    init.num = alloc_file(&ctx);
+    init.size = 0;
+
+    write_file(&ctx, &root, &init, "init");
+    copy_file(&ctx, &init, init_addr, init_size);
+    write_file_info(&ctx, &init);
   }
 
   write_file_info(&ctx, &root);
