@@ -229,10 +229,10 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
 }
 
 /*
-  write_file writes the file "src" to the directory "dest" with the name
-  "name".
+  write_file_to_directory writes the file "src" to the directory "dest" with
+  the name "name".
 */
-void write_file(struct mkfs_context* ctx, struct file_info_ext* dest, struct file_info_ext* src, char* name) {
+void write_file_to_directory(struct mkfs_context* ctx, struct file_info_ext* dest, struct file_info_ext* src, char* name) {
   struct directory_info directory;
 
   directory.num = src->num;
@@ -433,7 +433,7 @@ int main(int argc, char* argv[]) {
     init.num = alloc_file(&ctx);
     init.size = 0;
 
-    write_file(&ctx, &root, &init, "init");
+    write_file_to_directory(&ctx, &root, &init, "init");
     copy_file(&ctx, &init, init_addr, init_size);
     write_file_info(&ctx, &init);
   }
