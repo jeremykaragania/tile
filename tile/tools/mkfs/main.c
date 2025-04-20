@@ -147,7 +147,7 @@ void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file)
   push_block pushes a block to the file "file" and returns its block number.
 */
 uint32_t push_block(struct mkfs_context* ctx, struct file_info_ext* file) {
-  size_t offset = BLOCK_SIZE * blocks_in_file(file->size) - 1;
+  size_t offset = BLOCK_SIZE * blocks_in_file(file->size);
   struct block_info block_info = file_offset_to_block(offset);
   uint32_t block_num = file->num;
   void* block = get_block(ctx, block_num);
@@ -296,17 +296,17 @@ struct file_info_ext mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* 
 */
 void copy_file(struct mkfs_context* ctx, struct file_info_ext* file, void* addr, size_t size) {
   size_t blocks = blocks_in_file(size);
-
-  file->size = size;
+  size_t curr_size = size;
 
   for (size_t i = 0; i < blocks; ++i) {
     uint32_t block = push_block(ctx, file);
-    uint32_t count = size >= BLOCK_SIZE ? BLOCK_SIZE : size;
+    uint32_t count = curr_size >= BLOCK_SIZE ? BLOCK_SIZE : curr_size;
 
     memcpy(get_block(ctx, block), (void*)((uint64_t)addr + i * BLOCK_SIZE), count);
-    size -= count;
+    curr_size -= count;
   }
 
+  file->size = size;
 }
 
 int main(int argc, char* argv[]) {
