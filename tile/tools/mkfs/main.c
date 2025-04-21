@@ -324,6 +324,7 @@ int main(int argc, char* argv[]) {
   size_t blocks_count = 4096;
   struct filesystem_info info;
   struct file_info_ext root;
+  struct file_info_ext directory_infos[DIRECTORIES_SIZE];
   uint32_t free_blocks_begin;
   struct mkfs_context ctx;
 
@@ -426,7 +427,7 @@ int main(int argc, char* argv[]) {
   root = mkfs_mkdir(&ctx, NULL, "/");
 
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
-    mkfs_mkdir(&ctx, &root, directories[i]);
+    directory_infos[i] = mkfs_mkdir(&ctx, &root, directories[i]);
   }
 
   if (init_path) {
