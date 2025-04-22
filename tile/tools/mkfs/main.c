@@ -23,6 +23,7 @@
 char* program;
 char* optstring = ":b:i:";
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
+struct file_info_ext directory_infos[DIRECTORIES_SIZE];
 
 struct mkfs_context {
   void* device_addr;
@@ -30,6 +31,20 @@ struct mkfs_context {
   size_t reserved_data_blocks;
   struct filesystem_info* info;
 };
+
+/*
+  get_directory return the file information associated with a directory in the
+  root directory from its name "name".
+*/
+struct file_info_ext* get_directory(char* name) {
+  for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
+    if (strcmp(name, directories[i]) == 0) {
+      return &directory_infos[i];
+    }
+  }
+
+  return NULL;
+}
 
 /*
   file_offset_to_block converts an offset in a file "offset" to a block's level
@@ -324,7 +339,6 @@ int main(int argc, char* argv[]) {
   size_t blocks_count = 4096;
   struct filesystem_info info;
   struct file_info_ext root;
-  struct file_info_ext directory_infos[DIRECTORIES_SIZE];
   uint32_t free_blocks_begin;
   struct mkfs_context ctx;
 
