@@ -241,6 +241,8 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
   *((struct directory_info*)((uint64_t)ctx->device_addr + offset)) = *directory;
 
   parent->size += sizeof(struct directory_info);
+
+  write_file_info(ctx, parent);
 }
 
 /*
@@ -322,6 +324,8 @@ void copy_file(struct mkfs_context* ctx, struct file_info_ext* file, void* addr,
   }
 
   file->size = size;
+
+  write_file_info(&ctx, file);
 }
 
 int main(int argc, char* argv[]) {
@@ -452,12 +456,7 @@ int main(int argc, char* argv[]) {
 
     write_file_to_directory(&ctx, sbin, &init, "init");
     copy_file(&ctx, &init, init_addr, init_size);
-
-    write_file_info(&ctx, sbin);
-    write_file_info(&ctx, &init);
   }
-
-  write_file_info(&ctx, &root);
 
   /* Initialize the free file information list. */
   for (size_t i = 0; i < info.free_file_infos_size; ++i) {
