@@ -445,11 +445,15 @@ int main(int argc, char* argv[]) {
   }
 
   if (init_path) {
+    struct file_info_ext* sbin = get_directory("sbin");
+
     init.num = alloc_file(&ctx);
     init.size = 0;
 
-    write_file_to_directory(&ctx, &root, &init, "init");
+    write_file_to_directory(&ctx, sbin, &init, "init");
     copy_file(&ctx, &init, init_addr, init_size);
+
+    write_file_info(&ctx, sbin);
     write_file_info(&ctx, &init);
   }
 
