@@ -325,7 +325,7 @@ void copy_file(struct mkfs_context* ctx, struct file_info_ext* file, void* addr,
 
   file->size = size;
 
-  write_file_info(&ctx, file);
+  write_file_info(ctx, file);
 }
 
 int main(int argc, char* argv[]) {
