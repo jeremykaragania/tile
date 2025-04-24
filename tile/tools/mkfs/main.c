@@ -18,6 +18,7 @@
 #define DIRECTORIES_SIZE 14
 
 #define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
+#define get_file(ctx, num) ((struct file_info_ext*)((uint64_t)ctx->device_addr + file_num_to_offset(num)))
 #define get_block(ctx, num) ((void*)(num * BLOCK_SIZE + (uint64_t)ctx->device_addr))
 
 char* program;
@@ -155,7 +156,7 @@ size_t alloc_file(struct mkfs_context* ctx) {
   write_file_info writes the file information "file" given the context "ctx".
 */
 void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
-  *((struct file_info_ext*)((uint64_t)ctx->device_addr + file_num_to_offset(file->num))) = *file;
+  *get_file(ctx, file->num) = *file;
 }
 
 /*
