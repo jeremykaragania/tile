@@ -24,7 +24,7 @@
 char* program;
 char* optstring = ":b:i:";
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
-struct file_info_ext directory_infos[DIRECTORIES_SIZE];
+struct file_info_ext* directory_infos[DIRECTORIES_SIZE];
 
 struct mkfs_context {
   void* device_addr;
@@ -40,7 +40,7 @@ struct mkfs_context {
 struct file_info_ext* get_directory(char* name) {
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
     if (strcmp(name, directories[i]) == 0) {
-      return &directory_infos[i];
+      return directory_infos[i];
     }
   }
 
@@ -143,20 +143,13 @@ size_t alloc_block(struct mkfs_context* ctx) {
 }
 
 /*
-  alloc_file allocates a file information number from the context "ctx", and
-  returns its number.
+  alloc_file allocates external file information from the context "ctx", and
+  returns a pointer to it.
 */
-size_t alloc_file(struct mkfs_context* ctx) {
-  size_t ret = ctx->next_file_info;
+struct file_info_ext* alloc_file(struct mkfs_context* ctx) {
+  size_t num = ctx->next_file_info;
   ++ctx->next_file_info;
-  return ret;
-}
-
-/*
-  write_file_info writes the file information "file" given the context "ctx".
-*/
-void write_file_info(struct mkfs_context* ctx, const struct file_info_ext* file) {
-  *get_file(ctx, file->num) = *file;
+  return get_file(ctx, num);
 }
 
 /*
@@ -176,7 +169,6 @@ uint32_t push_block(struct mkfs_context* ctx, struct file_info_ext* file) {
   if (file_offset_to_block(offset - BLOCK_SIZE).index != block_info.index || !block_info.index) {
     ret = alloc_block(ctx);
     file->blocks[block_info.index] = ret;
-    write_file_info(ctx, file);
   }
 
   /*
@@ -242,8 +234,6 @@ void write_directory_info(struct mkfs_context* ctx, struct file_info_ext* parent
   *((struct directory_info*)((uint64_t)ctx->device_addr + offset)) = *directory;
 
   parent->size += sizeof(struct directory_info);
-
-  write_file_info(ctx, parent);
 }
 
 /*
@@ -276,35 +266,33 @@ void init_directory(struct mkfs_context* ctx, struct file_info_ext* file) {
 /*
   mkfs_mkdir makes a directory under "parent" with the name "name".
 */
-struct file_info_ext mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
-  struct file_info_ext file;
+struct file_info_ext* mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext* parent, char* name) {
+  struct file_info_ext* file;
   struct directory_info directory;
 
-  file.num = alloc_file(ctx);
-  file.type = FT_DIRECTORY;
-  file.size = 0;
+  file = alloc_file(ctx);
+  file->type = FT_DIRECTORY;
+  file->size = 0;
 
-  directory.num = file.num;
+  directory.num = file->num;
   strcpy(directory.name, ".");
-  write_directory_info(ctx, &file, &directory);
+  write_directory_info(ctx, file, &directory);
 
   if (!parent) {
-    directory.num = file.num;
+    directory.num = file->num;
   }
   else {
     directory.num = parent->num;
   }
 
   strcpy(directory.name, "..");
-  write_directory_info(ctx, &file, &directory);
+  write_directory_info(ctx, file, &directory);
 
   if (parent) {
-    directory.num = file.num;
+    directory.num = file->num;
     strcpy(directory.name, name);
     write_directory_info(ctx, parent, &directory);
   }
-
-  write_file_info(ctx, &file);
 
   return file;
 }
@@ -325,8 +313,6 @@ void copy_file(struct mkfs_context* ctx, struct file_info_ext* file, void* addr,
   }
 
   file->size = size;
-
-  write_file_info(ctx, file);
 }
 
 int main(int argc, char* argv[]) {
@@ -339,11 +325,11 @@ int main(int argc, char* argv[]) {
   int init_fd;
   void* init_addr;
   size_t init_size;
-  struct file_info_ext init;
+  struct file_info_ext* init;
   struct stat sb;
   size_t blocks_count = 4096;
   struct filesystem_info info;
-  struct file_info_ext root;
+  struct file_info_ext* root;
   uint32_t free_blocks_begin;
   struct mkfs_context ctx;
 
@@ -446,17 +432,17 @@ int main(int argc, char* argv[]) {
   root = mkfs_mkdir(&ctx, NULL, "/");
 
   for (size_t i = 0; i < DIRECTORIES_SIZE; ++i) {
-    directory_infos[i] = mkfs_mkdir(&ctx, &root, directories[i]);
+    directory_infos[i] = mkfs_mkdir(&ctx, root, directories[i]);
   }
 
   if (init_path) {
     struct file_info_ext* sbin = get_directory("sbin");
 
-    init.num = alloc_file(&ctx);
-    init.size = 0;
+    init = alloc_file(&ctx);
+    init->size = 0;
 
-    write_file_to_directory(&ctx, sbin, &init, "init");
-    copy_file(&ctx, &init, init_addr, init_size);
+    write_file_to_directory(&ctx, sbin, init, "init");
+    copy_file(&ctx, init, init_addr, init_size);
   }
 
   /* Initialize the free file information list. */
