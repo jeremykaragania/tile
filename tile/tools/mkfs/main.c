@@ -110,6 +110,9 @@ uint32_t block_num_index(size_t level, uint32_t offset) {
   return (offset - begin) / step % BLOCK_NUMS_PER_BLOCK;
 }
 
+/*
+  usage displays usage information if mkfs was used incorrectly.
+*/
 void usage() {
   char* usagestring = "[-b blocks-count] [-i init] device";
   fprintf(stderr, "Usage: %s %s\n", program, usagestring);
