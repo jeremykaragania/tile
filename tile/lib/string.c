@@ -1,6 +1,20 @@
 #include <lib/string.h>
 
 /*
+  strcpy copies the string pointed to by "src' into "dest" including the null
+  terminator.
+*/
+char* strcpy(char *dest, const char *src) {
+  while (*src != 0) {
+     *dest = *src;
+     ++dest;
+     ++src;
+  }
+
+  return dest;
+}
+
+/*
   strlen returns the length of the string "s" excluding the null terminator.
 */
 size_t strlen(const char* s) {
