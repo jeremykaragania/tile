@@ -4,7 +4,7 @@
 */
 .global enable_interrupts
 enable_interrupts:
-  cpsie if
+  cpsie aif
   bx lr
 
 /*
@@ -12,7 +12,7 @@ enable_interrupts:
 */
 .global disable_interrupts
 disable_interrupts:
-  cpsid if
+  cpsid aif
   bx lr
 
 /*
