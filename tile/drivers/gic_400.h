@@ -9,7 +9,7 @@
   of the GIC-400.
 */
 struct gic_distributor_registers {
-  uint32_t ctlr;
+  uint32_t ctl;
   const uint32_t type;
   const uint32_t iid;
   const uint32_t reserved_0[30];

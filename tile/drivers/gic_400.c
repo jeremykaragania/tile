@@ -7,5 +7,6 @@ volatile struct gic_cpu_interface_registers* gicc = (volatile struct gic_cpu_int
   gic_init initializes the GIC.
 */
 void gic_init() {
-  gicd->ctlr = 1;
+  gicd->ctl = 1;
+  gicc->ctl = 1;
 }
