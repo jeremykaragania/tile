@@ -72,13 +72,13 @@ struct gic_cpu_interface_registers {
   uint32_t aia;
   uint32_t aeoi;
   uint32_t ahppi;
-  uint32_t reserved_0[42];
+  uint32_t reserved_0[41];
   uint32_t ap;
-  uint32_t reserved_1;
+  uint32_t reserved_[3];
   uint32_t nsap;
-  uint32_t reserved_2[7];
+  uint32_t reserved_2[6];
   uint32_t iid;
-  uint32_t reserved_3[961];
+  uint32_t reserved_3[960];
   uint32_t di;
 };
 
