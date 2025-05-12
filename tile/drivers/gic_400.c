@@ -7,6 +7,12 @@ volatile struct gic_cpu_interface_registers* gicc = (volatile struct gic_cpu_int
   gic_init initializes the GIC.
 */
 void gic_init() {
-  gicd->ctl = 1;
-  gicc->ctl = 1;
+  /* Enable group 0 and group 1 interrupts. */
+  gicd->ctl = 3;
+
+  /* Enable group 0 and group 1 interrupts. */
+  gicc->ctl = 3;
+
+  /* Set the priority mask to lowest priority. */
+  gicc->pm = 0xff;
 }
