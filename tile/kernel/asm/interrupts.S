@@ -74,13 +74,32 @@ do_data_abort_stub:
   pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr, pc}
 
 do_irq_interrupt_stub:
+  /*
+    We're in IRQ mode. "lr" is the return address which we must decrement to
+    return to the instruction which triggered the exception. We push this
+    return address to the supervisor mode stack.
+  */
+  mrs sp, sp_svc
+  sub lr, #4
+  push {lr}
+
   /* Switch to supervisor mode */
   cps #0x13
 
-  ldr r0, =do_irq_interrupt
-  bx r0
+  /*
+    Ensure that the supervisor mode stack pointer accounts for the previous
+    push in IRQ mode.
+  */
+  mrs sp, sp_irq
 
-  subs pc, lr, #4
+  /* Preserve the IRQ mode state. */
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+
+  ldr r0, =do_irq_interrupt
+  blx r0
+
+  /* Restore the supervisor mode state and return. */
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr, pc}
 
 do_fiq_interrupt_stub:
   ldr r0, =do_fiq_interrupt
