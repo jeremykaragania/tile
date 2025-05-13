@@ -74,8 +74,13 @@ do_data_abort_stub:
   pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr, pc}
 
 do_irq_interrupt_stub:
+  /* Switch to supervisor mode */
+  cps #0x13
+
   ldr r0, =do_irq_interrupt
   bx r0
+
+  subs pc, lr, #4
 
 do_fiq_interrupt_stub:
   ldr r0, =do_fiq_interrupt
