@@ -27,6 +27,7 @@ void start_kernel() {
   gic_init();
   buffer_init();
   init_clock();
+  enable_interrupts();
   filesystem_init();
   uart_printf(tile_banner);
   while(1);
