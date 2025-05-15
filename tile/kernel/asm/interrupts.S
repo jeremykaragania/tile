@@ -92,7 +92,7 @@ do_irq_interrupt_stub:
   */
   mrs sp, sp_irq
 
-  /* Preserve the IRQ mode state. */
+  /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
 
   ldr r0, =do_irq_interrupt
