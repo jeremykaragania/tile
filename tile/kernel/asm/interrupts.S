@@ -71,7 +71,8 @@ do_data_abort_stub:
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr, pc}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  pop {pc}
 
 do_irq_interrupt_stub:
   /*
@@ -99,7 +100,8 @@ do_irq_interrupt_stub:
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr, pc}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  pop {pc}
 
 do_fiq_interrupt_stub:
   ldr r0, =do_fiq_interrupt
