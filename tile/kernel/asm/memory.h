@@ -13,6 +13,9 @@
 #define UART_0_PADDR 0x1c090000ull
 #define UART_0_VADDR 0xffc00000
 
+#define TIMER_1_PADDR 0x1c011000ull
+#define TIMER_1_VADDR 0xffc02000
+
 #define SMC_CS3_PADDR 0x1c000000ull
 #define MCI_PADDR (SMC_CS3_PADDR + 0x50000)
 #define MCI_VADDR 0xffc01000
