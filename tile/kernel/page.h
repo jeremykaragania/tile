@@ -24,7 +24,7 @@ void map_peripherals();
 void map_vector_table();
 void map_smc();
 
-void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
 
 uint32_t* addr_to_pmd(uint32_t* pgd, uint32_t addr);
 uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr);

@@ -100,20 +100,17 @@ void map_vector_table() {
   directory and maps the MCI and the UART.
 */
 void map_smc() {
-  create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
-  create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, BLOCK_RW);
-  create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, BLOCK_RW);
-  uart_0 = (volatile struct uart_registers*)UART_0_VADDR;
-  mci = (volatile struct mci_registers*)MCI_VADDR;
-  timer_0 = (volatile struct dual_timer_registers*)TIMER_1_VADDR;
+  mci = create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
+  uart_0 = create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, BLOCK_RW);
+  timer_0 = create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, BLOCK_RW);
 }
 
 /*
   create_mapping creates a linear mapping from the virtual address "v_addr" to
   the physical address "p_addr" spanning "size" bytes with the memory flags
-  "flags".
+  "flags". It returns a pointer to the mapped area.
 */
-void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
   uint32_t pmd_addr;
   uint32_t* insert_pmd;
@@ -170,6 +167,7 @@ void create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) 
 
   bitmap_insert(&virt_bitmap, v_addr, size / PAGE_SIZE);
 
+  return (void*)v_addr;
 }
 
 /*
