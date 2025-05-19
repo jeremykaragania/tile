@@ -102,8 +102,10 @@ void map_vector_table() {
 void map_smc() {
   create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, BLOCK_RW);
   create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, BLOCK_RW);
+  create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, BLOCK_RW);
   uart_0 = (volatile struct uart_registers*)UART_0_VADDR;
   mci = (volatile struct mci_registers*)MCI_VADDR;
+  timer_0 = (volatile struct dual_timer_registers*)TIMER_1_VADDR;
 }
 
 /*
