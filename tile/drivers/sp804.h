@@ -34,4 +34,6 @@ struct dual_timer_registers {
 
 extern volatile struct dual_timer_registers* timer_0;
 
+void dual_timer_init();
+
 #endif
