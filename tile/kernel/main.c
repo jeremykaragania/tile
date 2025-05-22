@@ -1,5 +1,7 @@
+#include <drivers/gic_400.h>
 #include <drivers/pl011.h>
 #include <drivers/pl180.h>
+#include <drivers/sp804.h>
 #include <kernel/asm/memory.h>
 #include <kernel/buffer.h>
 #include <kernel/clock.h>
@@ -24,6 +26,7 @@ void start_kernel() {
   init_paging();
   uart_init();
   mci_init();
+  dual_timer_init();
   gic_init();
   buffer_init();
   init_clock();
