@@ -2,6 +2,7 @@
 #define GIC_400
 
 #include <kernel/asm/memory.h>
+#include <stddef.h>
 #include <stdint.h>
 
 /*
@@ -84,6 +85,7 @@ struct gic_cpu_interface_registers {
 
 extern volatile struct gic_distributor_registers* gicd;
 extern volatile struct gic_cpu_interface_registers* gicc;
+extern uint32_t gicd_it_lines_number;
 
 void gic_init();
 
