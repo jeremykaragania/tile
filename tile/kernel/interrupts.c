@@ -34,7 +34,12 @@ void do_data_abort() {
 /*
   do_irq_interrupt handles the IRQ interrupt exception.
 */
-void do_irq_interrupt() {}
+void do_irq_interrupt() {
+  uint32_t ia = gicc->ia;
+
+  /* Signal interrupt processing completion. */
+  gicc->eoi = ia;
+}
 
 /*
   do_fiq_interrupt handles the FIQ interrupt exception.
