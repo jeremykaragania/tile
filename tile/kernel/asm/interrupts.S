@@ -48,60 +48,48 @@ do_data_abort_stub:
   /*
     We're in abort mode. "lr" is the return address which we must decrement to
     return to the instruction which triggered the exception. We push this
-    return address to the supervisor mode stack.
+    return address and the SPSR to the supervisor mode stack.
   */
   mrs sp, sp_svc
   sub lr, #8
-  push {lr}
+  srsfd sp!, #0x13
 
   /* Switch to supervisor mode */
   cps #0x13
 
-  /*
-    Ensure that the supervisor mode stack pointer accounts for the previous
-    push in abort mode.
-  */
-  mrs sp, sp_abt
-
   /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
 
   /* Call the main interrupt handler. */
   ldr r0, =do_data_abort
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
-  pop {pc}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  rfefd sp!
 
 do_irq_interrupt_stub:
   /*
     We're in IRQ mode. "lr" is the return address which we must decrement to
     return to the instruction which triggered the exception. We push this
-    return address to the supervisor mode stack.
+    return address and the SPSR to the supervisor mode stack.
   */
   mrs sp, sp_svc
   sub lr, #4
-  push {lr}
+  srsfd sp!, #0x13
 
   /* Switch to supervisor mode */
   cps #0x13
 
-  /*
-    Ensure that the supervisor mode stack pointer accounts for the previous
-    push in IRQ mode.
-  */
-  mrs sp, sp_irq
-
   /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
 
   ldr r0, =do_irq_interrupt
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
-  pop {pc}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  rfefd sp!
 
 do_fiq_interrupt_stub:
   ldr r0, =do_fiq_interrupt
