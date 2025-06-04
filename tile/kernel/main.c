@@ -30,8 +30,9 @@ void start_kernel() {
   dual_timer_init();
   buffer_init();
   init_clock();
-  enable_interrupts();
   filesystem_init();
   uart_printf(tile_banner);
+  enable_interrupts();
+  filesystem_put();
   while(1);
 }
