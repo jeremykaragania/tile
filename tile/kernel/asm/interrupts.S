@@ -50,7 +50,6 @@ do_data_abort_stub:
     return to the instruction which triggered the exception. We push this
     return address and the SPSR to the supervisor mode stack.
   */
-  mrs sp, sp_svc
   sub lr, #8
   srsfd sp!, #0x13
 
@@ -58,14 +57,14 @@ do_data_abort_stub:
   cps #0x13
 
   /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
 
   /* Call the main interrupt handler. */
   ldr r0, =do_data_abort
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
   rfefd sp!
 
 do_irq_interrupt_stub:
@@ -74,7 +73,6 @@ do_irq_interrupt_stub:
     return to the instruction which triggered the exception. We push this
     return address and the SPSR to the supervisor mode stack.
   */
-  mrs sp, sp_svc
   sub lr, #4
   srsfd sp!, #0x13
 
@@ -82,13 +80,13 @@ do_irq_interrupt_stub:
   cps #0x13
 
   /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
 
   ldr r0, =do_irq_interrupt
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
   rfefd sp!
 
 do_fiq_interrupt_stub:
