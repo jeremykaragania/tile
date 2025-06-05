@@ -70,6 +70,14 @@ struct process_info* current_process() {
 }
 
 /*
+  current_registers returns the current process' register information. It
+  exists as a helper to make it easier to access the field from assembly.
+*/
+struct processor_registers* current_registers() {
+  return &current->processor.reg;
+}
+
+/*
   function_to_process returns a process through "proc" from the function
   "func". It initializes the processor context of "proc" using "func".
 */

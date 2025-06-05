@@ -10,16 +10,6 @@ vector_table:
   b do_irq_interrupt_stub
   b do_fiq_interrupt_stub
 
-.section .text
-/*
-  get_dfar returns the Data Fault Address Register: the address which caused a
-  data abort.
-*/
-.global get_dfar
-get_dfar:
-  mrc p15, 0, r0, c6, c0, 0
-  bx lr
-
 /*
   When we return from any of these interrupts, we want the state to be the same
   as it was before entering. We try to handle all interrupts in supervisor mode
@@ -57,14 +47,18 @@ do_data_abort_stub:
   cps #0x13
 
   /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
+  mov r0, #4
+  ldr r1, =preserve_registers
+  blx r1
 
-  /* Call the main interrupt handler. */
   ldr r0, =do_data_abort
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  add sp, #4
+  pop {lr}
   rfefd sp!
 
 do_irq_interrupt_stub:
@@ -80,15 +74,63 @@ do_irq_interrupt_stub:
   cps #0x13
 
   /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
+  mov r0, #4
+  ldr r1, =preserve_registers
+  blx r1
 
   ldr r0, =do_irq_interrupt
   blx r0
 
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr}
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  add sp, #4
+  pop {lr}
   rfefd sp!
 
 do_fiq_interrupt_stub:
   ldr r0, =do_fiq_interrupt
   bx r0
+
+.section .text
+/*
+  get_dfar returns the Data Fault Address Register: the address which caused a
+  data abort.
+*/
+.global get_dfar
+get_dfar:
+  mrc p15, 0, r0, c6, c0, 0
+  bx lr
+
+/*
+  preserve_registers preserves the processor's registers before a C exception
+  handler is called. It assumes that all core registers have been pushed to the
+  stack in order. It must adjust the stack pointer and program counter to
+  account for the adjustments made in the exception handler stub. The amount
+  the program counter must be adjusted is stored in r0.
+*/
+preserve_registers:
+  push {r0, lr}
+  ldr r1, =current_registers
+  blx r1
+  mov r1, r0
+  pop {r0, lr}
+  mov r2, #0
+  ldr r3, [sp, r2, lsl #2]
+  str r3, [r1, r2, lsl #2]
+  add r2, #1
+  cmp r2, #16
+  ble preserve_registers+24
+
+  /* Adjust the preserved stack pointer and program counter.*/
+  mov r2, #13 /* Stack pointer register number. */
+  ldr r3, [r1, r2, lsl #2]
+  sub r3, #8
+  str r3, [r1, r2, lsl #2]
+
+  mov r2, #15 /* Program counter register number. */
+  ldr r3, [r1, r2, lsl #2]
+  add r3, r0
+  str r3, [r1, r2, lsl #2]
+
+  bx lr
