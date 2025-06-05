@@ -25,3 +25,15 @@ void gic_init() {
     gicd->isenable[i] = 0xffffffff;
   }
 }
+
+void gic_disable_interrupt(uint32_t id) {
+  uint32_t n = id / 32;
+
+  gicd->icenable[n] |= 1 << (id % 32);
+}
+
+void gic_enable_interrupt(uint32_t id) {
+  uint32_t n = id / 32;
+
+  gicd->isenable[n] |= 1 << (id % 32);
+}

@@ -89,4 +89,7 @@ extern uint32_t gicd_it_lines_number;
 
 void gic_init();
 
+void gic_disable_interrupt(uint32_t id);
+void gic_enable_interrupt(uint32_t id);
+
 #endif
