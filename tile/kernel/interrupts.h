@@ -1,9 +1,11 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include <drivers/pl011.h>
+#include <drivers/sp804.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
+
+#define TIM01INT 34
 
 extern uint32_t get_dfar();
 

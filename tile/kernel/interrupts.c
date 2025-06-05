@@ -37,8 +37,19 @@ void do_data_abort() {
 void do_irq_interrupt() {
   uint32_t ia = gicc->ia;
 
+  gic_disable_interrupt(ia);
+
+  switch (ia) {
+    case TIM01INT:
+      timer_0->timer1_int_clr = 0;
+      break;
+    default:
+      break;
+  }
+
   /* Signal interrupt processing completion. */
   gicc->eoi = ia;
+  gic_enable_interrupt(ia);
 }
 
 /*
