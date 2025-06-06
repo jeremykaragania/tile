@@ -52,7 +52,8 @@ extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
 
-extern struct process_info process_table[PROCESS_TABLE_SIZE];
+extern struct process_info* process_table[PROCESS_TABLE_SIZE];
+extern int process_num_count;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
 
@@ -65,6 +66,7 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
+int get_process_table_index();
 int get_process_number();
 
 void set_process_stack_end_token(const struct process_info* proc);

@@ -1,6 +1,8 @@
 #include <kernel/process.h>
 
-struct process_info process_table[PROCESS_TABLE_SIZE];
+struct process_info* process_table[PROCESS_TABLE_SIZE];
+
+int process_num_count;
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
   0,
@@ -20,35 +22,53 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
 */
 int process_clone(int type, struct function_info* func) {
   int num = 0;
+  int index;
   struct process_info* proc;
 
-  num = get_process_number();
+  index = get_process_table_index();
 
-  if (!num) {
+  if (index < 0) {
     return -1;
   }
 
-  proc = &process_table[num - 1];
+  num = get_process_number();
+
+  proc = process_info_alloc();
+
+  if (!proc) {
+    return -1;
+  }
+
   proc->num = num;
   proc->type = type;
   function_to_process(proc, func);
+
+  process_table[index] = proc;
 
   return num;
 }
 
 /*
-  get_process_number tries to find a free process number. A positive process
-  number is returned if one exists, otherwise, a negative result is returned.
+  get_process_table_index tries to find a free index in the process table. A
+  non-negative index is returned if one exists, otherwise, a negative result is
+  returned.
 */
-int get_process_number() {
+int get_process_table_index() {
   for (size_t i = 0; i < PROCESS_TABLE_SIZE; ++i) {
-    if (process_table[i].num == 0) {
-      /* Process numbering begins at 1. */
-      return i + 1;
+    if (!process_table[i]) {
+      return i;
     }
   }
 
   return -1;
+}
+
+/*
+  get_process_number increments the process number count and returns the new
+  value.
+*/
+int get_process_number() {
+  return ++process_num_count;
 }
 
 /*
