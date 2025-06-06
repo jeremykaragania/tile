@@ -86,3 +86,17 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
   proc->processor.reg.pc = (uint32_t)func->ptr;
   proc->processor.mode = PM_SVC;
 }
+
+/*
+  process_info_alloc allocates process information and returns a pointer to it.
+*/
+struct process_info* process_info_alloc() {
+  return memory_alloc(sizeof(struct process_info));
+}
+
+/*
+  process_info_free frees teh process information specified by "proc".
+*/
+int process_info_free(struct process_info* proc) {
+  return memory_free(proc);
+}
