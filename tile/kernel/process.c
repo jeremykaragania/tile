@@ -33,7 +33,7 @@ int process_clone(int type, struct function_info* func) {
 
   num = get_process_number();
 
-  proc = process_info_alloc();
+  proc = process_info_dup(current);
 
   if (!proc) {
     return -1;
