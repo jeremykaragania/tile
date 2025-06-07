@@ -108,6 +108,23 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
 }
 
 /*
+  process_info_dup duplicates the process specified by "proc" and returns a
+  pointer to it. The pointer can the be freed by calling process_info_free.
+*/
+struct process_info* process_info_dup(struct process_info* proc) {
+  struct process_info* ret;
+
+  ret = process_info_alloc();
+
+  if (!ret) {
+    return NULL;
+  }
+
+  *ret = *proc;
+  return ret;
+}
+
+/*
   process_info_alloc allocates process information and returns a pointer to it.
 */
 struct process_info* process_info_alloc() {

@@ -74,6 +74,7 @@ struct process_info* current_process();
 struct processor_registers* current_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
+struct process_info* process_info_dup(struct process_info* proc);
 struct process_info* process_info_alloc();
 int process_info_free(struct process_info* proc);
 
