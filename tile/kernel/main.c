@@ -13,6 +13,29 @@
 
 char tile_banner[] = "Tile\n";
 
+int user_init() {
+  return 0;
+}
+
+int kernel_init() {
+  return 0;
+}
+
+void init_processes() {
+  struct function_info user = {
+    &user_init,
+    NULL
+  };
+
+  struct function_info kernel = {
+    &kernel_init,
+    NULL
+  };
+
+  process_clone(PT_KERNEL, &user);
+  process_clone(PT_KERNEL, &kernel);
+}
+
 /*
   start_kernel sets up the kernel.
 */
@@ -32,6 +55,7 @@ void start_kernel() {
   init_clock();
   filesystem_init();
   uart_printf(tile_banner);
+  init_processes();
   enable_interrupts();
   filesystem_put();
   while(1);
