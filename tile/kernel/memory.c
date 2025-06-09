@@ -345,12 +345,21 @@ uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap) {
 }
 
 /*
-  bitmap_addr_is_free returns true if the address "addr" is free in the bitmap
-  "bitmap".
+  bitmap_addr_is_free returns true if "count" contigiuous pages are free from
+  the address "addr" in the bitmap "bitmap".
 */
-int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr) {
-  if (addr >= bitmap->offset && addr <= bitmap_end_addr(bitmap)) {
-    return (!(bitmap->data[bitmap_index(bitmap, addr)] & (1 << bitmap_index_index(bitmap, addr))));
+int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
+  if (addr >= bitmap->offset && addr + count * PAGE_SIZE <= bitmap_end_addr(bitmap)) {
+    int is_free = 1;
+
+    for (size_t i = 0; i < count; ++i) {
+      is_free &= !(bitmap->data[bitmap_index(bitmap, addr + i * PAGE_SIZE)] & (1 << bitmap_index_index(bitmap, addr + i * PAGE_SIZE)));
+
+      if (!is_free) {
+        return 0;
+      }
+    }
+    return 1;
   }
 
   return 0;
@@ -393,7 +402,7 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
         addr = bitmap_to_addr(bitmap, i, j);
 
         /* The page is free. */
-        if (bitmap_addr_is_free(bitmap, addr)) {
+        if (bitmap_addr_is_free(bitmap, addr, 1)) {
           bitmap_insert(bitmap, addr, 1);
           return (void*)addr;
         }
