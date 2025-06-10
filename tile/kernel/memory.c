@@ -367,8 +367,8 @@ int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_
 }
 
 /*
-  bitmap_insert inserts pages from the address "addr" spanning "count" pages in
-  the bitmap "bitmap".
+  bitmap_insert inserts "count" contiguous pages from the address "addr" in the
+  bitmap "bitmap".
 */
 void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
   size_t begin_index = bitmap_index(bitmap, addr);
@@ -384,8 +384,8 @@ void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
 }
 
 /*
-  bitmap_clear clears "count" pages from the address "addr" in the bitmap
-  "bitmap".
+  bitmap_clear clears "count" contiguous pages from the address "addr" in the
+  bitmap "bitmap".
 */
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
   for (size_t i = 0; i < count; ++i) {
@@ -395,7 +395,7 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
 }
 
 /*
-  bitmap_alloc allocates "count" contigous page in the bitmap "bitmap" above
+  bitmap_alloc allocates "count" contiguous pages in the bitmap "bitmap" above
   "begin" and returns a pointer to it.
 */
 void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count) {
@@ -499,6 +499,25 @@ int memory_map_free(void* ptr) {
   }
 
   return 0;
+}
+
+/*
+  pages_alloc allocates "count" contiguous pages and returns a pointer to them.
+*/
+void* pages_alloc(size_t count) {
+  if (!count) {
+    return NULL;
+  }
+
+  return bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count);
+}
+
+/*
+  pages_free frees "count" contiguous pages from "ptr". "ptr" is implicitly
+  aligned to a page.
+*/
+int pages_free(void* ptr, size_t count) {
+  bitmap_clear(&virt_bitmap, (uint32_t)ptr, count);
 }
 
 /*
