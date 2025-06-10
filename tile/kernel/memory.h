@@ -141,8 +141,8 @@ uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j);
 uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap);
 int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_t count);
 void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count);
-void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr);
-void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin);
+void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count);
+void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count);
 
 void* memory_map_phys_alloc(size_t size);
 void* memory_map_alloc(size_t size);

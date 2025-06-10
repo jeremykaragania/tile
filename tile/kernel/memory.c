@@ -345,7 +345,7 @@ uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap) {
 }
 
 /*
-  bitmap_addr_is_free returns true if "count" contigiuous pages are free from
+  bitmap_addr_is_free returns true if "count" contiguous pages are free from
   the address "addr" in the bitmap "bitmap".
 */
 int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
@@ -353,7 +353,8 @@ int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_
     int is_free = 1;
 
     for (size_t i = 0; i < count; ++i) {
-      is_free &= !(bitmap->data[bitmap_index(bitmap, addr + i * PAGE_SIZE)] & (1 << bitmap_index_index(bitmap, addr + i * PAGE_SIZE)));
+      addr += i * PAGE_SIZE;
+      is_free &= !(bitmap->data[bitmap_index(bitmap, addr)] & (1 << bitmap_index_index(bitmap, addr)));
 
       if (!is_free) {
         return 0;
@@ -383,17 +384,21 @@ void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
 }
 
 /*
-  bitmap_clear clears a page from the address "addr" in the bitmap "bitmap".
+  bitmap_clear clears "count" pages from the address "addr" in the bitmap
+  "bitmap".
 */
-void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr) {
-  bitmap->data[bitmap_index(bitmap, addr)] &= ~(1 << bitmap_index_index(bitmap, addr));
+void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    addr += i * PAGE_SIZE;
+    bitmap->data[bitmap_index(bitmap, addr)] &= ~(1 << bitmap_index_index(bitmap, addr));
+  }
 }
 
 /*
-  bitmap_alloc allocates a page in the bitmap "bitmap" above "begin" and
-  returns a pointer to it.
+  bitmap_alloc allocates "count" contigous page in the bitmap "bitmap" above
+  "begin" and returns a pointer to it.
 */
-void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
+void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count) {
   uint32_t addr;
 
   while (bitmap) {
@@ -401,9 +406,9 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin) {
       for (size_t j = 0; j < 32; ++j) {
         addr = bitmap_to_addr(bitmap, i, j);
 
-        /* The page is free. */
-        if (bitmap_addr_is_free(bitmap, addr, 1)) {
-          bitmap_insert(bitmap, addr, 1);
+        /* The pages are free. */
+        if (bitmap_addr_is_free(bitmap, addr, count)) {
+          bitmap_insert(bitmap, addr, count);
           return (void*)addr;
         }
       }
@@ -501,7 +506,7 @@ int memory_map_free(void* ptr) {
   of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_data_alloc() {
-  char* data = (char*)bitmap_alloc(&virt_bitmap, VIRT_OFFSET);
+  char* data = (char*)bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1);
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
@@ -632,7 +637,7 @@ void* memory_alloc(size_t size) {
     return ret;
   }
 
-  bitmap_clear(&virt_bitmap, (uint32_t)tmp.data);
+  bitmap_clear(&virt_bitmap, (uint32_t)tmp.data, 1);
   memory_free(curr->next);
   curr->next = NULL;
   return NULL;

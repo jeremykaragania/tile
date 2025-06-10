@@ -28,7 +28,7 @@ void do_data_abort() {
   uint32_t dfar = get_dfar();
   uint32_t* pmd = addr_to_pmd(memory_manager.pgd, dfar);
 
-  pmd_insert(pmd, dfar, (uint32_t)bitmap_alloc(&phys_bitmaps, phys_bitmaps.offset), BLOCK_RW);
+  pmd_insert(pmd, dfar, (uint32_t)bitmap_alloc(&phys_bitmaps, phys_bitmaps.offset, 1), BLOCK_RW);
 }
 
 /*
