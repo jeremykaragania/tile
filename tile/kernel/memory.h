@@ -15,6 +15,7 @@
   virt_to_phys returns a physical address from a virtual address "x".
 */
 #define virt_to_phys(x) ((x) - (VIRT_OFFSET - PHYS_OFFSET))
+#define page_count(x) ((x - 1) / PAGE_SIZE + 1)
 
 /*
   phys_to_virt returns a virtual address from a physical address "x".
@@ -149,7 +150,7 @@ void* memory_map_alloc(size_t size);
 int memory_map_free(void* ptr);
 
 void* pages_alloc(size_t count);
-int pages_free(void* ptr, size_t count);
+void pages_free(void* ptr, size_t count);
 
 void* memory_page_data_alloc();
 void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align);

@@ -516,7 +516,7 @@ void* pages_alloc(size_t count) {
   pages_free frees "count" contiguous pages from "ptr". "ptr" is implicitly
   aligned to a page.
 */
-int pages_free(void* ptr, size_t count) {
+void pages_free(void* ptr, size_t count) {
   bitmap_clear(&virt_bitmap, (uint32_t)ptr, count);
 }
 
