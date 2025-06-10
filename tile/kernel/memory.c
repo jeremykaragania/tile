@@ -632,6 +632,9 @@ void* memory_alloc(size_t size) {
     return ret;
   }
 
+  bitmap_clear(&virt_bitmap, (uint32_t)tmp.data);
+  memory_free(curr->next);
+  curr->next = NULL;
   return NULL;
 }
 
