@@ -9,7 +9,6 @@
 
 #define PROCESS_TABLE_SIZE 32
 #define STACK_END_MAGIC 0x57ac6e9d
-#define THREAD_SIZE 0x00002000
 
 #define current current_process()
 

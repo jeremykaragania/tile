@@ -24,6 +24,7 @@ int process_clone(int type, struct function_info* func) {
   int num = 0;
   int index;
   struct process_info* proc;
+  void* stack;
 
   index = get_process_table_index();
 
@@ -43,7 +44,15 @@ int process_clone(int type, struct function_info* func) {
   proc->type = type;
   function_to_process(proc, func);
 
+  stack = pages_alloc(page_count(THREAD_SIZE));
+
+  if (!stack) {
+    process_info_free(proc);
+    return -1;
+  }
+
   process_table[index] = proc;
+  proc->stack = stack;
 
   return num;
 }
