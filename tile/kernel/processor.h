@@ -52,5 +52,6 @@ extern void enable_interrupts();
 extern void disable_interrupts();
 extern void init_stack_pointers();
 extern void set_processor_mode(uint32_t mode);
+extern void restore_registers(struct processor_registers* r);
 
 #endif
