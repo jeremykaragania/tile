@@ -53,7 +53,7 @@ int process_clone(int type, struct function_info* func) {
 
   process_table[index] = proc;
   proc->stack = stack;
-  proc->processor.reg.sp = stack;
+  proc->processor.reg.sp = (uint32_t)stack;
   set_process_stack_end_token(proc);
 
   return num;
