@@ -55,6 +55,7 @@ void start_kernel() {
   init_clock();
   filesystem_init();
   uart_printf(tile_banner);
+  schedule_init();
   init_processes();
   enable_interrupts();
   filesystem_put();
