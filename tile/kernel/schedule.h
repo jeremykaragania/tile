@@ -7,4 +7,6 @@
 
 void schedule_init();
 
+extern struct process_info* schedule_queue[SCHEDULE_QUEUE_SIZE];
+
 #endif
