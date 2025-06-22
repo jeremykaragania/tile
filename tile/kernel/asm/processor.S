@@ -54,4 +54,8 @@ set_processor_mode:
 */
 .global restore_registers
 restore_registers:
+  push {r0}
+  ldr r0, [r0, #64] // Offset of CPSR in processor_registers.
+  msr cpsr, r0
+  pop {r0}
   ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr, pc}
