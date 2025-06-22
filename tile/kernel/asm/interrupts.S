@@ -119,7 +119,7 @@ preserve_registers:
   ldr r3, [sp, r2, lsl #2]
   str r3, [r1, r2, lsl #2]
   add r2, #1
-  cmp r2, #16
+  cmp r2, #17
   ble preserve_registers+24
 
   /* Adjust the preserved stack pointer and program counter.*/
