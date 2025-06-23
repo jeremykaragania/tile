@@ -41,14 +41,6 @@ enum processor_mode {
   PM_SYS
 };
 
-/*
-  struct processor_info represents the information about an ARMv7-A processor.
-*/
-struct processor_info {
-  struct processor_registers reg;
-  int mode;
-};
-
 extern void enable_interrupts();
 extern void disable_interrupts();
 extern void init_stack_pointers();

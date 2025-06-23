@@ -12,7 +12,7 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   1,
   NULL,
   (uint32_t*)phys_to_virt(PG_DIR_PADDR),
-  {{0}},
+  {0,},
   &init_process_stack
 };
 
@@ -53,7 +53,7 @@ int process_clone(int type, struct function_info* func) {
 
   process_table[index] = proc;
   proc->stack = stack;
-  proc->processor.reg.sp = (uint32_t)stack;
+  proc->reg.sp = (uint32_t)stack;
   set_process_stack_end_token(proc);
 
   return num;
@@ -105,7 +105,7 @@ struct process_info* current_process() {
   exists as a helper to make it easier to access the field from assembly.
 */
 struct processor_registers* current_registers() {
-  return &current->processor.reg;
+  return &current->reg;
 }
 
 /*
@@ -113,9 +113,8 @@ struct processor_registers* current_registers() {
   "func". It initializes the processor context of "proc" using "func".
 */
 void function_to_process(struct process_info* proc, struct function_info* func) {
-  proc->processor.reg.r0 = (uint32_t)func->arg;
-  proc->processor.reg.pc = (uint32_t)func->ptr;
-  proc->processor.mode = PM_SVC;
+  proc->reg.r0 = (uint32_t)func->arg;
+  proc->reg.pc = (uint32_t)func->ptr;
 }
 
 /*

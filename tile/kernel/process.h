@@ -43,7 +43,7 @@ struct process_info {
   uint32_t file_num;
   struct file_table_entry* file_tab;
   uint32_t* pgd;
-  struct processor_info processor;
+  struct processor_registers reg;
   void* stack;
 };
 
