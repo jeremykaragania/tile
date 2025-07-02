@@ -1,7 +1,7 @@
 #include <kernel/process.h>
 
 struct process_info* process_table[PROCESS_TABLE_SIZE];
-size_t process_count = 0;
+size_t process_count;
 int process_num_count;
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
@@ -24,37 +24,36 @@ int process_clone(int type, struct function_info* func) {
   int num = 0;
   int index;
   struct process_info* proc;
-  void* stack;
 
-  index = get_process_table_index();
+  index = next_process_table_index();
 
   if (index < 0) {
     return -1;
   }
 
-  num = get_process_number();
-
-  proc = process_info_dup(current);
+  /*
+    a process's information and stack is stored in a buffer of THREAD_SIZE at
+    the bottom is the process information and directly above it, is its stack.
+  */
+  proc = pages_alloc(page_count(THREAD_SIZE));
 
   if (!proc) {
     return -1;
   }
 
+  *proc = *current;
+
+  num = get_process_number();
+
   proc->num = num;
   proc->type = type;
   function_to_process(proc, func);
 
-  stack = pages_alloc(page_count(THREAD_SIZE));
-
-  if (!stack) {
-    process_info_free(proc);
-    return -1;
-  }
-
   process_table[index] = proc;
   ++process_count;
-  proc->stack = stack;
-  proc->reg.sp = (uint32_t)stack;
+
+  proc->stack = proc + 1;
+  proc->reg.sp = (uint32_t)proc + THREAD_SIZE - 8;
   proc->reg.cpsr = PM_SVC;
   set_process_stack_end_token(proc);
 
@@ -62,11 +61,11 @@ int process_clone(int type, struct function_info* func) {
 }
 
 /*
-  get_process_table_index tries to find a free index in the process table. A
+  next_process_table_index tries to find a free index in the process table. A
   non-negative index is returned if one exists, otherwise, a negative result is
   returned.
 */
-int get_process_table_index() {
+int next_process_table_index() {
   for (size_t i = 0; i < PROCESS_TABLE_SIZE; ++i) {
     if (!process_table[i]) {
       return i;
@@ -117,7 +116,7 @@ struct processor_registers* current_registers() {
 void function_to_process(struct process_info* proc, struct function_info* func) {
   proc->reg.r0 = (uint32_t)func->arg;
   proc->reg.pc = (uint32_t)func->ptr;
-  proc->reg.cpsr = PM_SVC
+  proc->reg.cpsr = PM_SVC;
 }
 
 /*

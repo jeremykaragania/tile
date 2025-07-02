@@ -66,7 +66,7 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
-int get_process_table_index();
+int next_process_table_index();
 int get_process_number();
 
 void set_process_stack_end_token(const struct process_info* proc);
