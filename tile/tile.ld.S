@@ -38,8 +38,8 @@ SECTIONS {
 
     .init_process ALIGN(THREAD_SIZE) : AT(PHYS_OFFSET + ADDR(.init_process) - VIRT_OFFSET) {
       init_process_begin = .;
-      init_process_stack = .;
       *(.init_process)
+      init_process_stack = .;
       . = init_process_begin + THREAD_SIZE;
       init_process_end = .;
     }
