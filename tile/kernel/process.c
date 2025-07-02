@@ -1,7 +1,7 @@
 #include <kernel/process.h>
 
 struct process_info* process_table[PROCESS_TABLE_SIZE];
-
+size_t process_count = 0;
 int process_num_count;
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
@@ -52,8 +52,10 @@ int process_clone(int type, struct function_info* func) {
   }
 
   process_table[index] = proc;
+  ++process_count;
   proc->stack = stack;
   proc->reg.sp = (uint32_t)stack;
+  proc->reg.cpsr = PM_SVC;
   set_process_stack_end_token(proc);
 
   return num;
@@ -115,6 +117,7 @@ struct processor_registers* current_registers() {
 void function_to_process(struct process_info* proc, struct function_info* func) {
   proc->reg.r0 = (uint32_t)func->arg;
   proc->reg.pc = (uint32_t)func->ptr;
+  proc->reg.cpsr = PM_SVC
 }
 
 /*

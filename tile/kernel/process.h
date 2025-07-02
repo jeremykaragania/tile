@@ -52,6 +52,7 @@ extern void* init_process_end;
 extern void* init_process_stack;
 
 extern struct process_info* process_table[PROCESS_TABLE_SIZE];
+extern size_t process_count;
 extern int process_num_count;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
