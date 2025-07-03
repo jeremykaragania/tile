@@ -8,5 +8,6 @@
 void schedule_init();
 
 extern struct process_info* schedule_queue[SCHEDULE_QUEUE_SIZE];
+extern void context_switch(struct processor_registers* from, struct processor_registers *to);
 
 #endif
