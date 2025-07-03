@@ -89,7 +89,7 @@ int get_process_number() {
   uint32_t of the stack.
 */
 void set_process_stack_end_token(const struct process_info* proc) {
-  *(uint32_t*)(&proc->stack) = STACK_END_MAGIC;
+  *(uint32_t*)(proc->stack) = STACK_END_MAGIC;
 }
 
 /*
