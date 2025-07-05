@@ -1,6 +1,7 @@
 #include <kernel/process.h>
 
-struct process_info* process_table[PROCESS_TABLE_SIZE];
+struct process_info* process_pool[PROCESS_POOL_SIZE];
+struct process_info* process_infos;
 size_t process_count;
 int process_num_count;
 
@@ -13,7 +14,9 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   NULL,
   (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   {0,},
-  &init_process_stack
+  &init_process_stack,
+  &init_process,
+  &init_process
 };
 
 /*
@@ -25,7 +28,7 @@ int process_clone(int type, struct function_info* func) {
   int index;
   struct process_info* proc;
 
-  index = next_process_table_index();
+  index = next_process_pool_index();
 
   if (index < 0) {
     return -1;
@@ -49,7 +52,7 @@ int process_clone(int type, struct function_info* func) {
   proc->type = type;
   function_to_process(proc, func);
 
-  process_table[index] = proc;
+  process_pool[index] = proc;
   ++process_count;
 
   proc->stack = proc + 1;
@@ -61,13 +64,13 @@ int process_clone(int type, struct function_info* func) {
 }
 
 /*
-  next_process_table_index tries to find a free index in the process table. A
+  next_process_pool_index tries to find a free index in the process pool. A
   non-negative index is returned if one exists, otherwise, a negative result is
   returned.
 */
-int next_process_table_index() {
-  for (size_t i = 0; i < PROCESS_TABLE_SIZE; ++i) {
-    if (!process_table[i]) {
+int next_process_pool_index() {
+  for (size_t i = 0; i < PROCESS_POOL_SIZE; ++i) {
+    if (!process_pool[i]) {
       return i;
     }
   }
@@ -120,32 +123,21 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
 }
 
 /*
-  process_info_dup duplicates the process specified by "proc" and returns a
-  pointer to it. The pointer can the be freed by calling process_info_free.
+  process_push adds the process information "proc" the process information
+  list.
 */
-struct process_info* process_info_dup(struct process_info* proc) {
-  struct process_info* ret;
-
-  ret = process_info_alloc();
-
-  if (!ret) {
-    return NULL;
-  }
-
-  *ret = *proc;
-  return ret;
+void process_push(struct process_info* proc) {
+  proc->next = process_infos->next;
+  proc->prev = process_infos;
+  process_infos->next->prev = proc;
+  process_infos->next = proc;
 }
 
 /*
-  process_info_alloc allocates process information and returns a pointer to it.
+  process_remove removes the process information "proc" from the process
+  information list.
 */
-struct process_info* process_info_alloc() {
-  return memory_alloc(sizeof(struct process_info));
-}
-
-/*
-  process_info_free frees teh process information specified by "proc".
-*/
-int process_info_free(struct process_info* proc) {
-  return memory_free(proc);
+void process_remove(struct process_info* proc) {
+  proc->next->prev = proc->prev;
+  proc->prev->next = proc->next;
 }

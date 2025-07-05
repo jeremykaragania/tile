@@ -7,7 +7,7 @@
 #include <kernel/processor.h>
 #include <stdint.h>
 
-#define PROCESS_TABLE_SIZE 32
+#define PROCESS_POOL_SIZE 32
 #define STACK_END_MAGIC 0x57ac6e9d
 
 #define current current_process()
@@ -45,13 +45,16 @@ struct process_info {
   uint32_t* pgd;
   struct processor_registers reg;
   void* stack;
+  struct process_info* prev;
+  struct process_info* next;
 };
 
 extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
 
-extern struct process_info* process_table[PROCESS_TABLE_SIZE];
+extern struct process_info* process_pool[PROCESS_POOL_SIZE];
+extern struct process_info* process_infos;
 extern size_t process_count;
 extern int process_num_count;
 extern struct process_info init_process;
@@ -66,7 +69,7 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
-int next_process_table_index();
+int next_process_pool_index();
 int get_process_number();
 
 void set_process_stack_end_token(const struct process_info* proc);
@@ -74,8 +77,7 @@ struct process_info* current_process();
 struct processor_registers* current_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
-struct process_info* process_info_dup(struct process_info* proc);
-struct process_info* process_info_alloc();
-int process_info_free(struct process_info* proc);
+void process_info_push(struct process_info* proc);
+void process_remove(struct process_info* proc);
 
 #endif
