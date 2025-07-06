@@ -1,7 +1,12 @@
 #include <kernel/process.h>
 
 struct process_info* process_pool[PROCESS_POOL_SIZE];
-struct process_info* process_infos;
+
+struct process_info process_infos = {
+  .prev = &init_process,
+  .next = &init_process
+};
+
 size_t process_count;
 int process_num_count;
 
@@ -15,8 +20,8 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   {0,},
   &init_process_stack,
-  &init_process,
-  &init_process
+  &process_infos,
+  &process_infos
 };
 
 /*
@@ -127,10 +132,10 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
   list.
 */
 void process_push(struct process_info* proc) {
-  proc->next = process_infos->next;
-  proc->prev = process_infos;
-  process_infos->next->prev = proc;
-  process_infos->next = proc;
+  proc->next = process_infos.next;
+  proc->prev = &process_infos;
+  process_infos.next->prev = proc;
+  process_infos.next = proc;
 }
 
 /*

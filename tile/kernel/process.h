@@ -54,7 +54,7 @@ extern void* init_process_end;
 extern void* init_process_stack;
 
 extern struct process_info* process_pool[PROCESS_POOL_SIZE];
-extern struct process_info* process_infos;
+extern struct process_info process_infos;
 extern size_t process_count;
 extern int process_num_count;
 extern struct process_info init_process;
