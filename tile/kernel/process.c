@@ -1,13 +1,11 @@
 #include <kernel/process.h>
 
-struct process_info* process_pool[PROCESS_POOL_SIZE];
-
 struct process_info process_infos = {
+  .num = -1,
   .prev = &init_process,
   .next = &init_process
 };
 
-size_t process_count;
 int process_num_count;
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
@@ -30,14 +28,7 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
 */
 int process_clone(int type, struct function_info* func) {
   int num = 0;
-  int index;
   struct process_info* proc;
-
-  index = next_process_pool_index();
-
-  if (index < 0) {
-    return -1;
-  }
 
   /*
     a process's information and stack is stored in a buffer of THREAD_SIZE at
@@ -57,8 +48,7 @@ int process_clone(int type, struct function_info* func) {
   proc->type = type;
   function_to_process(proc, func);
 
-  process_pool[index] = proc;
-  ++process_count;
+  process_push(proc);
 
   proc->stack = proc + 1;
   proc->reg.sp = (uint32_t)proc + THREAD_SIZE - 8;
@@ -66,21 +56,6 @@ int process_clone(int type, struct function_info* func) {
   set_process_stack_end_token(proc);
 
   return num;
-}
-
-/*
-  next_process_pool_index tries to find a free index in the process pool. A
-  non-negative index is returned if one exists, otherwise, a negative result is
-  returned.
-*/
-int next_process_pool_index() {
-  for (size_t i = 0; i < PROCESS_POOL_SIZE; ++i) {
-    if (!process_pool[i]) {
-      return i;
-    }
-  }
-
-  return -1;
 }
 
 /*

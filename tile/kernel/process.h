@@ -53,9 +53,7 @@ extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
 
-extern struct process_info* process_pool[PROCESS_POOL_SIZE];
 extern struct process_info process_infos;
-extern size_t process_count;
 extern int process_num_count;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
@@ -69,7 +67,6 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
-int next_process_pool_index();
 int get_process_number();
 
 void set_process_stack_end_token(const struct process_info* proc);
@@ -77,7 +74,7 @@ struct process_info* current_process();
 struct processor_registers* current_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
-void process_info_push(struct process_info* proc);
+void process_push(struct process_info* proc);
 void process_remove(struct process_info* proc);
 
 #endif
