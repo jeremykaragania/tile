@@ -10,7 +10,12 @@ make
 ## Usage
 ```bash
 ./mkfs [-b blocks-count] [-i init] device
-qemu-system-arm -machine vexpress-a15 -cpu cortex-a15 -drive if=sd,driver=file,filename=device -kernel tile -nographic
+qemu-system-arm \
+    -machine vexpress-a15 \
+    -cpu cortex-a15 \
+    -drive if=sd,driver=file,filename=device \
+    -kernel tile \
+    -nographic
 ```
 
 ## License
