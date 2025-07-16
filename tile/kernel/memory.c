@@ -545,7 +545,7 @@ void* memory_page_data_alloc() {
 */
 void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align) {
   struct memory_map_block* curr = (struct memory_map_block*)page->data;
-  struct memory_map_block* next;
+  struct memory_map_block next;
 
   if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
     return NULL;
@@ -566,35 +566,40 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   }
 
   while (curr) {
-    next = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
-    next->begin = (uint32_t)next + sizeof(struct memory_map_block);
-    next->size = size;
-    next->flags = BLOCK_RW;
-    next->prev = curr;
+    struct memory_map_block* next_addr = (struct memory_map_block*)(ALIGN(curr->begin + curr->size + sizeof(struct memory_map_block), align) - sizeof(struct memory_map_block));
+
+    next.begin = (uint32_t)next_addr + sizeof(struct memory_map_block);
+    next.size = size;
+    next.flags = BLOCK_RW;
+    next.prev = curr;
 
     /* We allocate after the current block. */
     if (!curr->next) {
-      if (next->begin + size >= (uint32_t)page->data + PAGE_SIZE) {
+      if (next.begin + size >= (uint32_t)page->data + PAGE_SIZE) {
         return NULL;
       }
 
-      next->next = NULL;
-      curr->next = next;
-      return (uint32_t*)next->begin;
+      next.next = NULL;
+      *next_addr = next;
+      curr->next = next_addr;
+      return (uint32_t*)next.begin;
     }
 
     /* We allocate between the current block and the next block. */
-    if (next->begin + size < (uint32_t)curr->next) {
-      next->next = curr->next;
-      curr->next = next;
-      return (uint32_t*)next->begin;
+    if (next.begin + size < (uint32_t)curr->next) {
+      next.next = curr->next;
+      *next_addr = next;
+      curr->next = next_addr;
+      return (uint32_t*)next.begin;
     }
 
     curr = curr->next;
+
   }
 
   return NULL;
 }
+
 
 /*
   memory_alloc allocates a naturally aligned block of size "size" bytes and
