@@ -10,6 +10,7 @@
 #include <kernel/memory.h>
 #include <kernel/page.h>
 #include <kernel/process.h>
+#include <kernel/schedule.h>
 
 char tile_banner[] = "Tile\n";
 
