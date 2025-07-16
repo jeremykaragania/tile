@@ -67,6 +67,13 @@ int get_process_number() {
 }
 
 /*
+ process_ret is the function called after a cloned process returns.
+*/
+void process_ret() {
+  while (1);
+}
+
+/*
   set_process_stack_end_token receives a struct process_info "proc", and adds a
   magic token to the end of its stack. This allows us to detect the last usable
   uint32_t of the stack.
@@ -98,6 +105,7 @@ struct processor_registers* current_registers() {
 */
 void function_to_process(struct process_info* proc, struct function_info* func) {
   proc->reg.r0 = (uint32_t)func->arg;
+  proc->reg.lr = (uint32_t)process_ret;
   proc->reg.pc = (uint32_t)func->ptr;
   proc->reg.cpsr = PM_SVC;
 }

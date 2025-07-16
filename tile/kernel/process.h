@@ -69,6 +69,8 @@ struct function_info {
 int process_clone(int type, struct function_info* func);
 int get_process_number();
 
+void process_ret();
+
 void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();
 struct processor_registers* current_registers();
