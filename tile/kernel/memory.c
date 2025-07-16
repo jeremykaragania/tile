@@ -502,9 +502,10 @@ int memory_map_free(void* ptr) {
 }
 
 /*
-  pages_alloc allocates "count" contiguous pages and returns a pointer to them.
+  memory_page_alloc allocates "count" contiguous pages and returns a pointer to
+  them.
 */
-void* pages_alloc(size_t count) {
+void* memory_page_alloc(size_t count) {
   if (!count) {
     return NULL;
   }
@@ -513,11 +514,91 @@ void* pages_alloc(size_t count) {
 }
 
 /*
-  pages_free frees "count" contiguous pages from "ptr". "ptr" is implicitly
-  aligned to a page.
+  memory_page_free frees "count" contiguous pages from "ptr". "ptr" is
+  implicitly aligned to a page.
 */
-void pages_free(void* ptr, size_t count) {
+void memory_page_free(void* ptr, size_t count) {
   bitmap_clear(&virt_bitmap, (uint32_t)ptr, count);
+}
+
+/*
+  memory_block_alloc allocates a memory region under a page size and returns a
+  pointer to it.
+*/
+void* memory_block_alloc(size_t size) {
+  struct memory_page_info* curr = &memory_page_infos;
+  struct memory_page_info tmp;
+  void* ret = NULL;
+  size_t align = 1;
+
+  if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
+    return NULL;
+  }
+
+  if (IS_ALIGNED(size, 2)) {
+    align = size;
+  }
+
+  /*
+    We try to allocate in one of the existing pages.
+  */
+  while (curr) {
+    if (!curr->data) {
+      curr->data = memory_page_data_alloc();
+    }
+
+    ret = memory_block_page_alloc(curr, size, align);
+
+    if (ret) {
+      return ret;
+    }
+
+    /*
+      If we've tried all of the pages, then we allocate a new one and try to
+      allocate inside of it.
+    */
+    if (!curr->next) {
+      break;
+    }
+
+    curr = curr->next;
+  }
+
+  /*
+    To allocate the actual page information, we first need to allocate a
+    page, allocate that page information within it, and then initialize that
+    page information.
+  */
+  tmp.data = memory_page_data_alloc();
+  tmp.next = NULL;
+  curr->next = memory_block_page_alloc(&tmp, sizeof(struct memory_page_info), 1);
+  curr->next->data = tmp.data;
+  curr->next->next = NULL;
+
+  ret = memory_block_page_alloc(curr->next, size, align);
+
+  if (ret) {
+    return ret;
+  }
+
+  bitmap_clear(&virt_bitmap, (uint32_t)tmp.data, 1);
+  memory_free(curr->next);
+  curr->next = NULL;
+  return NULL;
+}
+
+/*
+  memory_block_free frees a block allocated by memory_block_alloc.
+*/
+int memory_block_free(void* ptr) {
+  struct memory_map_block* block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
+
+  if (block->prev) {
+    block->prev->next = block->next;
+  }
+
+  block->next = NULL;
+  return 1;
 }
 
 /*
@@ -525,7 +606,7 @@ void pages_free(void* ptr, size_t count) {
   of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_data_alloc() {
-  char* data = (char*)bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1);
+  void* data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1);
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
@@ -540,10 +621,10 @@ void* memory_page_data_alloc() {
 }
 
 /*
-  memory_alloc_page allocates a block of "size" bytes aligned to "align" bytes
-  from the page information "page" and returns a pointer to it.
+  memory_block_page_alloc allocates a block of "size" bytes aligned to "align"
+  bytes from the page information "page" and returns a pointer to it.
 */
-void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align) {
+void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t align) {
   struct memory_map_block* curr = (struct memory_map_block*)page->data;
   struct memory_map_block next;
 
@@ -600,83 +681,17 @@ void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align
   return NULL;
 }
 
-
 /*
   memory_alloc allocates a naturally aligned block of size "size" bytes and
   returns a pointer to it.
 */
 void* memory_alloc(size_t size) {
-  struct memory_page_info* curr = &memory_page_infos;
-  struct memory_page_info tmp;
-  void* ret = NULL;
-  size_t align = 1;
-
-  if (!size || size > PAGE_SIZE - sizeof(struct memory_map_block)) {
-    return NULL;
-  }
-
-  if (IS_ALIGNED(size, 2)) {
-    align = size;
-  }
-
-  /*
-    We try to allocate in one of the existing pages.
-  */
-  while (curr) {
-    if (!curr->data) {
-      curr->data = memory_page_data_alloc();
-    }
-
-    ret = memory_alloc_page(curr, size, align);
-
-    if (ret) {
-      return ret;
-    }
-
-    /*
-      If we've tried all of the pages, then we allocate a new one and try to
-      allocate inside of it.
-    */
-    if (!curr->next) {
-      break;
-    }
-
-    curr = curr->next;
-  }
-
-  /*
-    To allocate the actual page information, we first need to allocate a
-    page, allocate that page information within it, and then initialize that
-    page information.
-  */
-  tmp.data = memory_page_data_alloc();
-  tmp.next = NULL;
-  curr->next = memory_alloc_page(&tmp, sizeof(struct memory_page_info), 1);
-  curr->next->data = tmp.data;
-  curr->next->next = NULL;
-
-  ret = memory_alloc_page(curr->next, size, align);
-
-  if (ret) {
-    return ret;
-  }
-
-  bitmap_clear(&virt_bitmap, (uint32_t)tmp.data, 1);
-  memory_free(curr->next);
-  curr->next = NULL;
-  return NULL;
+  return memory_block_alloc(size);
 }
 
 /*
   memory_free frees the block which "ptr" points to.
 */
 int memory_free(void* ptr) {
-  struct memory_map_block* block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
-
-  if (block->prev) {
-    block->prev->next = block->next;
-  }
-
-  block->next = NULL;
-  return 1;
+  return memory_block_free(ptr);
 }

@@ -149,11 +149,15 @@ void* memory_map_phys_alloc(size_t size);
 void* memory_map_alloc(size_t size);
 int memory_map_free(void* ptr);
 
-void* pages_alloc(size_t count);
-void pages_free(void* ptr, size_t count);
+void* memory_page_alloc(size_t count);
+void memory_page_free(void* ptr, size_t count);
+
+void* memory_block_alloc(size_t size);
+int memory_block_free(void* ptr);
 
 void* memory_page_data_alloc();
-void* memory_alloc_page(struct memory_page_info* page, size_t size, size_t align);
+void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t align);
+
 void* memory_alloc(size_t size);
 int memory_free(void* ptr);
 
