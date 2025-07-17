@@ -34,7 +34,7 @@ int process_clone(int type, struct function_info* func) {
     a process's information and stack is stored in a buffer of THREAD_SIZE at
     the bottom is the process information and directly above it, is its stack.
   */
-  proc = pages_alloc(page_count(THREAD_SIZE));
+  proc = memory_page_alloc(page_count(THREAD_SIZE));
 
   if (!proc) {
     return -1;
