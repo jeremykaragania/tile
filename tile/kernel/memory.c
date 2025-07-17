@@ -395,10 +395,10 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
 }
 
 /*
-  bitmap_alloc allocates "count" contiguous pages in the bitmap "bitmap" above
-  "begin" and returns a pointer to it.
+  bitmap_alloc allocates "count" contiguous pages aligned to "align" pages in
+  the bitmap "bitmap" above "begin" and returns a pointer to it.
 */
-void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count) {
+void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, size_t align) {
   uint32_t addr;
 
   while (bitmap) {
@@ -407,7 +407,7 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count) {
         addr = bitmap_to_addr(bitmap, i, j);
 
         /* The pages are free. */
-        if (bitmap_addr_is_free(bitmap, addr, count)) {
+        if (addr % align * PAGE_SIZE == 0 && bitmap_addr_is_free(bitmap, addr, count)) {
           bitmap_insert(bitmap, addr, count);
           return (void*)addr;
         }
@@ -510,7 +510,7 @@ void* memory_page_alloc(size_t count) {
     return NULL;
   }
 
-  return bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count);
+  return bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count, count);
 }
 
 /*
@@ -606,7 +606,7 @@ int memory_block_free(void* ptr) {
   of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_data_alloc() {
-  void* data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1);
+  void* data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1, 1);
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
