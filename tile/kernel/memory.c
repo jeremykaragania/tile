@@ -395,19 +395,24 @@ void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
 }
 
 /*
-  bitmap_alloc allocates "count" contiguous pages aligned to "align" pages in
-  the bitmap "bitmap" above "begin" and returns a pointer to it.
+  bitmap_alloc allocates "count" contiguous pages aligned to "align" pages with
+  "gap" free pages before it in the bitmap "bitmap" above "begin" and returns a
+  pointer to it.
 */
-void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, size_t align) {
+void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, size_t align, size_t gap) {
   uint32_t addr;
+  uint32_t gap_size = gap * PAGE_SIZE;
 
   while (bitmap) {
-    for (size_t i = bitmap_index(bitmap, begin); i < bitmap->size; ++i) {
+    for (size_t i = bitmap_index(bitmap, begin + gap_size); i < bitmap->size; ++i) {
       for (size_t j = 0; j < 32; ++j) {
         addr = bitmap_to_addr(bitmap, i, j);
 
-        /* The pages are free. */
-        if (addr % align * PAGE_SIZE == 0 && bitmap_addr_is_free(bitmap, addr, count)) {
+        /*
+          The page is aligned to "align" pages and it has "gap" free pages
+          before it.
+        */
+        if (addr % (align * PAGE_SIZE) == 0 && bitmap_addr_is_free(bitmap, addr - gap_size, count)) {
           bitmap_insert(bitmap, addr, count);
           return (void*)addr;
         }
@@ -419,6 +424,7 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, s
 
   return NULL;
 }
+
 
 /*
   memory_map_phys_alloc allocates a block of "size" bytes and returns a pointer
@@ -510,7 +516,7 @@ void* memory_page_alloc(size_t count) {
     return NULL;
   }
 
-  return bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count, count);
+  return bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count, count, 0);
 }
 
 /*
@@ -606,7 +612,7 @@ int memory_block_free(void* ptr) {
   of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_data_alloc() {
-  void* data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1, 1);
+  void* data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1, 1, 0);
   struct memory_map_block block = {
     sizeof(struct memory_map_block),
     0,
