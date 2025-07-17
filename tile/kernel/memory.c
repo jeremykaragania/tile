@@ -425,7 +425,6 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, s
   return NULL;
 }
 
-
 /*
   memory_map_phys_alloc allocates a block of "size" bytes and returns a pointer
   to its physical address. Memory is allocated adjacent to reserved memory.
@@ -512,11 +511,56 @@ int memory_map_free(void* ptr) {
   them.
 */
 void* memory_page_alloc(size_t count) {
+  void* data;
+  struct memory_page_info* curr;
+  struct memory_page_info* page;
+  struct memory_map_block* block;
+  struct memory_map_block* head;
+
   if (!count) {
     return NULL;
   }
 
-  return bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count, count, 0);
+  /*
+    Make sure that the page has a free page before it to store page information
+    inside.
+  */
+  data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count, count, 1);
+  bitmap_insert(&virt_bitmap, (uint32_t)data - PAGE_SIZE, 1);
+
+  if (!data) {
+    return NULL;
+  }
+
+  head = data - PAGE_SIZE;
+  block = data - sizeof(struct memory_map_block);
+
+  /* Initialize the block information to describe the page allocation. */
+  block->begin = (uint32_t)data;
+  block->size = count * PAGE_SIZE;
+  block->flags = BLOCK_RW;
+  block->next = NULL;
+  block->prev = head;
+
+  /* Initialize the dummy head block information to link to the previous block. */
+  head->begin = (uint32_t)data - PAGE_SIZE;
+  head->size = 0;
+  head->flags = BLOCK_RW;
+  head->next = block;
+  head->prev = NULL;
+
+  page = memory_block_alloc(sizeof(struct memory_page_info));
+  page->data = head;
+  page->next = NULL;
+
+  curr = &memory_page_infos;
+  while (curr->next) {
+    curr = curr->next;
+  }
+
+  curr->next = page;
+
+  return data;
 }
 
 /*
