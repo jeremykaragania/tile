@@ -14,7 +14,6 @@ void schedule_init() {
   it.
 */
 void schedule() {
-  struct process_info* curr = current;
   struct process_info* next = current->next;
 
   if (next == &process_infos) {

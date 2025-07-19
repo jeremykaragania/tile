@@ -532,8 +532,8 @@ void* memory_page_alloc(size_t count) {
     return NULL;
   }
 
-  head = data - PAGE_SIZE;
-  block = data - sizeof(struct memory_map_block);
+  head = (void*)((uint32_t)data - PAGE_SIZE);
+  block = (void*)((uint32_t)data - sizeof(struct memory_map_block));
 
   /* Initialize the block information to describe the page allocation. */
   block->begin = (uint32_t)data;
