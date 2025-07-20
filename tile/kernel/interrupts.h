@@ -1,9 +1,7 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include <drivers/sp804.h>
-#include <kernel/memory.h>
-#include <kernel/page.h>
+#include <stdint.h>
 
 #define TIM01INT 34
 

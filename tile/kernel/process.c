@@ -1,4 +1,7 @@
 #include <kernel/process.h>
+#include <kernel/asm/memory.h>
+#include <kernel/file.h>
+#include <kernel/memory.h>
 
 struct process_info process_infos = {
   .num = -1,

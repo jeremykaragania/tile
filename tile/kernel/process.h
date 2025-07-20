@@ -1,9 +1,6 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <kernel/asm/memory.h>
-#include <kernel/file.h>
-#include <kernel/memory.h>
 #include <kernel/processor.h>
 #include <stdint.h>
 

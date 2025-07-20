@@ -17,6 +17,12 @@
 */
 
 #include <kernel/page.h>
+#include <drivers/gic_400.h>
+#include <drivers/pl011.h>
+#include <drivers/pl180.h>
+#include <drivers/sp804.h>
+#include <kernel/memory.h>
+#include <limits.h>
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.

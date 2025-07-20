@@ -1,4 +1,7 @@
 #include <kernel/buffer.h>
+#include <drivers/pl180.h>
+#include <kernel/asm/file.h>
+#include <kernel/memory.h>
 
 /*
   "buffer_pool" is a pool for buffers. It is the memory backing all buffer

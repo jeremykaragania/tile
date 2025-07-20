@@ -1,7 +1,6 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
-#include <kernel/asm/clock.h>
 #include <stdint.h>
 
 /*

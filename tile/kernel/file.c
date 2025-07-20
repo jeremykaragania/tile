@@ -25,6 +25,11 @@
 */
 
 #include <kernel/file.h>
+#include <kernel/buffer.h>
+#include <kernel/memory.h>
+#include <kernel/process.h>
+#include <lib/string.h>
+#include <stdlib.h>
 
 const char* current_directory = ".";
 const char* parent_directory = "..";

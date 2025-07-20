@@ -1,12 +1,6 @@
 #ifndef PAGE_H
 #define PAGE_H
 
-#include <drivers/gic_400.h>
-#include <drivers/pl011.h>
-#include <drivers/pl180.h>
-#include <drivers/sp804.h>
-#include <kernel/memory.h>
-#include <limits.h>
 #include <stdint.h>
 
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)

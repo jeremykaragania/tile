@@ -1,4 +1,8 @@
 #include <kernel/interrupts.h>
+#include <drivers/gic_400.h>
+#include <drivers/sp804.h>
+#include <kernel/memory.h>
+#include <kernel/page.h>
 
 /*
   do_reset handles the reset exception.

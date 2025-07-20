@@ -1,4 +1,5 @@
 #include <kernel/clock.h>
+#include <kernel/asm/clock.h>
 
 struct clock_info clock_info = {
   SYS_CLK_MHZ

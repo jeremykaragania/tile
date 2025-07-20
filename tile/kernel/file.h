@@ -1,14 +1,9 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <kernel/buffer.h>
 #include <kernel/asm/file.h>
-#include <kernel/memory.h>
-#include <kernel/process.h>
-#include <lib/string.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #define FILE_INFO_PER_BLOCK (BLOCK_SIZE / sizeof(struct file_info_ext))
 #define FILE_INFO_CACHE_SIZE 32

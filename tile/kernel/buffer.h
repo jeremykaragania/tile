@@ -1,9 +1,6 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include <drivers/pl180.h>
-#include <kernel/asm/file.h>
-#include <kernel/memory.h>
 #include <stdint.h>
 
 #define BUFFER_INFO_POOL_SIZE 32
