@@ -564,24 +564,6 @@ void* memory_page_alloc(size_t count) {
 }
 
 /*
-  memory_page_free frees the pages which "ptr" points to.
-*/
-void memory_page_free(void* ptr) {
-  struct memory_map_block* block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
-
-  if (block->prev) {
-    block->prev->next = block->next;
-  }
-
-  if (block->next) {
-    block->next->prev = block->prev;
-  }
-
-  block->next = NULL;
-  bitmap_clear(&virt_bitmap, (uint32_t)block->begin, block->size / PAGE_SIZE);
-}
-
-/*
   memory_block_alloc allocates a memory region under a page size and returns a
   pointer to it.
 */
@@ -645,24 +627,6 @@ void* memory_block_alloc(size_t size) {
   memory_free(curr->next);
   curr->next = NULL;
   return NULL;
-}
-
-/*
-  memory_block_free frees a block allocated by memory_block_alloc.
-*/
-int memory_block_free(void* ptr) {
-  struct memory_map_block* block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
-
-  if (block->prev) {
-    block->prev->next = block->next;
-  }
-
-  if (block->next) {
-    block->next->prev = block->prev;
-  }
-
-  block->next = NULL;
-  return 1;
 }
 
 /*
@@ -750,12 +714,40 @@ void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t
   returns a pointer to it.
 */
 void* memory_alloc(size_t size) {
-  return memory_block_alloc(size);
+  if (!size) {
+    return NULL;
+  }
+  else if (size <= PAGE_SIZE - sizeof(struct memory_map_block)) {
+    return memory_block_alloc(size);
+  }
+  else {
+    return memory_page_alloc(page_count(size));
+  }
 }
 
 /*
   memory_free frees the block which "ptr" points to.
 */
 int memory_free(void* ptr) {
-  return memory_block_free(ptr);
+  struct memory_map_block* block;
+
+  if (!ptr) {
+    return 0;
+  }
+
+  block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
+
+  if (block->prev) {
+    block->prev->next = block->next;
+  }
+  else if (block->next) {
+    block->next->prev = block->prev;
+  }
+
+  /* Handle memory allocated by the page allocator. */
+  if (block->size > PAGE_SIZE - sizeof(struct memory_map_block)) {
+    bitmap_clear(&virt_bitmap, (uint32_t)block->begin, block->size / PAGE_SIZE);
+  }
+
+  return 1;
 }
