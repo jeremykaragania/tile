@@ -564,11 +564,21 @@ void* memory_page_alloc(size_t count) {
 }
 
 /*
-  memory_page_free frees "count" contiguous pages from "ptr". "ptr" is
-  implicitly aligned to a page.
+  memory_page_free frees the pages which "ptr" points to.
 */
-void memory_page_free(void* ptr, size_t count) {
-  bitmap_clear(&virt_bitmap, (uint32_t)ptr, count);
+void memory_page_free(void* ptr) {
+  struct memory_map_block* block = (struct memory_map_block*)((uint32_t)ptr - sizeof(struct memory_map_block));
+
+  if (block->prev) {
+    block->prev->next = block->next;
+  }
+
+  if (block->next) {
+    block->next->prev = block->prev;
+  }
+
+  block->next = NULL;
+  bitmap_clear(&virt_bitmap, (uint32_t)block->begin, block->size / PAGE_SIZE);
 }
 
 /*
@@ -645,6 +655,10 @@ int memory_block_free(void* ptr) {
 
   if (block->prev) {
     block->prev->next = block->next;
+  }
+
+  if (block->next) {
+    block->next->prev = block->prev;
   }
 
   block->next = NULL;
