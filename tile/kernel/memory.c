@@ -23,40 +23,21 @@
 #include <lib/string.h>
 
 static struct memory_map_block memory_map_memory_blocks[MEMORY_MAP_GROUP_LENGTH];
-static struct memory_map_group memory_map_memory_group = {
-  0,
-  memory_map_memory_blocks
-};
+static struct memory_map_group memory_map_memory_group;
 
 static struct memory_map_block memory_map_reserved_blocks[MEMORY_MAP_GROUP_LENGTH];
-static struct memory_map_group memory_map_reserved_group = {
-  0,
-  memory_map_reserved_blocks
-};
+static struct memory_map_group memory_map_reserved_group;
 
-struct memory_map memory_map = {
-  0xffffffff,
-  &memory_map_memory_group,
-  &memory_map_reserved_group
-};
+struct memory_map memory_map;
 
 struct memory_manager memory_manager;
 
 struct memory_bitmap phys_bitmaps;
 
 static uint32_t virt_bitmap_data[VIRT_BITMAP_SIZE];
+struct memory_bitmap virt_bitmap;
 
-struct memory_bitmap virt_bitmap = {
-  virt_bitmap_data,
-  VIRT_BITMAP_SIZE,
-  0,
-  NULL
-};
-
-struct memory_page_info memory_page_infos = {
-  NULL,
-  NULL
-};
+struct memory_page_info memory_page_infos;
 
 uint32_t high_memory;
 
@@ -69,6 +50,16 @@ void init_memory_map() {
     map; and the kernel's memory map from the linker. Eventually we won't need
     this memory map, we just need it now to allocate the physical page bitmaps.
   */
+  memory_map_memory_group.size = 0;
+  memory_map_memory_group.blocks = memory_map_memory_blocks;
+
+  memory_map_reserved_group.size = 0;
+  memory_map_reserved_group.blocks = memory_map_reserved_blocks;
+
+  memory_map.limit = 0xffffffff;
+  memory_map.memory = &memory_map_memory_group;
+  memory_map.reserved = &memory_map_reserved_group;
+
   memory_map_add_block(memory_map.memory, KERNEL_SPACE_PADDR, 0x80000000);
   memory_map_add_block(memory_map.reserved, 0x80000000, 0x8000);
   memory_map_add_block(memory_map.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
@@ -95,6 +86,11 @@ void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data
 */
 void init_bitmaps() {
   struct memory_bitmap* curr = &phys_bitmaps;
+
+  virt_bitmap.data = virt_bitmap_data;
+  virt_bitmap.size = VIRT_BITMAP_SIZE;
+  virt_bitmap.offset = 0;
+  virt_bitmap.next = NULL;
 
   /*
     For each memory block in the initial memory map's memory group, we allocate
@@ -189,6 +185,14 @@ void update_memory_map() {
   memory_map.limit = lowmem_end;
   memory_map_split_block(memory_map.memory, memory_map.limit);
   lowmem_end -= 1;
+}
+
+/*
+  init_memory_alloc initializes the primary memory allocator.
+*/
+void init_memory_alloc() {
+  memory_page_infos.next = NULL;
+  memory_page_infos.data = memory_page_data_alloc();
 }
 
 /*
@@ -586,13 +590,7 @@ void* memory_block_alloc(size_t size) {
     We try to allocate in one of the existing pages.
   */
   while (curr) {
-    if (!curr->data) {
-      curr->data = memory_page_data_alloc();
-    }
-
-    ret = memory_block_page_alloc(curr, size, align);
-
-    if (ret) {
+    if (ret = memory_block_page_alloc(curr, size, align)) {
       return ret;
     }
 
@@ -618,9 +616,7 @@ void* memory_block_alloc(size_t size) {
   curr->next->data = tmp.data;
   curr->next->next = NULL;
 
-  ret = memory_block_page_alloc(curr->next, size, align);
-
-  if (ret) {
+  if (ret = memory_block_page_alloc(curr->next, size, align)) {
     return ret;
   }
 

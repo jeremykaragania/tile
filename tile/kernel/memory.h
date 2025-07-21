@@ -126,6 +126,7 @@ extern uint32_t high_memory;
 void init_memory_map();
 void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
 void init_bitmaps();
+void init_memory_alloc();
 
 void update_memory_map();
 

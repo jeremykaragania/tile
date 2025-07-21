@@ -47,6 +47,7 @@ void start_kernel() {
   init_memory_map();
   init_bitmaps();
   update_memory_map();
+  init_memory_alloc();
   init_paging();
   uart_init();
   mci_init();
