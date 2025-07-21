@@ -410,7 +410,7 @@ void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, s
 
   while (bitmap) {
     for (size_t i = bitmap_index(bitmap, begin + gap_size); i < bitmap->size; ++i) {
-      for (size_t j = 0; j < 32; ++j) {
+      for (size_t j = bitmap_index_index(bitmap, begin + gap_size); j < 32; ++j) {
         addr = bitmap_to_addr(bitmap, i, j);
 
         /*
