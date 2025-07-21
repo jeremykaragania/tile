@@ -590,7 +590,7 @@ void* memory_block_alloc(size_t size) {
     We try to allocate in one of the existing pages.
   */
   while (curr) {
-    if (ret = memory_block_page_alloc(curr, size, align)) {
+    if ((ret = memory_block_page_alloc(curr, size, align))) {
       return ret;
     }
 
@@ -616,7 +616,7 @@ void* memory_block_alloc(size_t size) {
   curr->next->data = tmp.data;
   curr->next->next = NULL;
 
-  if (ret = memory_block_page_alloc(curr->next, size, align)) {
+  if ((ret = memory_block_page_alloc(curr->next, size, align))) {
     return ret;
   }
 
