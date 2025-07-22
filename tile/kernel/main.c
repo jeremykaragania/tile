@@ -43,11 +43,11 @@ void init_processes() {
 void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process);
-  init_memory_manager((uint32_t*)phys_to_virt(PG_DIR_PADDR), &text_begin, &text_end, &data_begin, &data_end, &bss_begin, &bss_end);
-  init_memory_map();
-  init_bitmaps();
+  memory_manager_init((uint32_t*)phys_to_virt(PG_DIR_PADDR), &text_begin, &text_end, &data_begin, &data_end, &bss_begin, &bss_end);
+  initmem_init();
+  bitmaps_init();
   update_memory_map();
-  init_memory_alloc();
+  memory_alloc_init();
   init_paging();
   uart_init();
   mci_init();

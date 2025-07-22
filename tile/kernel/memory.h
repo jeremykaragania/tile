@@ -34,39 +34,39 @@ enum memory_flags {
 };
 
 /*
-  enum memory_map_block_flags represents the attribute of a memory block.
+  enum initmem_block_flags represents the attribute of a memory block.
 */
-enum memory_map_block_flags {
+enum initmem_block_flags {
   BLOCK_NONE = 0x0,
   BLOCK_RESERVED = 0x1,
 };
 
 /*
-  struct memory_map_block represents the bounds of a memory block.
+  struct initmem_block represents the bounds of a memory block.
 */
-struct memory_map_block {
+struct initmem_block {
   uint32_t begin;
   uint32_t size;
   int flags;
-  struct memory_map_block* next;
-  struct memory_map_block* prev;
+  struct initmem_block* next;
+  struct initmem_block* prev;
 };
 
 /*
-  struct memory_map_group represents a group of memory blocks.
+  struct initmem_group represents a group of memory blocks.
 */
-struct memory_map_group {
+struct initmem_group {
   size_t size;
-  struct memory_map_block* blocks;
+  struct initmem_block* blocks;
 };
 
 /*
   struct memory_map represents the memory map of a machine.
 */
-struct memory_map {
+struct initmem_info {
   uint32_t limit;
-  struct memory_map_group* memory;
-  struct memory_map_group* reserved;
+  struct initmem_group* memory;
+  struct initmem_group* reserved;
 };
 
 /*
@@ -115,7 +115,7 @@ const extern uint32_t* interrupts_end;
 const extern uint32_t* bss_begin;
 const extern uint32_t* bss_end;
 
-extern struct memory_map memory_map;
+extern struct initmem_info initmem_info;
 extern struct memory_manager memory_manager;
 extern struct memory_bitmap phys_bitmaps;
 extern struct memory_bitmap virt_bitmap;
@@ -123,18 +123,18 @@ extern struct memory_page_info memory_page_infos;
 
 extern uint32_t high_memory;
 
-void init_memory_map();
-void init_memory_manager(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
-void init_bitmaps();
-void init_memory_alloc();
+void initmem_init();
+void memory_manager_init(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
+void bitmaps_init();
+void memory_alloc_init();
 
 void update_memory_map();
 
-void memory_map_mask_block(struct memory_map_block* block, int flag, int mask);
-void memory_map_merge_blocks(struct memory_map_group* group, int begin, int end);
-void memory_map_insert_block(struct memory_map_group* group, int pos, uint32_t begin, uint32_t size);
-void memory_map_add_block(struct memory_map_group* group, uint32_t begin, uint32_t size);
-int memory_map_split_block(struct memory_map_group* group, uint32_t begin);
+void initmem_mask_block(struct initmem_block* block, int flag, int mask);
+void initmem_merge_blocks(struct initmem_group* group, int begin, int end);
+void initmem_insert_block(struct initmem_group* group, int pos, uint32_t begin, uint32_t size);
+void initmem_add_block(struct initmem_group* group, uint32_t begin, uint32_t size);
+int initmem_split_block(struct initmem_group* group, uint32_t begin);
 
 size_t bitmap_index(const struct memory_bitmap* bitmap, uint32_t addr);
 size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint32_t addr);
@@ -145,9 +145,9 @@ void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count);
 void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count);
 void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, size_t align, size_t gap);
 
-void* memory_map_phys_alloc(size_t size);
-void* memory_map_alloc(size_t size);
-int memory_map_free(void* ptr);
+void* initmem_phys_alloc(size_t size);
+void* initmem_alloc(size_t size);
+int initmem_free(void* ptr);
 
 void* memory_page_alloc(size_t count);
 void* memory_block_alloc(size_t size);
