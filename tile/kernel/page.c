@@ -171,8 +171,6 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
     }
   }
 
-  bitmap_insert(&virt_bitmap, v_addr, size / PAGE_SIZE);
-
   return (void*)v_addr;
 }
 

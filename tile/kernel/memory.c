@@ -9,8 +9,8 @@
   deals with memory groups which are abstractions of memory. It's heavily
   inspired by Linux's boot time memory management and memblock allocator.
 
-  The primary memory allocator is a first-fit allocator. It uses page bitmaps
-  for backing memory. These pages serve as the foundation for further, more
+  The primary memory allocator is a first-fit allocator. It uses pages for
+  backing memory. These pages serve as the foundation for further, more
   granular allocations to be made on top of.
 
   Both memory allocators deal with memory blocks which represent contiguous
@@ -32,10 +32,7 @@ struct initmem_info initmem_info;
 
 struct memory_manager memory_manager;
 
-struct memory_bitmap phys_bitmaps;
-
-static uint32_t virt_bitmap_data[VIRT_BITMAP_SIZE];
-struct memory_bitmap virt_bitmap;
+struct page_group* page_groups;
 
 struct memory_page_info memory_page_infos;
 
@@ -48,8 +45,8 @@ void initmem_init() {
   /*
     We initialize the kernel's initial memory allocator using the system's
     memory map; and the kernel's memory map from the linker. Eventually we
-    won't need this memory map, we just need it now to allocate the physical
-    page bitmaps.
+    won't need this memory allocator, we just need it now to allocate the page
+    groups.
   */
   initmem_memory_group.size = 0;
   initmem_memory_group.blocks = initmem_memory_blocks;
@@ -80,73 +77,6 @@ void memory_manager_init(void* pgd, void* text_begin, void* text_end, void* data
   memory_manager.bss_end = (uint32_t)bss_end;
 }
 
-/*
-  init_bitmaps initializes the physical and virtual page bitmaps. The physical
-  page bitmap is initialized using the memory map, and the virtual page bitmap
-  is initialized using the physical page bitmap.
-*/
-void bitmaps_init() {
-  struct memory_bitmap* curr = &phys_bitmaps;
-
-  virt_bitmap.data = virt_bitmap_data;
-  virt_bitmap.size = VIRT_BITMAP_SIZE;
-  virt_bitmap.offset = 0;
-  virt_bitmap.next = NULL;
-
-  /*
-    For each memory block in the initial memory map's memory group, we allocate
-    a physical page bitmap to map that memory block.
-  */
-  for (size_t i = 0; i < initmem_info.memory->size; ++i) {
-    if (!curr) {
-      curr = initmem_alloc(sizeof(struct memory_bitmap));
-    }
-
-    curr->size = initmem_info.memory->blocks[i].size / PAGE_SIZE / 32;
-    curr->data = initmem_alloc(curr->size * sizeof(uint32_t));
-    curr->offset = initmem_info.memory->blocks[i].begin;
-
-    for (size_t j = 0; j < curr->size; ++j) {
-      curr->data[j] = 0;
-    }
-
-    curr = curr->next;
-  }
-
-  curr = &phys_bitmaps;
-
-  /*
-    For each memory block in the initial memory map's reserved group, we
-    reserve that memory block in the appropriate physical page bitmap.
-  */
-  for (size_t i = 0; i < initmem_info.reserved->size; ++i) {
-    while (initmem_info.reserved->blocks[i].begin > bitmap_end_addr(curr)) {
-      curr = curr->next;
-    }
-
-    bitmap_insert(curr, initmem_info.reserved->blocks[i].begin, initmem_info.reserved->blocks[i].size / PAGE_SIZE);
-  }
-
-  /* Clear all the pages in the virtual bitmap. */
-  for (size_t i = 0; i < virt_bitmap.size; ++i) {
-    virt_bitmap.data[i] = 0;
-  }
-
-  curr = &phys_bitmaps;
-
-  /* Reserve virtual bitmap entries which are reserved in the physical bitmap. */
-  while (curr) {
-    for (size_t i = 0; i < curr->size; ++i) {
-      for (size_t j = 0; j < 32; ++j) {
-        if (curr->data[i] & 1 << j) {
-          bitmap_insert(&virt_bitmap, phys_to_virt(bitmap_to_addr(&phys_bitmaps, i, j)), 1);
-        }
-      }
-    }
-
-    curr = curr->next;
-  }
-}
 
 /*
   update_memory_map iterates over the memory map and invalidates blocks for
@@ -192,6 +122,56 @@ void update_memory_map() {
   mem_init initializes the primary memory allocator.
 */
 void memory_alloc_init() {
+  struct initmem_block* block;
+  struct memory_page_info* page;
+  struct page_group* curr;
+  struct page_group* prev;
+
+  curr = NULL;
+  prev = NULL;
+
+  /*
+    For each memory block in the initial memory map's memory group, we allocate
+    a physical page page_group to map that memory block.
+  */
+  for (size_t i = 0; i < initmem_info.memory->size; ++i) {
+    block = &initmem_info.memory->blocks[i];
+    curr = initmem_alloc(sizeof(struct page_group));
+
+    if (!prev) {
+      page_groups = curr;
+    }
+    else {
+      prev->next = curr;
+    }
+
+    curr->pages = initmem_alloc((block->size >> PAGE_SHIFT) * sizeof(struct memory_page_info));
+    curr->size = block->size;
+    curr->offset = block->begin;
+    curr->next = NULL;
+
+    prev = curr;
+  }
+
+  curr = page_groups;
+
+  /*
+    For each memory block in the initial memory map's reserved group, we
+    reserve that memory block in the appropriate physical page page_group.
+  */
+  for (size_t i = 0; i < initmem_info.reserved->size; ++i) {
+    block = &initmem_info.reserved->blocks[i];
+
+    while (block->begin > page_group_end(curr)) {
+      curr = curr->next;
+    }
+
+    for (size_t j = page_group_index(curr, block->begin); j < page_group_index(curr, ALIGN(block->begin + block->size, PAGE_SIZE)); ++j) {
+      page = &curr->pages[j];
+      page->flags = PAGE_RESERVED;
+    }
+  }
+
   memory_page_infos.next = NULL;
   memory_page_infos.data = memory_page_data_alloc();
 }
@@ -319,48 +299,47 @@ int initmem_split_block(struct initmem_group* group, uint32_t begin) {
 }
 
 /*
-  bitmap_index returns the bitmap entry index for the address "addr" in the
-  bitmap "bitmap".
+  page_group_index returns the page group entry index for the address "addr" in
+  the page group "group".
 */
-size_t bitmap_index(const struct memory_bitmap* bitmap, uint32_t addr) {
-  return (addr - bitmap->offset) / PAGE_SIZE / 32;
+size_t page_group_index(const struct page_group* group, uint32_t addr) {
+  return page_index(addr - group->offset);
 }
 
 /*
-  bitmap_index_index returns the bit index for the address "addr" in a bitmap
-  entry in the bitmap "bitmap".
+  page_group_to_addr returns the page address from a page group entry index
+  "index" in the page group "group".
 */
-size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint32_t addr) {
-  return (addr - bitmap->offset) / PAGE_SIZE % 32;
+uint32_t page_group_addr(const struct page_group* group, uint32_t index) {
+  return page_addr(page_index(group->offset) + index);
 }
 
 /*
-  bitmap_to_addr returns the address from a bitmap entry index "i" and a bit
-  index "j" in the bitmap "bitmap".
+  page_group_end_addr returns the upper address bound which the page group
+  "group" contains.
 */
-uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j) {
-  return bitmap->offset + (i * PAGE_SIZE * 32 + PAGE_SIZE * j);
+uint32_t page_group_end(const struct page_group* group) {
+  return group->offset + group->size - 1;
 }
 
 /*
-  bitmap_end_addr returns the upper address bound which the bitmap "bitmap"
-  contains.
+  page_group_get returns the page information from a page group "group" and a
+  page address "addr".
 */
-uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap) {
-  return bitmap->offset + bitmap->size * PAGE_SIZE * 32 - 1;
+struct memory_page_info* page_group_get(const struct page_group* group, uint32_t addr) {
+  return &group->pages[page_group_index(group, addr)];
 }
 
 /*
-  bitmap_addr_is_free returns true if "count" contiguous pages are free from
-  the address "addr" in the bitmap "bitmap".
+  page_group_addr_is_free returns true if "count" contiguous pages are free
+  from the address "addr" in the page group "group".
 */
-int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
-  if (addr >= bitmap->offset && addr + count * PAGE_SIZE <= bitmap_end_addr(bitmap)) {
+int page_group_is_free(const struct page_group* group, uint32_t addr, size_t count) {
+  if (addr >= group->offset && addr + count * PAGE_SIZE <= page_group_end(group)) {
     int is_free = 1;
 
-    for (size_t i = 0; i < count; ++i) {
-      addr += i * PAGE_SIZE;
-      is_free &= !(bitmap->data[bitmap_index(bitmap, addr)] & (1 << bitmap_index_index(bitmap, addr)));
+    for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
+      is_free &= !(page_group_get(group, addr)->flags & PAGE_RESERVED);
 
       if (!is_free) {
         return 0;
@@ -373,59 +352,49 @@ int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_
 }
 
 /*
-  bitmap_insert inserts "count" contiguous pages from the address "addr" in the
-  bitmap "bitmap".
+  page_group_insert inserts "count" contiguous pages from the address "addr" in the
+  page group "page_group".
 */
-void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
-  size_t begin_index = bitmap_index(bitmap, addr);
-  size_t begin_index_index = bitmap_index_index(bitmap, addr);
-
-  for (size_t i = begin_index, j = begin_index_index; j < begin_index_index + count; ++j) {
-    if (j > 0 && j % 32 == 0) {
-      ++i;
-    }
-
-    bitmap->data[i] |= 1 << j % 32;
+void page_group_insert(struct page_group* group, uint32_t addr, size_t count) {
+  for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
+    page_group_get(group, addr)->flags |= PAGE_RESERVED;
   }
 }
 
 /*
-  bitmap_clear clears "count" contiguous pages from the address "addr" in the
-  bitmap "bitmap".
+  page_group_clear unreserves "count" contiguous pages from the address "addr"
+  in the page group "page_group".
 */
-void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count) {
-  for (size_t i = 0; i < count; ++i) {
-    addr += i * PAGE_SIZE;
-    bitmap->data[bitmap_index(bitmap, addr)] &= ~(1 << bitmap_index_index(bitmap, addr));
+void page_group_clear(struct page_group* group, uint32_t addr, size_t count) {
+  for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
+    page_group_get(group, addr)->flags |= ~PAGE_RESERVED;
   }
 }
 
 /*
-  bitmap_alloc allocates "count" contiguous pages aligned to "align" pages with
-  "gap" free pages before it in the bitmap "bitmap" above "begin" and returns a
-  pointer to it.
+  page_group_alloc allocates "count" contiguous pages aligned to "align" pages
+  with "gap" free pages before it in the page group "group" above "begin" and
+  returns a pointer to it.
 */
-void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, size_t align, size_t gap) {
+void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, size_t align, size_t gap) {
   uint32_t addr;
-  uint32_t gap_size = gap * PAGE_SIZE;
+  uint32_t gap_size = gap << PAGE_SHIFT;
 
-  while (bitmap) {
-    for (size_t i = bitmap_index(bitmap, begin + gap_size); i < bitmap->size; ++i) {
-      for (size_t j = bitmap_index_index(bitmap, begin + gap_size); j < 32; ++j) {
-        addr = bitmap_to_addr(bitmap, i, j);
+  while (group) {
+    for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
+      addr = page_group_addr(group, i);
 
-        /*
-          The page is aligned to "align" pages and it has "gap" free pages
-          before it.
-        */
-        if (addr % (align * PAGE_SIZE) == 0 && bitmap_addr_is_free(bitmap, addr - gap_size, count)) {
-          bitmap_insert(bitmap, addr, count);
-          return (void*)addr;
-        }
+      /*
+        The page is aligned to "align" pages and it has "gap" free pages
+        before it.
+      */
+      if (addr % (align << PAGE_SHIFT) == 0 && page_group_is_free(group, addr - gap_size, count)) {
+        page_group_insert(group, addr, count);
+        return (void*)addr;
       }
     }
 
-    bitmap = bitmap->next;
+    group = group->next;
   }
 
   return NULL;
@@ -531,8 +500,8 @@ void* memory_page_alloc(size_t count) {
     Make sure that the page has a free page before it to store page information
     inside.
   */
-  data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, count, count, 1);
-  bitmap_insert(&virt_bitmap, (uint32_t)data - PAGE_SIZE, 1);
+  data = (void*)phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, count, count, 1));
+  page_group_insert(page_groups, virt_to_phys((uint32_t)data) - PAGE_SIZE, 1);
 
   if (!data) {
     return NULL;
@@ -621,7 +590,7 @@ void* memory_block_alloc(size_t size) {
     return ret;
   }
 
-  bitmap_clear(&virt_bitmap, (uint32_t)tmp.data, 1);
+  page_group_clear(page_groups, virt_to_phys((uint32_t)tmp.data), 1);
   memory_free(curr->next);
   curr->next = NULL;
   return NULL;
@@ -632,7 +601,8 @@ void* memory_block_alloc(size_t size) {
   of a page used for memory allocation contains an empty memory map block.
 */
 void* memory_page_data_alloc() {
-  void* data = bitmap_alloc(&virt_bitmap, VIRT_OFFSET, 1, 1, 0);
+  void* data = (void*)(phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
+
   struct initmem_block block = {
     sizeof(struct initmem_block),
     0,
@@ -744,7 +714,7 @@ int memory_free(void* ptr) {
 
   /* Handle memory allocated by the page allocator. */
   if (block->size > PAGE_SIZE - sizeof(struct initmem_block)) {
-    bitmap_clear(&virt_bitmap, (uint32_t)block->begin, block->size / PAGE_SIZE);
+    page_group_clear(page_groups, virt_to_phys((uint32_t)block->begin), block->size >> PAGE_SHIFT);
   }
 
   return 1;

@@ -8,18 +8,19 @@
 
 #define MEMORY_MAP_GROUP_LENGTH 128
 
-#define VIRT_BITMAP_SIZE (VADDR_SPACE_SIZE / PAGE_SIZE / 32)
-
 /*
   virt_to_phys returns a physical address from a virtual address "x".
 */
 #define virt_to_phys(x) ((x) - (VIRT_OFFSET - PHYS_OFFSET))
-#define page_count(x) ((x - 1) / PAGE_SIZE + 1)
 
 /*
   phys_to_virt returns a virtual address from a physical address "x".
 */
 #define phys_to_virt(x) ((x) + (VIRT_OFFSET - PHYS_OFFSET))
+
+#define page_count(x) ((x - 1) / PAGE_SIZE + 1)
+#define page_index(x) ((x) >> PAGE_SHIFT)
+#define page_addr(x) ((x) << PAGE_SHIFT)
 
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
@@ -69,17 +70,9 @@ struct initmem_info {
   struct initmem_group* reserved;
 };
 
-/*
-  struct memory_bitmap represents a page bitmap. Page bitmaps are linked into a
-  linked list with successive elements mapping higher addresses. Each page
-  bitmap contains the underlying bitmap data "data"; its size "size"; the first
-  address "offset"; and a pointer to the next page bitmap "next".
-*/
-struct memory_bitmap {
-  uint32_t* data;
-  uint32_t size;
-  uint32_t offset;
-  struct memory_bitmap* next;
+enum memory_page_flags {
+  PAGE_NONE = 0x0,
+  PAGE_RESERVED = 0x1
 };
 
 /*
@@ -87,8 +80,22 @@ struct memory_bitmap {
   allocation.
 */
 struct memory_page_info {
+  int flags;
   void* data;
   struct memory_page_info* next;
+};
+
+/*
+  struct page_group represents a group of pages. Page groups are linked into a
+  linked list with successive elements mapping higher addresses. Each page
+  group contains the underlying page information data "pages"; its size "size";
+  the first address "offset"; and a pointer to the next page group "next".
+*/
+struct page_group {
+  struct memory_page_info* pages;
+  uint32_t size;
+  uint32_t offset;
+  struct page_group* next;
 };
 
 /*
@@ -117,15 +124,15 @@ const extern uint32_t* bss_end;
 
 extern struct initmem_info initmem_info;
 extern struct memory_manager memory_manager;
-extern struct memory_bitmap phys_bitmaps;
-extern struct memory_bitmap virt_bitmap;
 extern struct memory_page_info memory_page_infos;
+
+extern struct page_group* page_groups;
+extern struct memory_page_info* memory_pages;
 
 extern uint32_t high_memory;
 
 void initmem_init();
 void memory_manager_init(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
-void bitmaps_init();
 void memory_alloc_init();
 
 void update_memory_map();
@@ -136,14 +143,14 @@ void initmem_insert_block(struct initmem_group* group, int pos, uint32_t begin, 
 void initmem_add_block(struct initmem_group* group, uint32_t begin, uint32_t size);
 int initmem_split_block(struct initmem_group* group, uint32_t begin);
 
-size_t bitmap_index(const struct memory_bitmap* bitmap, uint32_t addr);
-size_t bitmap_index_index(const struct memory_bitmap* bitmap, uint32_t addr);
-uint32_t bitmap_to_addr(const struct memory_bitmap* bitmap, size_t i, size_t j);
-uint32_t bitmap_end_addr(const struct memory_bitmap* bitmap);
-int bitmap_addr_is_free(const struct memory_bitmap* bitmap, uint32_t addr, size_t count);
-void bitmap_insert(struct memory_bitmap* bitmap, uint32_t addr, size_t count);
-void bitmap_clear(struct memory_bitmap* bitmap, uint32_t addr, size_t count);
-void* bitmap_alloc(struct memory_bitmap* bitmap, uint32_t begin, size_t count, size_t align, size_t gap);
+size_t page_group_index(const struct page_group* group, uint32_t addr);
+uint32_t page_group_addr(const struct page_group* group, uint32_t index);
+uint32_t page_group_end(const struct page_group* group);
+struct memory_page_info* page_group_get(const struct page_group* group, uint32_t addr);
+int page_group_is_free(const struct page_group* group, uint32_t addr, size_t count);
+void page_group_insert(struct page_group* group, uint32_t addr, size_t count);
+void page_group_clear(struct page_group* group, uint32_t addr, size_t count);
+void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, size_t align, size_t gap);
 
 void* initmem_phys_alloc(size_t size);
 void* initmem_alloc(size_t size);
