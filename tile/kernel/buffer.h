@@ -16,12 +16,6 @@ struct buffer_info {
 */
 extern struct list_link buffers_head;
 
-/*
-  "free_buffer_infos" is a doubly linked list which stores the buffer
-  information in "buffer_info_pool" which are not being used.
-*/
-extern struct buffer_info free_buffer_infos;
-
 void buffer_init();
 
 struct buffer_info* buffer_get(uint32_t num);
