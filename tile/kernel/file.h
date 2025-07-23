@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <kernel/asm/file.h>
+#include <kernel/list.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -148,6 +149,7 @@ struct file_info_int {
   int status;
   struct file_info_int* next;
   struct file_info_int* prev;
+  struct list_link link;
 };
 
 /*
@@ -175,21 +177,9 @@ extern const char* parent_directory;
 extern struct filesystem_info filesystem_info;
 
 /*
-  "file_info_pool" is a pool for internal file information. It is the memory
-  backing all internal file information read from secondary memory.
+  "files_head" is the head node of the internal file information list.
 */
-extern struct file_info_int file_info_pool[FILE_INFO_CACHE_SIZE];
-
-/*
-  "file_infos" is a cache for internal file information.
-*/
-extern struct file_info_int file_infos;
-
-/*
-  "free_file_infos" is a doubly linked list which stores the internal file
-  information in "file_info_pool" which are not being used.
-*/
-extern struct file_info_int free_file_infos;
+extern struct list_link files_head;
 
 void filesystem_init();
 void filesystem_put();
@@ -220,10 +210,6 @@ char* normalize_pathname(char* pathname);
 
 struct file_info_int* file_get(uint32_t file_info_num);
 void file_put(struct file_info_int* file_info);
-
-void file_push(struct file_info_int* list, struct file_info_int* file_info);
-struct file_info_int* file_pop(struct file_info_int* list);
-void file_remove(struct file_info_int* list, struct file_info_int* file_info);
 
 struct file_info_int* file_alloc();
 void file_free(const struct file_info_int* file_info);

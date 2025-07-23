@@ -26,6 +26,7 @@
 
 #include <kernel/file.h>
 #include <kernel/buffer.h>
+#include <kernel/list.h>
 #include <kernel/memory.h>
 #include <kernel/process.h>
 #include <lib/string.h>
@@ -36,8 +37,8 @@ const char* parent_directory = "..";
 
 struct filesystem_info filesystem_info;
 struct file_info_int file_info_pool[FILE_INFO_CACHE_SIZE];
-struct file_info_int file_infos;
-struct file_info_int free_file_infos;
+
+struct list_link files_head;
 
 /*
   filesystem_init initializes the filesystem and the relevant structures used
@@ -61,27 +62,9 @@ void filesystem_init() {
   filesystem_info = *(struct filesystem_info*)buffer_info->data;
 
   /*
-    Initialize the free file information list.
+    Initialize the file information list.
   */
-  file_infos.next = &file_infos;
-  file_infos.prev = &file_infos;
-
-  free_file_infos.next = &file_info_pool[0];
-  free_file_infos.prev = &file_info_pool[FILE_INFO_CACHE_SIZE - 1];
-
-  curr = free_file_infos.next;
-
-  for (size_t i = 0; i < FILE_INFO_CACHE_SIZE; ++i) {
-    if (i == FILE_INFO_CACHE_SIZE - 1) {
-      curr->next = &free_file_infos;
-    }
-    else {
-      curr->next = &file_info_pool[i + 1];
-    }
-
-    curr->prev = &file_info_pool[i - 1];
-    curr = curr->next;
-  }
+  list_init(&files_head);
 }
 
 /*
@@ -89,14 +72,19 @@ void filesystem_init() {
   filesystem.
 */
 void filesystem_put() {
-  struct file_info_int* file = file_infos.next;
+  struct list_link* curr;
+  struct list_link* next;
+  struct file_info_int* file;
   struct buffer_info* buffer;
 
-  while (file != &file_infos) {
-    struct file_info_int* file_next = file->next;
+  curr = files_head.next;
+
+  while (curr != &files_head) {
+    next = curr->next;
+    file = list_data(curr, struct file_info_int, link);
 
     file_put(file);
-    file = file_next;
+    curr = next;
   }
 
   /*
@@ -105,13 +93,14 @@ void filesystem_put() {
   buffer = buffer_get(0);
   *(struct filesystem_info*)buffer->data = filesystem_info;
 
-  buffer = buffer_infos.next;
+  curr = buffers_head.next;
 
-  while (buffer != &buffer_infos) {
-    struct buffer_info* buffer_next = buffer->next;
+  while (curr != &buffers_head) {
+    next = curr->next;
+    buffer = list_data(curr, struct buffer_info, link);
 
     buffer_put(buffer);
-    buffer = buffer_next;
+    curr = next;
   }
 }
 
@@ -751,26 +740,34 @@ char* normalize_pathname(char* pathname) {
   free internal file information.
 */
 struct file_info_int* file_get(uint32_t file_info_num) {
-  struct file_info_int* curr = file_infos.next;
-  struct filesystem_addr addr = file_to_addr(file_info_num);
-  struct buffer_info* buffer_info = buffer_get(addr.num);
+  struct list_link* curr;
+  struct filesystem_addr addr;
+  struct file_info_int* file;
+  struct buffer_info* buffer;
 
-  if (!buffer_info) {
+  curr = files_head.next;
+  addr = file_to_addr(file_info_num);
+  buffer = buffer_get(addr.num);
+
+  if (!buffer) {
     return NULL;
   }
 
-  while (curr != &file_infos) {
-    if (curr->ext.num == file_info_num) {
-      return curr;
+  while (curr != &files_head) {
+    file = list_data(curr, struct file_info_int, link);
+
+    if (file->ext.num == file_info_num) {
+      return file;
     }
 
     curr = curr->next;
   }
 
-  curr = file_pop(&free_file_infos);
-  curr->ext = *(struct file_info_ext*)(buffer_info->data + addr.offset);
-  file_push(&file_infos, curr);
-  return curr;
+  file = memory_alloc(sizeof(struct file_info_int));
+  file->ext = *(struct file_info_ext*)(buffer->data + addr.offset);
+  list_push(&files_head, &file->link);
+
+  return file;
 }
 
 
@@ -779,53 +776,16 @@ struct file_info_int* file_get(uint32_t file_info_num) {
   information "file_info" to the SD card.
 */
 void file_put(struct file_info_int* file_info) {
-  struct filesystem_addr addr = file_to_addr(file_info->ext.num);
-  struct buffer_info* buffer = buffer_get(addr.num);
+  struct filesystem_addr addr;
+  struct buffer_info* buffer;
+
+  addr = file_to_addr(file_info->ext.num);
+  buffer = buffer_get(addr.num);
 
   memcpy(buffer->data + addr.offset, &file_info->ext, sizeof(struct file_info_ext));
   buffer_put(buffer);
-  file_remove(&file_infos, file_info);
-  file_push(&free_file_infos, file_info);
-}
-
-/*
-  file_push adds an element "file_info" to the free file information list
-  "list".
-*/
-void file_push(struct file_info_int* list, struct file_info_int* file_info) {
-  file_info->next = list->next;
-  file_info->prev = list;
-  list->next->prev = file_info;
-  list->next = file_info;
-}
-
-/*
-  file_pop removes the first element of the free file information list "list"
-  and returns it.
-*/
-struct file_info_int* file_pop(struct file_info_int* list) {
-  struct file_info_int* ret = list->next;
-
-  if (ret == list) {
-    return NULL;
-  }
-
-  list->next = ret->next;
-  ret->next->prev = list;
-  return ret;
-}
-
-/*
-  file_remove removes the internal file information "file_info" from the
-  internal file information list "list".
-*/
-void file_remove(struct file_info_int* list, struct file_info_int* file_info) {
-  if (list == file_info || list->next == list) {
-    return;
-  }
-
-  file_info->next->prev = file_info->prev;
-  file_info->prev->next = file_info->next;
+  list_remove(&files_head, &file_info->link);
+  memory_free(file_info);
 }
 
 /*

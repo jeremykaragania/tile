@@ -2,21 +2,19 @@
 #define BUFFER_H
 
 #include <stdint.h>
-
-#define BUFFER_INFO_POOL_SIZE 32
+#include <kernel/list.h>
 
 struct buffer_info {
   uint32_t num;
   int status;
   char* data;
-  struct buffer_info* next;
-  struct buffer_info* prev;
+  struct list_link link;
 };
 
 /*
-  "buffer_infos" is a cache for buffer information.
+  "buffers_head" is the head node of the buffer information list.
 */
-extern struct buffer_info buffer_infos;
+extern struct list_link buffers_head;
 
 /*
   "free_buffer_infos" is a doubly linked list which stores the buffer
@@ -28,11 +26,6 @@ void buffer_init();
 
 struct buffer_info* buffer_get(uint32_t num);
 void buffer_put(struct buffer_info* buffer_info);
-
 void buffer_write(struct buffer_info* buffer_info);
-
-void buffer_push(struct buffer_info* list, struct buffer_info* buffer_info);
-struct buffer_info* buffer_pop(struct buffer_info* list);
-void buffer_remove(struct buffer_info* list, struct buffer_info* buffer_info);
 
 #endif
