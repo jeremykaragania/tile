@@ -2,9 +2,9 @@
 #define PROCESS_H
 
 #include <kernel/processor.h>
+#include <kernel/list.h>
 #include <stdint.h>
 
-#define PROCESS_POOL_SIZE 32
 #define STACK_END_MAGIC 0x57ac6e9d
 
 #define current current_process()
@@ -42,15 +42,14 @@ struct process_info {
   uint32_t* pgd;
   struct processor_registers reg;
   void* stack;
-  struct process_info* prev;
-  struct process_info* next;
+  struct list_link link;
 };
 
 extern void* init_process_begin;
 extern void* init_process_end;
 extern void* init_process_stack;
 
-extern struct process_info process_infos;
+extern struct list_link processes_head;
 extern int process_num_count;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
@@ -72,8 +71,5 @@ void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();
 struct processor_registers* current_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
-
-void process_push(struct process_info* proc);
-void process_remove(struct process_info* proc);
 
 #endif

@@ -8,6 +8,7 @@
 #include <kernel/interrupts.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
+#include <kernel/list.h>
 #include <kernel/page.h>
 #include <kernel/process.h>
 #include <kernel/schedule.h>
@@ -33,6 +34,9 @@ void init_processes() {
     NULL
   };
 
+  list_init(&processes_head);
+  list_push(&processes_head, &init_process.link);
+
   process_clone(PT_KERNEL, &user);
   process_clone(PT_KERNEL, &kernel);
 }
@@ -45,7 +49,6 @@ void start_kernel() {
   set_process_stack_end_token(&init_process);
   memory_manager_init((uint32_t*)phys_to_virt(PG_DIR_PADDR), &text_begin, &text_end, &data_begin, &data_end, &bss_begin, &bss_end);
   initmem_init();
-  bitmaps_init();
   update_memory_map();
   memory_alloc_init();
   init_paging();

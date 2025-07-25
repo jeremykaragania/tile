@@ -3,11 +3,7 @@
 #include <kernel/file.h>
 #include <kernel/memory.h>
 
-struct process_info process_infos = {
-  .num = -1,
-  .prev = &init_process,
-  .next = &init_process
-};
+struct list_link processes_head;
 
 int process_num_count;
 
@@ -21,8 +17,7 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   {0,},
   &init_process_stack,
-  &process_infos,
-  &process_infos
+  {NULL, NULL},
 };
 
 /*
@@ -51,7 +46,7 @@ int process_clone(int type, struct function_info* func) {
   proc->type = type;
   function_to_process(proc, func);
 
-  process_push(proc);
+  list_push(&processes_head, &proc->link);
 
   proc->stack = proc + 1;
   proc->reg.sp = (uint32_t)proc + THREAD_SIZE - 8;
@@ -111,24 +106,4 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
   proc->reg.lr = (uint32_t)process_ret;
   proc->reg.pc = (uint32_t)func->ptr;
   proc->reg.cpsr = PM_SVC;
-}
-
-/*
-  process_push adds the process information "proc" the process information
-  list.
-*/
-void process_push(struct process_info* proc) {
-  proc->next = process_infos.next;
-  proc->prev = &process_infos;
-  process_infos.next->prev = proc;
-  process_infos.next = proc;
-}
-
-/*
-  process_remove removes the process information "proc" from the process
-  information list.
-*/
-void process_remove(struct process_info* proc) {
-  proc->next->prev = proc->prev;
-  proc->prev->next = proc->next;
 }

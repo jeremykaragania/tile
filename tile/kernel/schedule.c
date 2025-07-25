@@ -1,4 +1,5 @@
 #include <kernel/schedule.h>
+#include <kernel/list.h>
 
 struct process_info* schedule_queue[SCHEDULE_QUEUE_SIZE];
 
@@ -14,11 +15,16 @@ void schedule_init() {
   it.
 */
 void schedule() {
-  struct process_info* next = current->next;
+  struct list_link* next;
+  struct process_info* proc;
 
-  if (next == &process_infos) {
+  next = current->link.next;
+
+  if (next == &processes_head) {
     next = next->next;
   }
 
-  context_switch(&current->reg, &next->reg);
+  proc = list_data(next, struct process_info, link);
+
+  context_switch(&current->reg, &proc->reg);
 }
