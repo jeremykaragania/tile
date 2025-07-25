@@ -22,6 +22,7 @@
 #include <drivers/pl180.h>
 #include <drivers/sp804.h>
 #include <kernel/memory.h>
+#include <lib/string.h>
 #include <limits.h>
 
 /*
@@ -310,6 +311,29 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
   }
 
   return NULL;
+}
+
+
+/*
+  create_pgd creates a new page global directory and copies the kernel mappings
+  into it since they must remain present in all processes.
+*/
+void* create_pgd() {
+  uint32_t* pgd;
+  uint32_t* init_pgd;
+  uint32_t pgd_virt_offset;
+
+  init_pgd = memory_manager.pgd;
+  pgd = memory_alloc(PG_DIR_SIZE);
+  pgd_virt_offset = (uint32_t)addr_to_pmd(pgd, VIRT_OFFSET) - (uint32_t)pgd;
+
+  /* Zero out the userspace entries in the new PGD. */
+  memset(pgd, 0, pgd_virt_offset);
+
+  /* Copy the kernelspace entries from the initial PGD into the new PGD. */
+  memcpy((void*)((uint32_t)pgd + pgd_virt_offset), (void*)((uint32_t)init_pgd + pgd_virt_offset), PG_DIR_SIZE - pgd_virt_offset);
+
+  return pgd;
 }
 
 /*
