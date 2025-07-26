@@ -9,6 +9,7 @@
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
 
 extern void invalidate_entire_tlb();
+extern void set_pgd(uint32_t* pgd);
 
 void init_paging();
 void init_pgd();
