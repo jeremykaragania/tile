@@ -1,5 +1,6 @@
 #include <kernel/schedule.h>
 #include <kernel/list.h>
+#include <kernel/page.h>
 
 struct process_info* schedule_queue[SCHEDULE_QUEUE_SIZE];
 
@@ -25,6 +26,10 @@ void schedule() {
   }
 
   proc = list_data(next, struct process_info, link);
+
+  if (current->pgd != proc->pgd) {
+    set_pgd(proc->pgd);
+  }
 
   context_switch(&current->reg, &proc->reg);
 }
