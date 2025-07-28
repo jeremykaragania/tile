@@ -3,6 +3,7 @@
 #include <drivers/sp804.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
+#include <kernel/schedule.h>
 
 /*
   do_reset handles the reset exception.
@@ -54,6 +55,7 @@ void do_irq_interrupt() {
   /* Signal interrupt processing completion. */
   gicc->eoi = ia;
   gic_enable_interrupt(ia);
+  schedule();
 }
 
 /*
