@@ -2,6 +2,7 @@
 #include <kernel/asm/memory.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
+#include <kernel/page.h>
 
 struct list_link processes_head;
 
@@ -41,6 +42,10 @@ int process_clone(int type, struct function_info* func) {
   *proc = *current;
 
   num = get_process_number();
+
+  if (type == PT_USER) {
+    proc->pgd = create_pgd();
+  }
 
   proc->num = num;
   proc->type = type;
