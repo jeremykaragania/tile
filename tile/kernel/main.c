@@ -34,9 +34,6 @@ void init_processes() {
     NULL
   };
 
-  list_init(&processes_head);
-  list_push(&processes_head, &init_process.link);
-
   process_clone(PT_KERNEL, &user);
   process_clone(PT_KERNEL, &kernel);
 }
