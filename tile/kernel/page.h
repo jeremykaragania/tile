@@ -1,12 +1,22 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
+
+/*
+  struct page_region represents a region of virtual pages.
+*/
+struct page_region {
+  uint64_t begin;
+  size_t count;
+  struct list_link* link;
+};
 
 extern void invalidate_entire_tlb();
 extern void set_pgd(uint32_t* pgd);
