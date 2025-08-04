@@ -1,6 +1,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <kernel/list.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -10,13 +11,17 @@
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
 
 /*
-  struct page_region represents a region of virtual pages.
+  struct page_region represents a region of virtual pages. It differs from a
+  struct page group as the pages it tracks are sparse not individual pages
+  themselves.
 */
 struct page_region {
   uint64_t begin;
   size_t count;
-  struct list_link* link;
+  struct list_link link;
 };
+
+extern struct list_link pages_head;
 
 extern void invalidate_entire_tlb();
 extern void set_pgd(uint32_t* pgd);
