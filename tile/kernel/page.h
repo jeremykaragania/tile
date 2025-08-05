@@ -9,6 +9,7 @@
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
+#define page_region_end(region) (region->begin + PAGE_SIZE * region->count)
 
 /*
   struct page_region represents a region of virtual pages. It differs from a
@@ -16,7 +17,7 @@
   themselves.
 */
 struct page_region {
-  uint64_t begin;
+  uint32_t begin;
   size_t count;
   struct list_link link;
 };
@@ -55,5 +56,8 @@ void* create_pgd();
 uint32_t create_pmd_section(uint32_t p_addr, int flags);
 uint32_t create_pmd_page_table(uint32_t* page_table);
 uint32_t create_pte(uint32_t p_addr, int flags);
+
+void insert_page_region(struct list_link* head, struct page_region* region);
+struct page_region* find_page_region(struct list_link* head, uint32_t addr);
 
 #endif

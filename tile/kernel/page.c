@@ -178,8 +178,9 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
 
   region = memory_alloc(sizeof(struct page_region));
   region->begin = v_addr;
-  region->count = page_index(size);
-  list_push(&pages_head, &region->link);
+  region->count = page_count(size);
+  region->flags = flags;
+  insert_page_region(&pages_head, region);
 
   return (void*)v_addr;
 }
@@ -408,4 +409,50 @@ uint32_t create_pte(uint32_t p_addr, int flags) {
   }
 
   return pte;
+}
+
+/*
+  insert_page_region inserts a page region in the page region list with head
+  "head" while preserving a page region address ordering.
+*/
+void insert_page_region(struct list_link* head, struct page_region* region) {
+  struct list_link* curr = head->next;
+  uint32_t region_end = page_region_end(region);
+  struct page_region* curr_region;
+
+  while(curr != head) {
+    curr_region = list_data(curr, struct page_region, link);
+
+    if (curr_region->begin > region_end || (region_end == curr_region->begin && region->begin < curr_region->begin)) {
+      list_push(curr->prev, &region->link);
+      return;
+    }
+
+    curr = curr->next;
+  }
+
+  list_push(head->prev, &region->link);
+}
+
+/*
+  find_page region returns the page region which the virtual address "addr" is
+  inside. If "addr" is inside no page region, then NULL is returned.
+*/
+struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
+  struct list_link* curr = pages_head.next;
+  struct page_region* region;
+  uint32_t region_end;
+
+  while (curr != &pages_head) {
+    region = list_data(curr, struct page_region, link);
+    region_end = page_region_end(region);
+
+    if (addr >= region->begin || addr < region_end) {
+      return region;
+    }
+
+    curr = curr->next;
+  }
+
+  return NULL;
 }
