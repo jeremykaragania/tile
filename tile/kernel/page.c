@@ -123,6 +123,7 @@ void map_smc() {
 void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   uint32_t* pmd;
   uint32_t pmd_addr;
+  uint32_t insert_count;
   uint32_t* insert_pmd;
   uint32_t* page_table;
   uint32_t pmd_page_table;
@@ -156,8 +157,15 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
         }
       }
 
+      if (i + PMD_SIZE > v_addr + size) {
+        insert_count = v_addr + size - i;
+      }
+      else {
+        insert_count = PMD_SIZE;
+      }
+
       /* We either insert into the new page table or the existing one. */
-      for (uint32_t k = i; k < v_addr + size; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
+      for (uint32_t k = i; k < i + insert_count; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
         pmd_insert(insert_pmd, k, p_addr, flags);
       }
 
