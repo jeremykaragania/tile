@@ -157,7 +157,7 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
         }
       }
 
-      if (i + PMD_SIZE > v_addr + size) {
+      if (i + PMD_SIZE > v_addr + size || i + PMD_SIZE < i) {
         insert_count = v_addr + size - i;
       }
       else {
