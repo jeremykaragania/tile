@@ -20,6 +20,7 @@
 */
 
 #include <kernel/memory.h>
+#include <kernel/process.h>
 #include <lib/string.h>
 
 static struct initmem_block initmem_memory_blocks[MEMORY_MAP_GROUP_LENGTH];
@@ -29,8 +30,6 @@ static struct initmem_block initmem_reserved_blocks[MEMORY_MAP_GROUP_LENGTH];
 static struct initmem_group initmem_reserved_group;
 
 struct initmem_info initmem_info;
-
-struct memory_manager memory_manager;
 
 struct page_group* page_groups;
 
@@ -42,6 +41,7 @@ uint32_t high_memory;
   initmem_init initializes the initial memory allocator.
 */
 void initmem_init() {
+  struct memory_info* mem = &init_process.mem;
   /*
     We initialize the kernel's initial memory allocator using the system's
     memory map; and the kernel's memory map from the linker. Eventually we
@@ -61,22 +61,8 @@ void initmem_init() {
   initmem_add_block(initmem_info.memory, KERNEL_SPACE_PADDR, 0x80000000);
   initmem_add_block(initmem_info.reserved, 0x80000000, 0x8000);
   initmem_add_block(initmem_info.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
-  initmem_add_block(initmem_info.reserved, virt_to_phys((uint32_t)&text_begin), (uint32_t)&bss_end - (uint32_t)&text_begin);
+  initmem_add_block(initmem_info.reserved, virt_to_phys(mem->text_begin), mem->bss_end - mem->text_begin);
 }
-
-/*
-  memory_manager_init initializes the kernel's memory manager.
-*/
-void memory_manager_init(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end) {
-  memory_manager.pgd = (uint32_t*)(uint32_t)pgd;
-  memory_manager.text_begin = (uint32_t)text_begin;
-  memory_manager.text_end = (uint32_t)text_end;
-  memory_manager.data_begin = (uint32_t)data_begin;
-  memory_manager.data_end = (uint32_t)data_end;
-  memory_manager.bss_begin = (uint32_t)bss_begin;
-  memory_manager.bss_end = (uint32_t)bss_end;
-}
-
 
 /*
   update_memory_map iterates over the memory map and invalidates blocks for

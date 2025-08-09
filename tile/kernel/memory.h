@@ -98,32 +98,7 @@ struct page_group {
   struct page_group* next;
 };
 
-/*
-  struct memory_manager represents the virtual memory information of a process.
-*/
-struct memory_manager {
-  uint32_t* pgd;
-  uint32_t text_begin;
-  uint32_t text_end;
-  uint32_t data_begin;
-  uint32_t data_end;
-  uint32_t bss_begin;
-  uint32_t bss_end;
-};
-
-const extern uint32_t* text_begin;
-const extern uint32_t* text_end;
-const extern uint32_t* data_begin;
-const extern uint32_t* data_end;
-const extern uint32_t* vector_table_begin;
-const extern uint32_t* vector_table_end;
-const extern uint32_t* interrupts_begin;
-const extern uint32_t* interrupts_end;
-const extern uint32_t* bss_begin;
-const extern uint32_t* bss_end;
-
 extern struct initmem_info initmem_info;
-extern struct memory_manager memory_manager;
 extern struct memory_page_info memory_page_infos;
 
 extern struct page_group* page_groups;
@@ -132,7 +107,6 @@ extern struct memory_page_info* memory_pages;
 extern uint32_t high_memory;
 
 void initmem_init();
-void memory_manager_init(void* pgd, void* text_begin, void* text_end, void* data_begin, void* data_end, void* bss_begin, void* bss_end);
 void memory_alloc_init();
 
 void update_memory_map();

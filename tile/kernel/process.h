@@ -30,6 +30,20 @@ enum process_type {
 };
 
 /*
+  struct memory_info represents the virtual memory information of a process.
+*/
+struct memory_info {
+  uint32_t* pgd;
+  struct list_link pages_head;
+  uint32_t text_begin;
+  uint32_t text_end;
+  uint32_t data_begin;
+  uint32_t data_end;
+  uint32_t bss_begin;
+  uint32_t bss_end;
+};
+
+/*
   struct process_info represents a process.
 */
 struct process_info {
@@ -39,11 +53,20 @@ struct process_info {
   int owner;
   uint32_t file_num;
   struct file_table_entry* file_tab;
-  uint32_t* pgd;
+  struct memory_info mem;
   struct processor_registers reg;
   void* stack;
   struct list_link link;
 };
+
+const extern uint32_t* text_begin;
+const extern uint32_t* text_end;
+const extern uint32_t* data_begin;
+const extern uint32_t* data_end;
+const extern uint32_t* interrupts_begin;
+const extern uint32_t* interrupts_end;
+const extern uint32_t* bss_begin;
+const extern uint32_t* bss_end;
 
 extern void* init_process_begin;
 extern void* init_process_end;

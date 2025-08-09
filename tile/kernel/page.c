@@ -22,10 +22,9 @@
 #include <drivers/pl180.h>
 #include <drivers/sp804.h>
 #include <kernel/memory.h>
+#include <kernel/process.h>
 #include <lib/string.h>
 #include <limits.h>
-
-struct list_link pages_head;
 
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
@@ -33,7 +32,7 @@ struct list_link pages_head;
   replaced with 4KB small pages where required.
 */
 void init_paging() {
-  list_init(&pages_head);
+  list_init(&init_process.mem.pages_head);
   init_pgd();
   map_kernel();
   map_peripherals();
@@ -47,14 +46,16 @@ void init_paging() {
   entries which are not used by the kernel.
 */
 void init_pgd() {
+  uint32_t* pgd = current->mem.pgd;
+
   /* Clear page table entries below the kernel. */
   for (uint32_t i = 0; i < VIRT_OFFSET; i += PMD_SIZE) {
-    pmd_clear(memory_manager.pgd, i);
+    pmd_clear(pgd, i);
   }
 
   /* Clear page table entries above the kernel. */
   for (uint32_t i = high_memory; i < VMALLOC_BEGIN_VADDR; i += PMD_SIZE) {
-    pmd_clear(memory_manager.pgd, i);
+    pmd_clear(pgd, i);
   }
 }
 
@@ -67,17 +68,18 @@ void init_pgd() {
   make sure that the pages below and above the ".text" section are mapped too.
 */
 void map_kernel() {
-  uint32_t text_begin = pmd_to_addr(memory_manager.pgd, addr_to_pmd(memory_manager.pgd, memory_manager.text_begin));
-  uint32_t text_end = pmd_to_addr(memory_manager.pgd, addr_to_pmd(memory_manager.pgd, memory_manager.text_end)) + PMD_SIZE;
+  struct memory_info* mem = &init_process.mem;
+  uint32_t text_begin = pmd_to_addr(mem->pgd, addr_to_pmd(mem->pgd, mem->text_begin));
+  uint32_t text_end = pmd_to_addr(mem->pgd, addr_to_pmd(mem->pgd, mem->text_end)) + PMD_SIZE;
 
   /* Map the memory in the ".text" section. */
-  create_mapping(memory_manager.text_begin, virt_to_phys(memory_manager.text_begin), memory_manager.text_end - memory_manager.text_begin, BLOCK_RWX);
+  create_mapping(mem->text_begin, virt_to_phys(mem->text_begin), mem->text_end - mem->text_begin, BLOCK_RWX);
 
   /* Map the section memory before the ".text" section. */
-  create_mapping(text_begin, virt_to_phys(text_begin), memory_manager.text_begin - text_begin, BLOCK_RW);
+  create_mapping(text_begin, virt_to_phys(text_begin), mem->text_begin - text_begin, BLOCK_RW);
 
   /* Map the section memory after the ".text" section. */
-  create_mapping(ALIGN(memory_manager.text_end, PAGE_SIZE), virt_to_phys(ALIGN(memory_manager.text_end, PAGE_SIZE)), text_end - memory_manager.text_end, BLOCK_RW);
+  create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, BLOCK_RW);
 
   /* Map the kernel memory before the ".text" section. */
   create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
@@ -157,10 +159,11 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
   create_mapping instead.
 */
 void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+  uint32_t* pgd = current->mem.pgd;
   uint32_t* pmd;
 
   for (size_t i = 0; i < pmd_count(size); ++i, v_addr += PMD_SIZE, p_addr += PMD_SIZE) {
-    pmd = addr_to_pmd(memory_manager.pgd, v_addr);
+    pmd = addr_to_pmd(pgd, v_addr);
     *pmd = create_pmd_section(p_addr, flags);
   }
 
@@ -175,6 +178,7 @@ void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, in
   create_mapping instead.
 */
 void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+  uint32_t* pgd = current->mem.pgd;
   uint32_t* pmd;
   uint32_t pmd_begin;
   uint32_t pmd_end;
@@ -185,8 +189,8 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
   uint32_t end = v_addr + size;
 
   for (size_t i = 0; i < pmd_count(size); ++i) {
-    pmd = addr_to_pmd(memory_manager.pgd, v_addr);
-    pmd_begin = pmd_to_addr(memory_manager.pgd, pmd);
+    pmd = addr_to_pmd(pgd, v_addr);
+    pmd_begin = pmd_to_addr(pgd, pmd);
     pmd_end = pmd_begin + PMD_SIZE - 1;
     is_page_table = pmd_is_page_table(pmd);
 
@@ -321,7 +325,7 @@ uint32_t pte_to_addr(uint32_t pte) {
 void pmd_clear(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
 
-  pmd = addr_to_pmd(memory_manager.pgd, addr);
+  pmd = addr_to_pmd(current->mem.pgd, addr);
   *pmd = 0x0;
 }
 
@@ -379,7 +383,7 @@ void* create_pgd() {
   uint32_t* init_pgd;
   uint32_t pgd_virt_offset;
 
-  init_pgd = memory_manager.pgd;
+  init_pgd = current->mem.pgd;
   pgd = memory_alloc(PG_DIR_SIZE);
   pgd_virt_offset = (uint32_t)addr_to_pmd(pgd, VIRT_OFFSET) - (uint32_t)pgd;
 
@@ -471,7 +475,7 @@ struct page_region* create_page_region(uint32_t begin, size_t count, int flags) 
   region->begin = begin;
   region->count = count;
   region->flags = flags;
-  insert_page_region(&pages_head, region);
+  insert_page_region(&current->mem.pages_head, region);
 
   return region;
 }
@@ -505,11 +509,12 @@ void insert_page_region(struct list_link* head, struct page_region* region) {
   inside. If "addr" is inside no page region, then NULL is returned.
 */
 struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
-  struct list_link* curr = pages_head.next;
+  struct list_link* pages_head = &current->mem.pages_head;
+  struct list_link* curr = pages_head->next;
   struct page_region* region;
   uint32_t region_end;
 
-  while (curr != &pages_head) {
+  while (curr != pages_head) {
     region = list_data(curr, struct page_region, link);
     region_end = page_region_end(region);
 

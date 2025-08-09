@@ -24,7 +24,8 @@ struct page_region {
   struct list_link link;
 };
 
-extern struct list_link pages_head;
+const extern uint32_t* vector_table_begin;
+const extern uint32_t* vector_table_end;
 
 extern void invalidate_entire_tlb();
 extern void set_pgd(uint32_t* pgd);

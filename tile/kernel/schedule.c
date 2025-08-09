@@ -26,8 +26,8 @@ void schedule() {
 
   proc = list_data(next, struct process_info, link);
 
-  if (current->pgd != proc->pgd) {
-    set_pgd(proc->pgd);
+  if (current->mem.pgd != proc->mem.pgd) {
+    set_pgd(proc->mem.pgd);
   }
 
   context_switch(&current->reg, &proc->reg);

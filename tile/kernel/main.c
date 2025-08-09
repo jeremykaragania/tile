@@ -4,7 +4,6 @@
 #include <drivers/sp804.h>
 #include <kernel/asm/memory.h>
 #include <kernel/buffer.h>
-#include <kernel/clock.h>
 #include <kernel/interrupts.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
@@ -44,7 +43,6 @@ void init_processes() {
 void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process);
-  memory_manager_init((uint32_t*)phys_to_virt(PG_DIR_PADDR), &text_begin, &text_end, &data_begin, &data_end, &bss_begin, &bss_end);
   initmem_init();
   update_memory_map();
   memory_alloc_init();
@@ -54,7 +52,6 @@ void start_kernel() {
   gic_init();
   dual_timer_init();
   buffer_init();
-  init_clock();
   filesystem_init();
   uart_printf(tile_banner);
   schedule_init();
