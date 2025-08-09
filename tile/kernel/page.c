@@ -127,7 +127,6 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
   uint32_t* insert_pmd;
   uint32_t* page_table;
   uint32_t pmd_page_table;
-  struct page_region* region;
 
   for (uint32_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
     pmd = addr_to_pmd(memory_manager.pgd, i);
@@ -184,11 +183,7 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
     }
   }
 
-  region = memory_alloc(sizeof(struct page_region));
-  region->begin = v_addr;
-  region->count = page_count(size);
-  region->flags = flags;
-  insert_page_region(&pages_head, region);
+  create_page_region(v_addr, page_count(size), flags);
 
   return (void*)v_addr;
 }
@@ -418,6 +413,24 @@ uint32_t create_pte(uint32_t p_addr, int flags) {
 
   return pte;
 }
+
+/*
+  create_page region allocates a page region and inserts it into the page
+  region list.
+*/
+struct page_region* create_page_region(uint32_t begin, size_t count, int flags) {
+  struct page_region* region = memory_alloc(sizeof(struct page_region));
+
+  if (!region) {
+    return NULL;
+  }
+
+  region->begin = begin;
+  region->count = count;
+  region->flags = flags;
+  insert_page_region(&pages_head, region);
+}
+
 
 /*
   insert_page_region inserts a page region in the page region list with head
