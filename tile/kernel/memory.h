@@ -18,7 +18,7 @@
 */
 #define phys_to_virt(x) ((x) + (VIRT_OFFSET - PHYS_OFFSET))
 
-#define page_count(x) ((x - 1) / PAGE_SIZE + 1)
+#define page_count(x) (((x) + PAGE_SIZE - 1) >> PAGE_SHIFT)
 #define page_index(x) ((x) >> PAGE_SHIFT)
 #define page_addr(x) ((x) << PAGE_SHIFT)
 

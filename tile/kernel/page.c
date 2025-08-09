@@ -121,69 +121,112 @@ void map_smc() {
   "flags". It returns a pointer to the mapped area.
 */
 void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
-  uint32_t* pmd;
-  uint32_t pmd_addr;
-  uint32_t insert_count;
-  uint32_t* insert_pmd;
-  uint32_t* page_table;
-  uint32_t pmd_page_table;
+  const uint32_t ret = v_addr;
+  const uint32_t count = page_count(size);
+  const uint32_t end = v_addr + size;
+  size_t i = 0;
+  uint32_t step;
 
-  for (uint32_t i = v_addr, j = p_addr; i < v_addr + size; i += PMD_SIZE, j += PMD_SIZE) {
-    pmd = addr_to_pmd(memory_manager.pgd, i);
-    pmd_addr = pmd_to_addr(memory_manager.pgd, pmd);
+  size = ALIGN(size, PAGE_SIZE);
 
-    /* Page middle directory has many entries. */
-    if (!IS_ALIGNED(size, PMD_SIZE)) {
-      int is_page_table = pmd_is_page_table(pmd);
-
-      insert_pmd = pmd;
-
-      /*
-        This pmd isn't a page table, so we will allocate and replace it with
-        a new one.
-      */
-      if (!is_page_table) {
-        page_table = memory_alloc(PAGE_TABLE_SIZE);
-        pmd_page_table = create_pmd_page_table(page_table);
-        insert_pmd = &pmd_page_table;
-
-        /*
-          If the new page table should map itself, then we make sure that it
-          does.
-        */
-        if ((uint32_t)page_table > pmd_addr && (uint32_t)page_table < pmd_addr + PMD_SIZE) {
-          pmd_insert(insert_pmd, (uint32_t)page_table, virt_to_phys((uint32_t)page_table), BLOCK_RW);
-        }
-      }
-
-      if (i + PMD_SIZE > v_addr + size || i + PMD_SIZE < i) {
-        insert_count = v_addr + size - i;
-      }
-      else {
-        insert_count = PMD_SIZE;
-      }
-
-      /* We either insert into the new page table or the existing one. */
-      for (uint32_t k = i; k < i + insert_count; k += PAGE_SIZE, p_addr += PAGE_SIZE) {
-        pmd_insert(insert_pmd, k, p_addr, flags);
-      }
-
-      /* We have to populate the new page table before replacing the pmd. */
-      if (!is_page_table) {
-        *pmd = create_pmd_page_table(page_table);
-      }
+  while (i < count) {
+    if (IS_ALIGNED(v_addr, PMD_SIZE) && v_addr + PMD_SIZE < end) {
+      step = PMD_SIZE;
+      create_section_mapping(v_addr, p_addr, step, flags);
     }
-    /* Page middle directory has one entry. */
     else {
-      *pmd = create_pmd_section(j, flags);
+      step = PAGE_SIZE;
+      create_page_mapping(v_addr, p_addr, step, flags);
     }
 
-    if (i > UINT_MAX - PMD_SIZE) {
-      break;
-    }
+    v_addr += step;
+    p_addr += step;
+    i += page_count(step);
   }
 
-  create_page_region(v_addr, page_count(size), flags);
+  create_page_region(v_addr, count, flags);
+
+  return (void*)ret;
+}
+
+/*
+  create_section_mapping creates a linear mapping from the virtual address
+  "v_addr" to the physical address "p_addr" spanning "size" bytes with the
+  memory flags "flags" and returns a pointer to the mapped area. It uses
+  sections for the mapping. This function shouldn't be called directly. Use
+  create_mapping instead.
+*/
+void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+  uint32_t* pmd;
+
+  for (size_t i = 0; i < pmd_count(size); ++i, v_addr += PMD_SIZE, p_addr += PMD_SIZE) {
+    pmd = addr_to_pmd(memory_manager.pgd, v_addr);
+    *pmd = create_pmd_section(p_addr, flags);
+  }
+
+  return (void*)v_addr;
+}
+
+/*
+  create_section_mapping creates a linear mapping from the virtual address
+  "v_addr" to the physical address "p_addr" spanning "size" bytes with the
+  memory flags "flags" and returns a pointer to the mapped area. It uses pages
+  for the mapping. This function shouldn't be called directly. Use
+  create_mapping instead.
+*/
+void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+  uint32_t* pmd;
+  uint32_t pmd_begin;
+  uint32_t pmd_end;
+  uint32_t* page_table;
+  uint32_t* insert_pmd;
+  int is_page_table;
+  uint32_t pmd_page_table;
+  uint32_t end = v_addr + size;
+
+  for (size_t i = 0; i < pmd_count(size); ++i) {
+    pmd = addr_to_pmd(memory_manager.pgd, v_addr);
+    pmd_begin = pmd_to_addr(memory_manager.pgd, pmd);
+    pmd_end = pmd_begin + PMD_SIZE - 1;
+    is_page_table = pmd_is_page_table(pmd);
+
+    /*
+      This pmd isn't a page table, so we will allocate and replace it with
+      a new one.
+    */
+    if (!is_page_table) {
+      page_table = memory_alloc(PAGE_TABLE_SIZE);
+      pmd_page_table = create_pmd_page_table(page_table);
+      insert_pmd = &pmd_page_table;
+    }
+    else {
+      insert_pmd = pmd;
+    }
+
+    /*
+      If the new page table should map itself, then we make sure that it
+      does.
+    */
+    if ((uint32_t)page_table < pmd_end && (uint32_t)page_table > pmd_begin) {
+      pmd_insert(insert_pmd, (uint32_t)page_table, virt_to_phys((uint32_t)page_table), BLOCK_RW);
+    }
+
+    /* We either insert into the new page table or the existing one. */
+    while (v_addr < pmd_end && v_addr < end) {
+      pmd_insert(insert_pmd, v_addr, p_addr, flags);
+
+      v_addr += PAGE_SIZE;
+      p_addr += PAGE_SIZE;
+    }
+
+    /*
+      This is last as we have to populate the new page table before replacing
+      the pmd.
+    */
+    if (!is_page_table) {
+      *pmd = pmd_page_table;
+    }
+  }
 
   return (void*)v_addr;
 }
@@ -252,7 +295,7 @@ uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr) {
   maps to in the page global directory "pgd".
 */
 uint32_t pmd_to_addr(uint32_t* pgd, uint32_t* pmd) {
-  return ((uint32_t)pmd - (uint32_t)pgd) / 4 * PMD_SIZE;
+  return (((uint32_t)pmd - (uint32_t)pgd) >> 2) * PMD_SIZE;
 }
 
 /*
@@ -429,6 +472,8 @@ struct page_region* create_page_region(uint32_t begin, size_t count, int flags) 
   region->count = count;
   region->flags = flags;
   insert_page_region(&pages_head, region);
+
+  return region;
 }
 
 

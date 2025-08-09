@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define pmd_count(x) (((x) + PMD_SIZE - 1) >> PG_DIR_SHIFT)
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
@@ -37,6 +38,8 @@ void map_vector_table();
 void map_smc();
 
 void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
 int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr);
 uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr);
 
