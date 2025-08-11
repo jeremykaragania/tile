@@ -32,7 +32,7 @@
   replaced with 4KB small pages where required.
 */
 void init_paging() {
-  list_init(&init_process.mem.pages_head);
+  list_init(&init_process.mem->pages_head);
   init_pgd();
   map_kernel();
   map_peripherals();
@@ -46,7 +46,7 @@ void init_paging() {
   entries which are not used by the kernel.
 */
 void init_pgd() {
-  uint32_t* pgd = current->mem.pgd;
+  uint32_t* pgd = current->mem->pgd;
 
   /* Clear page table entries below the kernel. */
   for (uint32_t i = 0; i < VIRT_OFFSET; i += PMD_SIZE) {
@@ -68,7 +68,7 @@ void init_pgd() {
   make sure that the pages below and above the ".text" section are mapped too.
 */
 void map_kernel() {
-  struct memory_info* mem = &init_process.mem;
+  struct memory_info* mem = init_process.mem;
   uint32_t text_begin = pmd_to_addr(mem->pgd, addr_to_pmd(mem->pgd, mem->text_begin));
   uint32_t text_end = pmd_to_addr(mem->pgd, addr_to_pmd(mem->pgd, mem->text_end)) + PMD_SIZE;
 
@@ -159,7 +159,7 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
   create_mapping instead.
 */
 void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
-  uint32_t* pgd = current->mem.pgd;
+  uint32_t* pgd = current->mem->pgd;
   uint32_t* pmd;
 
   for (size_t i = 0; i < pmd_count(size); ++i, v_addr += PMD_SIZE, p_addr += PMD_SIZE) {
@@ -178,7 +178,7 @@ void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, in
   create_mapping instead.
 */
 void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
-  uint32_t* pgd = current->mem.pgd;
+  uint32_t* pgd = current->mem->pgd;
   uint32_t* pmd;
   uint32_t pmd_begin;
   uint32_t pmd_end;
@@ -325,7 +325,7 @@ uint32_t pte_to_addr(uint32_t pte) {
 void pmd_clear(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
 
-  pmd = addr_to_pmd(current->mem.pgd, addr);
+  pmd = addr_to_pmd(current->mem->pgd, addr);
   *pmd = 0x0;
 }
 
@@ -383,7 +383,7 @@ void* create_pgd() {
   uint32_t* init_pgd;
   uint32_t pgd_virt_offset;
 
-  init_pgd = current->mem.pgd;
+  init_pgd = current->mem->pgd;
   pgd = memory_alloc(PG_DIR_SIZE);
   pgd_virt_offset = (uint32_t)addr_to_pmd(pgd, VIRT_OFFSET) - (uint32_t)pgd;
 
@@ -475,7 +475,7 @@ struct page_region* create_page_region(uint32_t begin, size_t count, int flags) 
   region->begin = begin;
   region->count = count;
   region->flags = flags;
-  insert_page_region(&current->mem.pages_head, region);
+  insert_page_region(&current->mem->pages_head, region);
 
   return region;
 }
@@ -509,7 +509,7 @@ void insert_page_region(struct list_link* head, struct page_region* region) {
   inside. If "addr" is inside no page region, then NULL is returned.
 */
 struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
-  struct list_link* pages_head = &current->mem.pages_head;
+  struct list_link* pages_head = &current->mem->pages_head;
   struct list_link* curr = pages_head->next;
   struct page_region* region;
   uint32_t region_end;

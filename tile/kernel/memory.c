@@ -41,7 +41,7 @@ uint32_t high_memory;
   initmem_init initializes the initial memory allocator.
 */
 void initmem_init() {
-  struct memory_info* mem = &init_process.mem;
+  struct memory_info* mem = init_process.mem;
   /*
     We initialize the kernel's initial memory allocator using the system's
     memory map; and the kernel's memory map from the linker. Eventually we

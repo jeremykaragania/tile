@@ -8,6 +8,16 @@ struct list_link processes_head;
 
 int process_num_count;
 
+struct memory_info init_memory_info = {
+  .pgd = (uint32_t*)phys_to_virt(PG_DIR_PADDR),
+  .text_begin = (uint32_t)&text_begin,
+  .text_end = (uint32_t)&text_end,
+  .data_begin = (uint32_t)&data_begin,
+  .data_end = (uint32_t)&data_end,
+  .bss_begin = (uint32_t)&bss_begin,
+  .bss_end= (uint32_t)&bss_end
+};
+
 struct process_info init_process __attribute__((section(".init_process"))) = {
   .num = 0,
   .type = PT_KERNEL,
@@ -15,15 +25,7 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   .owner = 1,
   .file_num = 1,
   .file_tab = NULL,
-  .mem = {
-    .pgd = (uint32_t*)phys_to_virt(PG_DIR_PADDR),
-    .text_begin = (uint32_t)&text_begin,
-    .text_end = (uint32_t)&text_end,
-    .data_begin = (uint32_t)&data_begin,
-    .data_end = (uint32_t)&data_end,
-    .bss_begin = (uint32_t)&bss_begin,
-    .bss_end= (uint32_t)&bss_end
-  },
+  .mem = &init_memory_info,
   .stack = &init_process_stack,
 };
 
@@ -50,7 +52,7 @@ int process_clone(int type, struct function_info* func) {
   num = get_process_number();
 
   if (type == PT_USER) {
-    proc->mem.pgd = create_pgd();
+    proc->mem->pgd = create_pgd();
   }
 
   proc->num = num;

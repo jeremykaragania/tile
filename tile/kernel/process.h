@@ -53,7 +53,7 @@ struct process_info {
   int owner;
   uint32_t file_num;
   struct file_table_entry* file_tab;
-  struct memory_info mem;
+  struct memory_info* mem;
   struct processor_registers reg;
   void* stack;
   struct list_link link;

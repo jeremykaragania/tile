@@ -31,7 +31,7 @@ void do_prefetch_abort() {}
 */
 void do_data_abort() {
   uint32_t dfar = get_dfar();
-  uint32_t* pmd = addr_to_pmd(current->mem.pgd, dfar);
+  uint32_t* pmd = addr_to_pmd(current->mem->pgd, dfar);
 
   pmd_insert(pmd, dfar, (uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0), BLOCK_RW);
 }
