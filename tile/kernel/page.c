@@ -236,44 +236,6 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
 }
 
 /*
-  mapping_exists checks for the existance of a virtual address "v_addr" mapping
-  to the physical address "p_addr.
-*/
-int mapping_exists(uint32_t* pgd, uint32_t v_addr, uint32_t p_addr) {
-  uint32_t entry = pgd_walk(pgd, v_addr);
-  uint32_t* pmd = addr_to_pmd(pgd, v_addr);
-  uint32_t addr_begin;
-  uint32_t addr_size;
-
-  if (pmd_is_page_table(pmd)) {
-    addr_begin = pte_to_addr(entry);
-    addr_size = PAGE_SIZE;
-  }
-  else {
-    addr_begin = pmd_section_to_addr(entry);
-    addr_size = PMD_SIZE;
-  }
-
-  p_addr = ALIGN(p_addr, addr_size);
-  return p_addr >= addr_begin && p_addr <= addr_begin + addr_size;
-}
-
-/*
-  pgd_walk walks the page global directory as far as it can from the virtual
-  address "v_addr" and returns the entry where translation stops. It returns
-  either a section entry or a page entry.
-*/
-uint32_t pgd_walk(uint32_t* pgd, uint32_t v_addr) {
-  uint32_t* entry = addr_to_pmd(pgd, v_addr);
-
-  if (pmd_is_page_table(entry)) {
-    entry = addr_to_pte(entry, v_addr);
-  }
-
-  return *entry;
-}
-
-/*
   addr_to_pmd returns the address of a page middle directory from a virtual
   address "addr", and the base address of a page global directory "pgd". It
   returns the address of a page table first-level descriptor from a virtual
