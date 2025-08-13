@@ -60,8 +60,10 @@ uint32_t create_pmd_section(uint32_t p_addr, int flags);
 uint32_t create_pmd_page_table(uint32_t* page_table);
 uint32_t create_pte(uint32_t p_addr, int flags);
 
-struct page_region* create_page_region(uint32_t begin, size_t count, int flags);
+struct page_region* create_page_region(struct list_link* head, uint32_t begin, size_t count, int flags);
 void insert_page_region(struct list_link* head, struct page_region* region);
+void remove_page_region(struct list_link* head, struct page_region* region);
+struct page_region* split_page_region(struct page_region* region, size_t index);
 struct page_region* find_page_region(struct list_link* head, uint32_t addr);
 
 #endif

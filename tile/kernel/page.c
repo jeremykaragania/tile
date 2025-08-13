@@ -82,7 +82,7 @@ void map_kernel() {
   create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, BLOCK_RW);
 
   /* Map the kernel memory before the ".text" section. */
-  create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
+  //create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
 
   /* Map the kernel memory after the ".text" section. */
   create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), BLOCK_RW);
@@ -147,7 +147,7 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
     i += page_count(step);
   }
 
-  create_page_region(begin, count, flags);
+  create_page_region(&current->mem->pages_head, begin, count, flags);
 
   return (void*)ret;
 }
@@ -428,7 +428,7 @@ uint32_t create_pte(uint32_t p_addr, int flags) {
   create_page region allocates a page region and inserts it into the page
   region list.
 */
-struct page_region* create_page_region(uint32_t begin, size_t count, int flags) {
+struct page_region* create_page_region(struct list_link* head, uint32_t begin, size_t count, int flags) {
   struct page_region* region = memory_alloc(sizeof(struct page_region));
 
   if (!region) {
@@ -438,7 +438,7 @@ struct page_region* create_page_region(uint32_t begin, size_t count, int flags) 
   region->begin = begin;
   region->count = count;
   region->flags = flags;
-  insert_page_region(&current->mem->pages_head, region);
+  insert_page_region(head, region);
 
   return region;
 }
@@ -465,6 +465,45 @@ void insert_page_region(struct list_link* head, struct page_region* region) {
   }
 
   list_push(head->prev, &region->link);
+}
+
+/*
+  remove_page_region removes the page region "region" from the page region list
+  with head "head".
+*/
+void remove_page_region(struct list_link* head, struct page_region* region) {
+  list_remove(head, &region->link);
+  memory_free(region);
+}
+
+/*
+  split_page_region splits the page region "region" at the page index "index"
+  into two page regions, a left one and a right one. The left one is just the
+  original region resized and the right one is allocated. On success, the right
+  page region is returned.
+*/
+struct page_region* split_page_region(struct page_region* region, size_t index) {
+  const size_t region_count = region->count;
+  struct page_region* insert_region;
+
+  if (index >= region->count) {
+    return NULL;
+  }
+
+  region->count = index;
+
+  insert_region = memory_alloc(sizeof(struct page_region));
+
+  if (!insert_region) {
+    return NULL;
+  }
+
+  insert_region->begin = page_region_end(region);
+  insert_region->count = region_count - index;
+
+  list_push(&region->link, &insert_region->link);
+
+  return insert_region;
 }
 
 /*
