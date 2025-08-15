@@ -74,6 +74,7 @@ extern void* init_process_stack;
 
 extern struct list_link processes_head;
 extern int process_num_count;
+extern struct memory_info init_memory_info;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
 

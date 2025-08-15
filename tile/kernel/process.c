@@ -38,7 +38,7 @@ int process_clone(int type, struct function_info* func) {
   struct process_info* proc;
 
   /*
-    a process's information and stack is stored in a buffer of THREAD_SIZE at
+    A process's information and stack is stored in a buffer of THREAD_SIZE at
     the bottom is the process information and directly above it, is its stack.
   */
   proc = memory_alloc(THREAD_SIZE);
@@ -51,8 +51,15 @@ int process_clone(int type, struct function_info* func) {
 
   num = get_process_number();
 
+  /* Userspace processes have a unique virtual memory context. */
   if (type == PT_USER) {
-    proc->mem->pgd = create_pgd();
+    struct memory_info* mem = memory_alloc(sizeof(struct memory_info));
+
+    if (!mem) {
+      return -1;
+    }
+
+    proc->mem = mem;
   }
 
   proc->num = num;
