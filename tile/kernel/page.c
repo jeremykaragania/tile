@@ -237,6 +237,34 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
 }
 
 /*
+  find_unmapped_region finds a region of size "size" in the current process's
+  virtual memory. On success, it returns a pointer to the region.
+*/
+void* find_unmapped_region(uint32_t size) {
+  const struct list_link* pages_head = &(current->mem->pages_head);
+  struct list_link* curr = pages_head->next;
+  struct page_region* curr_data;
+  struct page_region* next_data;
+  uint32_t gap;
+
+  size = ALIGN(size, PAGE_SIZE);
+
+  while (curr->next != pages_head) {
+    curr_data = list_data(curr, struct page_region, link);
+    next_data = list_data(curr->next, struct page_region, link);
+    gap = next_data->begin - page_region_end(curr_data);
+
+    if (gap >= size) {
+      return (void*)page_region_end(curr_data);
+    }
+
+    curr = curr->next;
+  }
+
+  return NULL;
+}
+
+/*
   addr_to_pmd returns the address of a page middle directory from a virtual
   address "addr", and the base address of a page global directory "pgd". It
   returns the address of a page table first-level descriptor from a virtual
