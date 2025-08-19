@@ -33,6 +33,7 @@
 */
 void init_paging() {
   list_init(&init_process.mem->pages_head);
+  create_page_region_bounds(&init_process.mem->pages_head);
   init_pgd();
   map_kernel();
   map_peripherals();
@@ -450,6 +451,16 @@ uint32_t create_pte(uint32_t p_addr, int flags) {
   }
 
   return pte;
+}
+
+/*
+  create_page_region_bounds initializes the bounds of a page region list with
+  head "head". It creates dummy lower and upper bound page regions in the
+  virtual address space.
+*/
+void create_page_region_bounds(struct list_link* head) {
+  create_page_region(head, 0, 0, 0);
+  create_page_region(head, VADDR_SPACE_END, 0, 0);
 }
 
 /*

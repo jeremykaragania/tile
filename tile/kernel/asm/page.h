@@ -1,7 +1,7 @@
 #ifndef ASM_PAGE_H
 #define ASM_PAGE_H
 
-#define VADDR_SPACE_SIZE 0x100000000ull
+#define VADDR_SPACE_END 0xffffffff
 
 #define PMD_SIZE 0x100000
 #define PAGE_SIZE 0x1000
