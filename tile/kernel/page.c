@@ -82,7 +82,7 @@ void map_kernel() {
   create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, BLOCK_RW);
 
   /* Map the kernel memory before the ".text" section. */
-  //create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
+  create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
 
   /* Map the kernel memory after the ".text" section. */
   create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), BLOCK_RW);
@@ -238,7 +238,7 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
 
 /*
   find_unmapped_region finds a region of size "size" in the current process's
-  virtual memory. On success, it returns a pointer to the region.
+  virtual memory. On success, It returns a pointer to the region.
 */
 void* find_unmapped_region(uint32_t size) {
   const struct list_link* pages_head = &(current->mem->pages_head);
@@ -480,19 +480,35 @@ void insert_page_region(struct list_link* head, struct page_region* region) {
   struct list_link* curr = head->next;
   uint32_t region_end = page_region_end(region);
   struct page_region* curr_region;
+  uint32_t curr_end;
 
   while(curr != head) {
     curr_region = list_data(curr, struct page_region, link);
+    curr_end = page_region_end(curr_region);
 
-    if (curr_region->begin > region_end || (region_end == curr_region->begin && region->begin < curr_region->begin)) {
-      list_push(curr->prev, &region->link);
-      return;
+    if (region_end <= curr_region->begin) {
+      break;
     }
 
+    if (region->begin >= curr_end) {
+      curr = curr->next;
+      continue;
+    }
+
+    if (region->begin > curr_region->begin && region->begin < curr_end) {
+      curr_region = split_page_region(curr_region, page_index(region->begin) - page_index(curr_region->begin));
+      curr = &curr_region->link;
+    }
+
+    if (region_end <= curr_end && region_end > curr_region->begin) {
+      split_page_region(curr_region, page_index(region_end) - page_index(curr_region->begin));
+    }
+
+    list_remove(head, curr);
     curr = curr->next;
   }
 
-  list_push(head->prev, &region->link);
+  list_push(curr->prev, &region->link);
 }
 
 /*
