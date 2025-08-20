@@ -459,7 +459,7 @@ uint32_t create_pte(uint32_t p_addr, int flags) {
   virtual address space.
 */
 void create_page_region_bounds(struct list_link* head) {
-  create_page_region(head, 0, 0, 0);
+  create_page_region(head, 0, 1, 0);
   create_page_region(head, VADDR_SPACE_END, 0, 0);
 }
 
