@@ -575,7 +575,7 @@ struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
     region = list_data(curr, struct page_region, link);
     region_end = page_region_end(region);
 
-    if (addr >= region->begin || addr < region_end) {
+    if (addr >= region->begin && addr < region_end) {
       return region;
     }
 
