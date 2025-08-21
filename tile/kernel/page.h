@@ -21,6 +21,7 @@ struct page_region {
   uint32_t begin;
   size_t count;
   int flags;
+  struct file_info_int* file_int;
   struct list_link link;
 };
 
