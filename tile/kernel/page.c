@@ -82,9 +82,6 @@ void map_kernel() {
   /* Map the section memory after the ".text" section. */
   create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, BLOCK_RW);
 
-  /* Map the kernel memory before the ".text" section. */
-  create_mapping(VIRT_OFFSET, virt_to_phys(VIRT_OFFSET), ALIGN(text_begin - VIRT_OFFSET, PMD_SIZE), BLOCK_RW);
-
   /* Map the kernel memory after the ".text" section. */
   create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), BLOCK_RW);
 }
