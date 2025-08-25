@@ -1,6 +1,8 @@
 #include <kernel/interrupts.h>
 #include <drivers/gic_400.h>
 #include <drivers/sp804.h>
+#include <kernel/buffer.h>
+#include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
 #include <kernel/schedule.h>
@@ -33,13 +35,26 @@ void do_data_abort() {
   uint32_t dfar = get_dfar();
   struct list_link* pages_head = &current->mem->pages_head;
   struct page_region* region;
+  struct file_info_int* file_int;
+  struct buffer_info* buffer;
+  void* phys_addr;
 
   region = find_page_region(pages_head, dfar);
+  file_int = region->file_int;
 
-  /* The page region isn't backed by a file. */
-  if (!region->file_int) {
-    create_mapping(dfar, (uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0), PAGE_SIZE, region->flags);
+  /* The page region is backed by a file. */
+  if (file_int) {
+    uint32_t offset = dfar - region->begin;
+    struct filesystem_addr addr = file_offset_to_addr(file_int, offset);
+
+    buffer = buffer_get(addr.num);
+    phys_addr = virt_to_phys(buffer->data);
   }
+  else {
+    phys_addr = page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0);
+  }
+
+  create_mapping(dfar, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
 }
 
 /*
