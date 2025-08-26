@@ -351,6 +351,33 @@ int file_seek(int fd, size_t offset) {
 }
 
 /*
+  file_map maps the file specified by the file descriptor "fd" with the flags
+  "flags". On success it returns a pointer to the mapped area.
+*/
+void* file_map(int fd, int flags) {
+  struct list_link* pages_head = &(current->mem->pages_head);
+  struct file_info_int* file = current->file_tab[fd].file_int;
+  struct page_region* region;
+  void* addr;
+
+  addr = find_unmapped_region(file->ext.size);
+
+  if (!addr) {
+    return NULL;
+  }
+
+  region = create_page_region(pages_head, (uint32_t)addr, page_count(file->ext.size), flags);
+
+  if (!region) {
+    return NULL;
+  }
+
+  region->file_int = file;
+
+  return addr;
+}
+
+/*
   file_chdir changes the current directory to the directory specified by
   "pathname". It returns 1 on success, and 0 on failure.
 */

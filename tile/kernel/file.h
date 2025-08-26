@@ -192,6 +192,8 @@ int file_mknod(const char* pathname, int type);
 int file_creat(const char* pathname, int flags);
 int file_seek(int fd, size_t offset);
 
+void* file_map(int fd, int flags);
+
 int file_chdir(const char* pathname);
 
 int get_file_descriptor(const struct file_table_entry* file_tab);
