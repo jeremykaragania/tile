@@ -147,8 +147,6 @@ struct file_info_ext {
 struct file_info_int {
   struct file_info_ext ext;
   int status;
-  struct file_info_int* next;
-  struct file_info_int* prev;
   struct list_link link;
 };
 
