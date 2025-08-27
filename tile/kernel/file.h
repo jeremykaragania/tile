@@ -66,9 +66,18 @@ enum file_type {
   enum_file_access represents the access permissions of a file.
 */
 enum file_access {
-  F_READ,
-  F_WRITE,
-  F_EXECUTE
+  FA_SETUID = 04000,
+  FA_GROUP_ID = 02000,
+  FA_STICKY_BIT = 01000,
+  FA_READ_OWNER = 00400,
+  FA_WRITE_OWNER = 00200,
+  FA_EXEC_OWNER = 00100,
+  FA_READ_GROUP = 00040,
+  FA_WRITE_GROUP = 00020,
+  FA_EXEC_GROUP = 00010,
+  FA_READ_OTHERS = 00004,
+  FA_WRITE_OTHERS = 00002,
+  FA_EXECUTE_OTHERS = 00001
 };
 
 /*
@@ -137,6 +146,7 @@ struct file_info_ext {
   uint32_t num;
   uint32_t blocks[FILE_INFO_BLOCKS_SIZE];
   int32_t type;
+  uint32_t access;
   uint32_t size;
 };
 
