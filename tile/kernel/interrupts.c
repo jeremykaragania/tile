@@ -5,6 +5,7 @@
 #include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
+#include <kernel/processor.h>
 #include <kernel/schedule.h>
 
 /*
@@ -52,6 +53,10 @@ void do_data_abort() {
   }
   else {
     phys_addr = page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0);
+  }
+
+  if (!phys_addr) {
+    panic();
   }
 
   create_mapping(dfar, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
