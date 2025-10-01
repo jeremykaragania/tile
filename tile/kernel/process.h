@@ -55,6 +55,7 @@ struct process_info {
   struct file_table_entry* file_tab;
   struct memory_info* mem;
   struct processor_registers reg;
+  struct processor_registers context_reg;
   void* stack;
   struct list_link link;
 };
