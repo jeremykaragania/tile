@@ -48,9 +48,11 @@ do_data_abort_stub:
 
   /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-  mov r0, #4
-  ldr r1, =preserve_registers
-  blx r1
+  ldr r0, =current_registers
+  blx r0
+  mov r1, #4
+  ldr r2, =preserve_registers
+  blx r2
 
   ldr r0, =do_data_abort
   blx r0
@@ -75,9 +77,11 @@ do_irq_interrupt_stub:
 
   /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-  mov r0, #4
-  ldr r1, =preserve_registers
-  blx r1
+  ldr r0, =current_registers
+  blx r0
+  mov r1, #4
+  ldr r2, =preserve_registers
+  blx r2
 
   ldr r0, =do_irq_interrupt
   blx r0
@@ -106,31 +110,27 @@ get_dfar:
   preserve_registers preserves the processor's registers before a C exception
   handler is called. It assumes that all core registers have been pushed to the
   stack in order. It must adjust the stack pointer and program counter to
-  account for the adjustments made in the exception handler stub. The amount
-  the program counter must be adjusted is stored in r0.
+  account for the adjustments made in the exception handler stub. The
+  preservation destination is stored in r0 and the amount the program counter
+  must be adjusted is stored in r1.
 */
 preserve_registers:
-  push {r0, lr}
-  ldr r1, =current_registers
-  blx r1
-  mov r1, r0
-  pop {r0, lr}
   mov r2, #0
-  ldr r3, [sp, r2, lsl #2]
-  str r3, [r1, r2, lsl #2]
+  ldr r4, [sp, r2, lsl #2]
+  str r4, [r0, r2, lsl #2]
   add r2, #1
   cmp r2, #17
   ble preserve_registers+24
 
   /* Adjust the preserved stack pointer and program counter.*/
   mov r2, #13 /* Stack pointer register number. */
-  ldr r3, [r1, r2, lsl #2]
-  sub r3, #8
-  str r3, [r1, r2, lsl #2]
+  ldr r4, [r0, r2, lsl #2]
+  sub r4, #8
+  str r4, [r0, r2, lsl #2]
 
   mov r2, #15 /* Program counter register number. */
-  ldr r3, [r1, r2, lsl #2]
-  add r3, r0
-  str r3, [r1, r2, lsl #2]
+  ldr r4, [r0, r2, lsl #2]
+  add r4, r1
+  str r4, [r0, r2, lsl #2]
 
   bx lr
