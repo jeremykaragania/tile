@@ -56,6 +56,7 @@ struct process_info {
   struct memory_info* mem;
   struct processor_registers reg;
   struct processor_registers context_reg;
+  int reschedule;
   void* stack;
   struct list_link link;
 };

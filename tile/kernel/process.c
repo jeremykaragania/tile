@@ -26,6 +26,7 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   .file_num = 1,
   .file_tab = NULL,
   .mem = &init_memory_info,
+  .reschedule = 0,
   .stack = &init_process_stack,
 };
 
