@@ -11,12 +11,24 @@ void schedule_init() {
 }
 
 /*
+  schedule_tick determines if the current process needs to be rescheduled.
+*/
+void schedule_tick() {
+  /* For now, the current process is always rescheduled. */
+  current->reschedule = 1;
+}
+
+/*
   schedule schedules the next process to be executed and context switches to
   it.
 */
 void schedule() {
   struct list_link* next;
   struct process_info* proc;
+
+  if (!current->reschedule) {
+    return;
+  }
 
   next = current->link.next;
 
