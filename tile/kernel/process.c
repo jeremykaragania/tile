@@ -118,6 +118,15 @@ struct processor_registers* current_registers() {
 }
 
 /*
+  current_context_registers returns the current process` context register
+  information. It exists as a helper to make it easier to access the field from
+  assembly.
+*/
+struct processor_registers* current_context_registers() {
+  return &current->context_reg;
+}
+
+/*
   function_to_process returns a process through "proc" from the function
   "func". It initializes the processor context of "proc" using "func".
 */
