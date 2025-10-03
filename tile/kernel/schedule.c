@@ -38,9 +38,10 @@ void schedule() {
 
   proc = list_data(next, struct process_info, link);
 
+  /* If the next process has a different memory context, then we switch it too. */
   if (current->mem->pgd != proc->mem->pgd) {
     set_pgd(proc->mem->pgd);
   }
 
-  context_switch(&current->reg, &proc->reg);
+  context_switch(&current->context_reg, &proc->context_reg);
 }

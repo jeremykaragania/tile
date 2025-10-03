@@ -70,8 +70,8 @@ int process_clone(int type, struct function_info* func) {
   list_push(&processes_head, &proc->link);
 
   proc->stack = proc + 1;
-  proc->reg.sp = (uint32_t)proc + THREAD_SIZE - 8;
-  proc->reg.cpsr = PM_SVC;
+  proc->context_reg.sp = (uint32_t)proc + THREAD_SIZE - 8;
+  proc->context_reg.cpsr = PM_SVC;
   set_process_stack_end_token(proc);
 
   return num;
@@ -132,8 +132,8 @@ struct processor_registers* current_context_registers() {
   "func". It initializes the processor context of "proc" using "func".
 */
 void function_to_process(struct process_info* proc, struct function_info* func) {
-  proc->reg.r0 = (uint32_t)func->arg;
-  proc->reg.lr = (uint32_t)process_ret;
-  proc->reg.pc = (uint32_t)func->ptr;
-  proc->reg.cpsr = PM_SVC;
+  proc->context_reg.r0 = (uint32_t)func->arg;
+  proc->context_reg.lr = (uint32_t)process_ret;
+  proc->context_reg.pc = (uint32_t)func->ptr;
+  proc->context_reg.cpsr = PM_SVC;
 }
