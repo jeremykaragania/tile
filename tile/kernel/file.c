@@ -28,6 +28,7 @@
 #include <kernel/buffer.h>
 #include <kernel/list.h>
 #include <kernel/memory.h>
+#include <kernel/page.h>
 #include <kernel/process.h>
 #include <lib/string.h>
 #include <stdlib.h>
