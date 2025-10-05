@@ -146,7 +146,7 @@ preserve_registers:
   str r4, [r0, r2, lsl #2]
   add r2, #1
   cmp r2, #17
-  ble preserve_registers+24
+  ble preserve_registers+4
 
   /* Adjust the preserved stack pointer and program counter.*/
   mov r2, #13 /* Stack pointer register number. */
