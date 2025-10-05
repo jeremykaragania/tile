@@ -15,4 +15,6 @@ void do_data_abort();
 void do_irq_interrupt();
 void do_fiq_interrupt();
 
+void ret_from_interrupt();
+
 #endif

@@ -60,6 +60,7 @@ void do_data_abort() {
   }
 
   create_mapping(dfar, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+  ret_from_interrupt();
 }
 
 /*
@@ -82,10 +83,18 @@ void do_irq_interrupt() {
   /* Signal interrupt processing completion. */
   gicc->eoi = ia;
   gic_enable_interrupt(ia);
-  schedule();
+  ret_from_interrupt();
 }
 
 /*
   do_fiq_interrupt handles the FIQ interrupt exception.
 */
 void do_fiq_interrupt() {}
+
+/*
+  ret_from_interrupt returns from an interrupt. The scheduler is invoked and
+  the current process may be preempted.
+*/
+void ret_from_interrupt() {
+  schedule();
+}
