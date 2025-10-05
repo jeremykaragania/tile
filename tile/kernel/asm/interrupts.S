@@ -19,18 +19,30 @@ vector_table:
 */
 .section .interrupts, "x"
 do_reset_stub:
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, =do_reset
   bx r0
 
 do_undefined_instruction_stub:
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, =do_undefined_instruction
   bx r0
 
 do_supervisor_call_stub:
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, =do_supervisor_call
   bx r0
 
 do_prefetch_abort_stub:
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, =do_prefetch_abort
   bx r0
 
@@ -53,6 +65,9 @@ do_data_abort_stub:
   mov r1, #4
   ldr r2, =preserve_registers
   blx r2
+
+  ldr r0, =disable_interrupts
+  blx r0
 
   ldr r0, =do_data_abort
   blx r0
@@ -83,6 +98,9 @@ do_irq_interrupt_stub:
   ldr r2, =preserve_registers
   blx r2
 
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, =do_irq_interrupt
   blx r0
 
@@ -93,6 +111,9 @@ do_irq_interrupt_stub:
   rfefd sp!
 
 do_fiq_interrupt_stub:
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, =do_fiq_interrupt
   bx r0
 
