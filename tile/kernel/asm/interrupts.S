@@ -72,11 +72,8 @@ do_data_abort_stub:
   ldr r0, =do_data_abort
   blx r0
 
-  /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
-  add sp, #4
-  pop {lr}
-  rfefd sp!
+  ldr r0, =ret_from_interrupt
+  blx r0
 
 do_irq_interrupt_stub:
   /*
@@ -104,11 +101,8 @@ do_irq_interrupt_stub:
   ldr r0, =do_irq_interrupt
   blx r0
 
-  /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
-  add sp, #4
-  pop {lr}
-  rfefd sp!
+  ldr r0, =ret_from_interrupt
+  blx r0
 
 do_fiq_interrupt_stub:
   ldr r0, =disable_interrupts
@@ -126,6 +120,17 @@ do_fiq_interrupt_stub:
 get_dfar:
   mrc p15, 0, r0, c6, c0, 0
   bx lr
+
+/*
+  ret_from_interrupt returns from an interrupt.
+*/
+.global ret_from_interrupt
+ret_from_interrupt:
+  /* Restore the supervisor mode state and return. */
+  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  add sp, #4
+  pop {lr}
+  rfefd sp!
 
 /*
   preserve_registers preserves the processor's registers before a C exception
