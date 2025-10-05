@@ -73,6 +73,7 @@ void do_irq_interrupt() {
   switch (ia) {
     case TIM01INT:
       timer_0->timer1_int_clr = 0;
+      schedule_tick();
       break;
     default:
       break;
