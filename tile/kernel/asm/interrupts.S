@@ -122,13 +122,17 @@ get_dfar:
   bx lr
 
 /*
-  ret_from_interrupt returns from an interrupt.
+  ret_from_interrupt returns from an interrupt. It restores the preserved
+  registers in the current process.
 */
 .global ret_from_interrupt
 ret_from_interrupt:
+  ldr r0, =current_registers
+  blx r0
+
   /* Restore the supervisor mode state and return. */
-  pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
-  add sp, #4
+  ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
+  add sp, #56
   pop {lr}
   rfefd sp!
 
