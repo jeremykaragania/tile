@@ -26,21 +26,6 @@ struct processor_registers {
   uint32_t cpsr;
 };
 
-/*
-  struct processor_mode represents the ARMv7-A processor modes.
-*/
-enum processor_mode {
-  PM_USR = 0x10,
-  PM_FIQ,
-  PM_IRQ,
-  PM_SVC,
-  PM_MON,
-  PM_ABT,
-  PM_HYP,
-  PM_UND,
-  PM_SYS
-};
-
 extern void enable_interrupts();
 extern void disable_interrupts();
 extern void init_stack_pointers();

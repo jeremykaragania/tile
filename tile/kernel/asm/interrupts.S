@@ -1,3 +1,5 @@
+#include <kernel/asm/processor.h>
+
 .section .vector_table, "ax"
 .global vector_table
 vector_table:
@@ -53,10 +55,10 @@ do_data_abort_stub:
     return address and the SPSR to the supervisor mode stack.
   */
   sub lr, #8
-  srsfd sp!, #0x13
+  srsfd sp!, #PM_SVC
 
   /* Switch to supervisor mode */
-  cps #0x13
+  cps #PM_SVC
 
   /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
@@ -82,10 +84,10 @@ do_irq_interrupt_stub:
     return address and the SPSR to the supervisor mode stack.
   */
   sub lr, #4
-  srsfd sp!, #0x13
+  srsfd sp!, #PM_SVC
 
   /* Switch to supervisor mode */
-  cps #0x13
+  cps #PM_SVC
 
   /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}

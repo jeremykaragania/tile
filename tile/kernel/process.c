@@ -1,5 +1,6 @@
-#include <kernel/process.h>
 #include <kernel/asm/memory.h>
+#include <kernel/asm/processor.h>
+#include <kernel/process.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>

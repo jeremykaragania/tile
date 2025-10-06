@@ -1,5 +1,6 @@
 #include <kernel/asm/memory.h>
 #include <kernel/asm/page.h>
+#include <kernel/asm/processor.h>
 
 .section .turn_mmu_on, "ax"
 turn_mmu_on:
@@ -37,7 +38,7 @@ virt_to_phys:
   bx lr
 .global _start
 _start:
-  cps #0x13 // Set processor mode to supervisor.
+  cps #PM_SVC // Set processor mode to supervisor.
   b map_turn_mmu_on
 /*
   new_sections inserts new similar section entries into the page table. r0 is

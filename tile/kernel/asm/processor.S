@@ -1,3 +1,5 @@
+#include <kernel/asm/processor.h>
+
 /*
   enable_interrupts enables the I and F bits in the Current Program Status
   Register (CPSR).
@@ -23,19 +25,19 @@ disable_interrupts:
 init_stack_pointers:
   ldr r0, =init_process_end - 0x8
   /* FIQ. */
-  cps #0x11
+  cps #PM_FIQ
   mov sp, r0
   /* IRQ. */
-  cps #0x12
+  cps #PM_IRQ
   mov sp, r0
   /* Abort. */
-  cps #0x17
+  cps #PM_ABT
   mov sp, r0
   /* Undefined. */
-  cps #0x1b
+  cps #PM_UND
   mov sp, r0
   /* Supervisor. */
-  cps #0x13
+  cps #PM_SVC
   mov sp, r0
   bx lr
 
