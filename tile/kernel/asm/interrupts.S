@@ -57,6 +57,61 @@ do_data_abort_stub:
   sub lr, #8
   srsfd sp!, #PM_SVC
 
+  mrs r0, spsr
+  and r0, #0x1f
+  eor r0, #PM_SVC
+  cmp r0, #0
+  beq do_data_abort_stub_kernel
+  b do_data_abort_stub_user
+
+do_irq_interrupt_stub:
+  /*
+    We're in IRQ mode. "lr" is the return address which we must decrement to
+    return to the instruction which triggered the exception. We push this
+    return address and the SPSR to the supervisor mode stack.
+  */
+  sub lr, #4
+  srsfd sp!, #PM_SVC
+
+  mrs r0, spsr
+  and r0, #0x1f
+  eor r0, #PM_SVC
+  cmp r0, #0
+  beq do_irq_interrupt_stub_kernel
+  b do_irq_interrupt_stub_user
+
+do_fiq_interrupt_stub:
+  ldr r0, =disable_interrupts
+  blx r0
+
+  ldr r0, =do_fiq_interrupt
+  bx r0
+
+do_reset_stub_kernel:
+  b .
+
+do_reset_stub_user:
+  b .
+
+do_undefined_instruction_stub_kernel:
+  b .
+
+do_undefined_instruction_stub_user:
+  b .
+
+do_supervisor_call_stub_kernel:
+  b .
+
+do_supervisor_call_stub_user:
+  b .
+
+do_prefetch_abort_stub_kernel:
+  b .
+
+do_prefetch_abort_stub_user:
+  b .
+
+do_data_abort_stub_kernel:
   /* Switch to supervisor mode */
   cps #PM_SVC
 
@@ -77,15 +132,10 @@ do_data_abort_stub:
   ldr r0, =ret_from_interrupt
   blx r0
 
-do_irq_interrupt_stub:
-  /*
-    We're in IRQ mode. "lr" is the return address which we must decrement to
-    return to the instruction which triggered the exception. We push this
-    return address and the SPSR to the supervisor mode stack.
-  */
-  sub lr, #4
-  srsfd sp!, #PM_SVC
+do_data_abort_stub_user:
+  b .
 
+do_irq_interrupt_stub_kernel:
   /* Switch to supervisor mode */
   cps #PM_SVC
 
@@ -106,12 +156,14 @@ do_irq_interrupt_stub:
   ldr r0, =ret_from_interrupt
   blx r0
 
-do_fiq_interrupt_stub:
-  ldr r0, =disable_interrupts
-  blx r0
+do_irq_interrupt_stub_user:
+  b .
 
-  ldr r0, =do_fiq_interrupt
-  bx r0
+do_fiq_interrupt_stub_kernel:
+  b .
+
+do_fiq_interrupt_stub_user:
+  b .
 
 .section .text
 /*
