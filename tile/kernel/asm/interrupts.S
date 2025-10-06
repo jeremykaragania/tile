@@ -117,11 +117,6 @@ do_data_abort_stub_kernel:
 
   /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-  ldr r0, =current_registers
-  blx r0
-  mov r1, #4
-  ldr r2, =preserve_registers
-  blx r2
 
   ldr r0, =disable_interrupts
   blx r0
@@ -129,6 +124,8 @@ do_data_abort_stub_kernel:
   ldr r0, =do_data_abort
   blx r0
 
+  mov r0, sp
+  add sp, #56
   ldr r0, =ret_from_interrupt
   blx r0
 
@@ -141,11 +138,6 @@ do_irq_interrupt_stub_kernel:
 
   /* Preserve the supervisor mode state. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-  ldr r0, =current_registers
-  blx r0
-  mov r1, #4
-  ldr r2, =preserve_registers
-  blx r2
 
   ldr r0, =disable_interrupts
   blx r0
@@ -153,8 +145,10 @@ do_irq_interrupt_stub_kernel:
   ldr r0, =do_irq_interrupt
   blx r0
 
-  ldr r0, =ret_from_interrupt
-  blx r0
+  mov r0, sp
+  add sp, #56
+  ldr r1, =ret_from_interrupt
+  blx r1
 
 do_irq_interrupt_stub_user:
   b .
@@ -177,16 +171,12 @@ get_dfar:
 
 /*
   ret_from_interrupt returns from an interrupt. It restores the preserved
-  registers in the current process.
+  registers in the struct process_registers in r0.
 */
 .global ret_from_interrupt
 ret_from_interrupt:
-  ldr r0, =current_registers
-  blx r0
-
   /* Restore the supervisor mode state and return. */
   ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
-  add sp, #56
   pop {lr}
   rfefd sp!
 
