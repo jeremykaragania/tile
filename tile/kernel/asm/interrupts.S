@@ -50,12 +50,17 @@ do_prefetch_abort_stub:
 
 do_data_abort_stub:
   /*
-    We're in abort mode. "lr" is the return address which we must decrement to
-    return to the instruction which triggered the exception. We push this
-    return address and the SPSR to the supervisor mode stack.
+    Preserve the program counter and saved program status register on the
+    supervisor mode stack.
   */
   sub lr, #8
   srsfd sp!, #PM_SVC
+
+  /* Switch to supervisor mode */
+  cps #PM_SVC
+
+  /* Preserve the remaining registers. */
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
 
   mrs r0, spsr
   and r0, #0x1f
@@ -66,14 +71,19 @@ do_data_abort_stub:
 
 do_irq_interrupt_stub:
   /*
-    We're in IRQ mode. "lr" is the return address which we must decrement to
-    return to the instruction which triggered the exception. We push this
-    return address and the SPSR to the supervisor mode stack.
+    Push the program counter and saved program status register to the
+    supervisor mode stack.
   */
   sub lr, #4
   srsfd sp!, #PM_SVC
 
-  mrs r0, spsr
+  /* Switch to supervisor mode */
+  cps #PM_SVC
+
+  /* Preserve the remaining registers. */
+  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
+
+  ldr r0, [sp, #PR_CPSR * 4]
   and r0, #0x1f
   eor r0, #PM_SVC
   cmp r0, #0
@@ -112,12 +122,6 @@ do_prefetch_abort_stub_user:
   b .
 
 do_data_abort_stub_kernel:
-  /* Switch to supervisor mode */
-  cps #PM_SVC
-
-  /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-
   ldr r0, =disable_interrupts
   blx r0
 
@@ -125,7 +129,7 @@ do_data_abort_stub_kernel:
   blx r0
 
   mov r0, sp
-  add sp, #56
+  add sp, #68
   ldr r0, =ret_from_interrupt
   blx r0
 
@@ -133,12 +137,6 @@ do_data_abort_stub_user:
   b .
 
 do_irq_interrupt_stub_kernel:
-  /* Switch to supervisor mode */
-  cps #PM_SVC
-
-  /* Preserve the supervisor mode state. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-
   ldr r0, =disable_interrupts
   blx r0
 
@@ -146,7 +144,7 @@ do_irq_interrupt_stub_kernel:
   blx r0
 
   mov r0, sp
-  add sp, #56
+  add sp, #68
   ldr r1, =ret_from_interrupt
   blx r1
 
@@ -175,10 +173,10 @@ get_dfar:
 */
 .global ret_from_interrupt
 ret_from_interrupt:
-  /* Restore the supervisor mode state and return. */
-  ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip}
-  pop {lr}
-  rfefd sp!
+  ldr r1, [r0, #PR_CPSR * 4]
+  msr cpsr, r1
+  isb
+  ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr, pc}
 
 /*
   preserve_registers preserves the processor's registers before a C exception
