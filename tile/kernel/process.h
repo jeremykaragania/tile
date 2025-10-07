@@ -1,8 +1,8 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <kernel/processor.h>
 #include <kernel/list.h>
+#include <kernel/processor.h>
 #include <stdint.h>
 
 #define STACK_END_MAGIC 0x57ac6e9d
@@ -89,6 +89,7 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
+int process_exec(char* filename);
 int get_process_number();
 
 void process_ret();

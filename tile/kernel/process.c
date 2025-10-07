@@ -1,6 +1,7 @@
+#include <kernel/process.h>
+#include <kernel/interrupts.h>
 #include <kernel/asm/memory.h>
 #include <kernel/asm/processor.h>
-#include <kernel/process.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
@@ -16,7 +17,7 @@ struct memory_info init_memory_info = {
   .data_begin = (uint32_t)&data_begin,
   .data_end = (uint32_t)&data_end,
   .bss_begin = (uint32_t)&bss_begin,
-  .bss_end= (uint32_t)&bss_end
+  .bss_end = (uint32_t)&bss_end
 };
 
 struct process_info init_process __attribute__((section(".init_process"))) = {
@@ -76,6 +77,30 @@ int process_clone(int type, struct function_info* func) {
   set_process_stack_end_token(proc);
 
   return num;
+}
+
+/*
+  process_exec executes the file specified by its name "name". Currently there
+  isn't an executable file format and this function supports instruction blobs.
+*/
+int process_exec(char* name) {
+  int fd;
+  void* addr;
+
+  fd = file_open(name, O_RDWR);
+
+  if (fd < 0) {
+    return 0;
+  }
+
+  addr = file_map(fd, BLOCK_RWX);
+
+  if (!addr) {
+    return 0;
+  }
+
+  current->reg.pc = (uint32_t)addr;
+  return 1;
 }
 
 /*
