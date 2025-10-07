@@ -179,6 +179,16 @@ ret_from_interrupt:
   ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr, pc}
 
 /*
+  ret_from_interrupt_user returns from an interrupt to userspace, restoring
+  registers from the preserved registers of the current process.
+*/
+.global ret_from_interrupt_user
+ret_from_interrupt_user:
+  ldr r0, =current_registers
+  blx current_registers
+  b ret_from_interrupt
+
+/*
   preserve_registers preserves the processor's registers before a C exception
   handler is called. It assumes that all core registers have been pushed to the
   stack in order. It must adjust the stack pointer and program counter to

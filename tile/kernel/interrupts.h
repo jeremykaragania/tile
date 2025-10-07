@@ -2,6 +2,7 @@
 #define INTERRUPTS_H
 
 #include <stdint.h>
+#include <kernel/processor.h>
 
 #define TIM01INT 34
 
@@ -15,6 +16,7 @@ void do_data_abort();
 void do_irq_interrupt();
 void do_fiq_interrupt();
 
-void ret_from_interrupt();
+void ret_from_interrupt(struct processor_registers* registers);
+void ret_from_interrupt_user();
 
 #endif
