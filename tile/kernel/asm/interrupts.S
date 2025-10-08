@@ -39,6 +39,9 @@ vector_table:
   /* Preserve the remaining registers. */
   push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
 
+  ldr r0, =disable_interrupts
+  blx r0
+
   ldr r0, [sp, #PR_CPSR * 4]
   and r0, #0x1f
   eor r0, #PM_SVC
@@ -93,9 +96,6 @@ do_prefetch_abort_stub_user:
   b .
 
 do_data_abort_stub_kernel:
-  ldr r0, =disable_interrupts
-  blx r0
-
   ldr r0, =do_data_abort
   blx r0
 
@@ -108,9 +108,6 @@ do_data_abort_stub_user:
   b .
 
 do_irq_interrupt_stub_kernel:
-  ldr r0, =disable_interrupts
-  blx r0
-
   ldr r0, =do_irq_interrupt
   blx r0
 
