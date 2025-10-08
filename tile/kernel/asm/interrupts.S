@@ -16,65 +16,21 @@ vector_table:
   When we return from any of these interrupts, we want the state to be the same
   as it was before entering. We try to handle all interrupts in supervisor mode
   which means that any banked registers in other modes are just scratch
-  registers. For now, It's assumed that these interrupts are entered from
-  supervisor mode.
+  registers.
 */
 .section .interrupts, "x"
-do_reset_stub:
-  ldr r0, =disable_interrupts
-  blx r0
-
-  ldr r0, =do_reset
-  bx r0
-
-do_undefined_instruction_stub:
-  ldr r0, =disable_interrupts
-  blx r0
-
-  ldr r0, =do_undefined_instruction
-  bx r0
-
-do_supervisor_call_stub:
-  ldr r0, =disable_interrupts
-  blx r0
-
-  ldr r0, =do_supervisor_call
-  bx r0
-
-do_prefetch_abort_stub:
-  ldr r0, =disable_interrupts
-  blx r0
-
-  ldr r0, =do_prefetch_abort
-  bx r0
-
-do_data_abort_stub:
+/*
+  interrupt_stub generates an interrupt handler stub for the interrupt named
+  "name". When an interrupt stub is entered, the return address is calculated
+  as an offset "adjustment" from the link register. Interrupt are handled
+  differently depending on whether it was taken from userspace or kernelspace.
+*/
+.macro interrupt_stub name adjustment
   /*
     Preserve the program counter and saved program status register on the
     supervisor mode stack.
   */
-  sub lr, #8
-  srsfd sp!, #PM_SVC
-
-  /* Switch to supervisor mode */
-  cps #PM_SVC
-
-  /* Preserve the remaining registers. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
-
-  mrs r0, spsr
-  and r0, #0x1f
-  eor r0, #PM_SVC
-  cmp r0, #0
-  beq do_data_abort_stub_kernel
-  b do_data_abort_stub_user
-
-do_irq_interrupt_stub:
-  /*
-    Push the program counter and saved program status register to the
-    supervisor mode stack.
-  */
-  sub lr, #4
+  add lr, #\adjustment
   srsfd sp!, #PM_SVC
 
   /* Switch to supervisor mode */
@@ -87,15 +43,30 @@ do_irq_interrupt_stub:
   and r0, #0x1f
   eor r0, #PM_SVC
   cmp r0, #0
-  beq do_irq_interrupt_stub_kernel
-  b do_irq_interrupt_stub_user
+  beq do_\name\()_stub_kernel
+  b do_\name\()_stub_user
+.endm
+
+do_reset_stub:
+  interrupt_stub name="reset" adjustment=0
+
+do_undefined_instruction_stub:
+  interrupt_stub name="undefined_instruction" adjustment=0
+
+do_supervisor_call_stub:
+  interrupt_stub name="supervisor_call" adjustment=0
+
+do_prefetch_abort_stub:
+  interrupt_stub name="prefetch_abort" adjustment=-4
+
+do_data_abort_stub:
+  interrupt_stub name="data_abort" adjustment=-8
+
+do_irq_interrupt_stub:
+  interrupt_stub name="irq_interrupt" adjustment=-4
 
 do_fiq_interrupt_stub:
-  ldr r0, =disable_interrupts
-  blx r0
-
-  ldr r0, =do_fiq_interrupt
-  bx r0
+  interrupt_stub name="fiq_interrupt" adjustment=-4
 
 do_reset_stub_kernel:
   b .
