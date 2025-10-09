@@ -41,6 +41,12 @@ void do_data_abort() {
   void* phys_addr;
 
   region = find_page_region(pages_head, dfar);
+
+  if (!region) {
+    panic();
+  }
+
+
   file_int = region->file_int;
 
   /* The page region is backed by a file. */
