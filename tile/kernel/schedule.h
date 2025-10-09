@@ -1,5 +1,5 @@
 #ifndef SCHEDULE_H
-#define SCHEDULE_C
+#define SCHEDULE_H
 
 #include <kernel/process.h>
 
