@@ -9,6 +9,47 @@
 #include <kernel/schedule.h>
 
 /*
+  handle_fault handles a fault on address "addr". This fault can either be
+  caused by a data abort or a prefetch abort. If the faulting address is
+  mapped, then the containing page is demand paged in.
+*/
+int handle_fault(uint32_t addr) {
+  struct list_link* pages_head = &current->mem->pages_head;
+  struct page_region* region;
+  struct file_info_int* file_int;
+  struct buffer_info* buffer;
+  void* phys_addr;
+
+  region = find_page_region(pages_head, addr);
+
+  if (!region) {
+    return 0;
+  }
+
+  file_int = region->file_int;
+
+  /* The page region is backed by a file. */
+  if (file_int) {
+    uint32_t offset = addr - region->begin;
+    struct filesystem_addr addr = file_offset_to_addr(file_int, offset);
+
+    buffer = buffer_get(addr.num);
+    phys_addr = virt_to_phys(buffer->data);
+  }
+  else {
+    phys_addr = page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0);
+  }
+
+  if (!phys_addr) {
+    return 0;
+  }
+
+  create_mapping(addr, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+
+  return 1;
+}
+
+/*
   do_reset handles the reset exception.
 */
 void do_reset() {}
@@ -34,38 +75,11 @@ void do_prefetch_abort() {}
 */
 void do_data_abort() {
   uint32_t dfar = get_dfar();
-  struct list_link* pages_head = &current->mem->pages_head;
-  struct page_region* region;
-  struct file_info_int* file_int;
-  struct buffer_info* buffer;
-  void* phys_addr;
 
-  region = find_page_region(pages_head, dfar);
-
-  if (!region) {
+  if (!handle_fault(dfar)) {
     panic();
   }
 
-
-  file_int = region->file_int;
-
-  /* The page region is backed by a file. */
-  if (file_int) {
-    uint32_t offset = dfar - region->begin;
-    struct filesystem_addr addr = file_offset_to_addr(file_int, offset);
-
-    buffer = buffer_get(addr.num);
-    phys_addr = virt_to_phys(buffer->data);
-  }
-  else {
-    phys_addr = page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0);
-  }
-
-  if (!phys_addr) {
-    panic();
-  }
-
-  create_mapping(dfar, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
   schedule();
 }
 

@@ -6,7 +6,8 @@
 
 #define TIM01INT 34
 
-extern uint32_t get_dfar();
+
+int handle_fault(uint32_t addr);
 
 void do_reset();
 void do_undefined_instruction();
@@ -16,7 +17,8 @@ void do_data_abort();
 void do_irq_interrupt();
 void do_fiq_interrupt();
 
-void ret_from_interrupt(struct processor_registers* registers);
-void ret_from_interrupt_user();
+extern uint32_t get_dfar();
+extern void ret_from_interrupt(struct processor_registers* registers);
+extern void ret_from_interrupt_user();
 
 #endif
