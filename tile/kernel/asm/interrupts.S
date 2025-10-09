@@ -101,8 +101,8 @@ do_data_abort_stub_kernel:
 
   mov r0, sp
   add sp, #68
-  ldr r0, =ret_from_interrupt
-  blx r0
+  ldr r1, =ret_from_interrupt
+  blx r1
 
 do_data_abort_stub_user:
   b .
