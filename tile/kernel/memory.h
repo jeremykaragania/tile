@@ -25,6 +25,8 @@
 #define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
+#define is_power_of_two(num) (num != 0 && (num & (num - 1)) == 0)
+
 /*
   enum memory_flags represents the attributes of a memory region.
 */
@@ -102,7 +104,6 @@ extern struct initmem_info initmem_info;
 extern struct memory_page_info memory_page_infos;
 
 extern struct page_group* page_groups;
-extern struct memory_page_info* memory_pages;
 
 extern uint32_t high_memory;
 

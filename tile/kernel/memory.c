@@ -538,7 +538,7 @@ void* memory_block_alloc(size_t size) {
     return NULL;
   }
 
-  if (IS_ALIGNED(size, 2)) {
+  if (is_power_of_two(size)) {
     align = size;
   }
 
