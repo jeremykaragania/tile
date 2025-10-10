@@ -532,7 +532,7 @@ void* memory_block_alloc(size_t size) {
   struct memory_page_info* curr = &memory_page_infos;
   struct memory_page_info tmp;
   void* ret = NULL;
-  size_t align = 1;
+  size_t align = 4;
 
   if (!size || size > PAGE_SIZE - sizeof(struct initmem_block)) {
     return NULL;
@@ -613,12 +613,13 @@ void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t
     return NULL;
   }
 
+  next.size = size;
+  next.flags = BLOCK_RW;
+
   while (curr) {
     struct initmem_block* next_addr = (struct initmem_block*)(ALIGN(curr->begin + curr->size + sizeof(struct initmem_block), align) - sizeof(struct initmem_block));
 
     next.begin = (uint32_t)next_addr + sizeof(struct initmem_block);
-    next.size = size;
-    next.flags = BLOCK_RW;
     next.prev = curr;
 
     /* We allocate after the current block. */
