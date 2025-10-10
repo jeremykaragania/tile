@@ -504,7 +504,7 @@ void* memory_page_alloc(size_t count) {
   block->prev = head;
 
   /* Initialize the dummy head block information to link to the previous block. */
-  head->begin = (uint32_t)data - PAGE_SIZE;
+  head->begin = (uint32_t)data - PAGE_SIZE + sizeof(struct initmem_block);
   head->size = 0;
   head->flags = BLOCK_RW;
   head->next = block;
@@ -590,14 +590,13 @@ void* memory_page_data_alloc() {
   void* data = (void*)(phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
 
   struct initmem_block block = {
-    sizeof(struct initmem_block),
+    (uint32_t)data + sizeof(struct initmem_block),
     0,
     BLOCK_RW,
     NULL,
     NULL
   };
 
-  block.begin += (uint32_t)data;
   *(struct initmem_block*)data = block;
   return data;
 }
@@ -612,20 +611,6 @@ void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t
 
   if (!size || size > PAGE_SIZE - sizeof(struct initmem_block)) {
     return NULL;
-  }
-
-  /*
-    If this is a new page with an empty first memory map block, then use that
-    block.
-  */
-  if (!curr->size) {
-    uint32_t begin = ALIGN(curr->begin + curr->size, align);
-
-    if (begin + size - 1 <= (uint32_t)page->data + PAGE_SIZE - 1) {
-      curr->begin = begin;
-      curr->size = size;
-      return (void*)curr->begin;
-    }
   }
 
   while (curr) {
