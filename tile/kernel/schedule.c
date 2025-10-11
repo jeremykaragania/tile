@@ -1,4 +1,5 @@
 #include <kernel/schedule.h>
+#include <kernel/process.h>
 #include <kernel/list.h>
 #include <kernel/page.h>
 
@@ -15,7 +16,7 @@ void schedule_init() {
 */
 void schedule_tick() {
   /* For now, the current process is always rescheduled. */
-  current->reschedule = 1;
+  current->sched.reschedule = 1;
 }
 
 /*
@@ -26,7 +27,7 @@ void schedule() {
   struct list_link* next;
   struct process_info* proc;
 
-  if (!current->reschedule) {
+  if (!current->sched.reschedule) {
     return;
   }
 

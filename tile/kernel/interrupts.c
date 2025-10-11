@@ -5,7 +5,7 @@
 #include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
-#include <kernel/processor.h>
+#include <kernel/process.h>
 #include <kernel/schedule.h>
 
 /*

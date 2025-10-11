@@ -1,7 +1,14 @@
 #ifndef SCHEDULE_H
 #define SCHEDULE_H
 
-#include <kernel/process.h>
+#include <kernel/processor.h>
+
+/*
+  schedule_info represents scheduling information about a process.
+*/
+struct schedule_info {
+  int reschedule;
+};
 
 void schedule_init();
 void schedule_tick();

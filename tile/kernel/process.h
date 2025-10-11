@@ -3,6 +3,7 @@
 
 #include <kernel/list.h>
 #include <kernel/processor.h>
+#include <kernel/schedule.h>
 #include <stdint.h>
 
 #define STACK_END_MAGIC 0x57ac6e9d
@@ -58,7 +59,7 @@ struct process_info {
   struct memory_info* mem;
   struct processor_registers reg;
   struct processor_registers context_reg;
-  int reschedule;
+  struct schedule_info sched;
   void* stack;
   struct list_link link;
 };
