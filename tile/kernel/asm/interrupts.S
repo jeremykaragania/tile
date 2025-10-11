@@ -90,7 +90,13 @@ do_supervisor_call_stub_user:
   b .
 
 do_prefetch_abort_stub_kernel:
-  b .
+  ldr r0, =do_prefetch_abort
+  blx r0
+
+  mov r0, sp
+  add sp, #68
+  ldr r1, =ret_from_interrupt
+  blx r1
 
 do_prefetch_abort_stub_user:
   b .
@@ -133,6 +139,15 @@ do_fiq_interrupt_stub_user:
 .global get_dfar
 get_dfar:
   mrc p15, 0, r0, c6, c0, 0
+  bx lr
+
+/*
+  get_ifar returns the Instruction Fault Address Register: the address which
+  caused a prefetch abort.
+*/
+.global get_ifar
+get_ifar:
+  mrc p15, 0, r0, c6, c0, 2
   bx lr
 
 /*

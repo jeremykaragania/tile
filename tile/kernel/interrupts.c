@@ -67,7 +67,15 @@ void do_supervisor_call() {}
 /*
   do_prefetch_abort handles the prefetch abort exception.
 */
-void do_prefetch_abort() {}
+void do_prefetch_abort() {
+  uint32_t ifar = get_ifar();
+
+  if (!handle_fault(ifar)) {
+    panic();
+  }
+
+  schedule();
+}
 
 /*
   do_data_abort handles the data abort exception. It tries to allocate and map
