@@ -71,8 +71,8 @@ int process_clone(int type, struct function_info* func) {
 
   list_push(&processes_head, &proc->link);
 
-  proc->stack = proc + 1;
-  proc->context_reg.sp = (uint32_t)proc + THREAD_SIZE - 8;
+  proc->stack = stack_begin(proc);
+  proc->context_reg.sp = stack_end(proc);
   proc->context_reg.cpsr = PM_SVC;
   set_process_stack_end_token(proc);
 
@@ -99,6 +99,8 @@ int process_exec(char* name) {
     return 0;
   }
 
+  current->reg.cpsr = PM_SVC;
+  current->reg.sp = stack_end(current);
   current->reg.pc = (uint32_t)addr;
   return 1;
 }
@@ -109,13 +111,6 @@ int process_exec(char* name) {
 */
 int get_process_number() {
   return ++process_num_count;
-}
-
-/*
- process_ret is the function called after a cloned process returns.
-*/
-void process_ret() {
-  while (1);
 }
 
 /*
@@ -159,7 +154,7 @@ struct processor_registers* current_context_registers() {
 */
 void function_to_process(struct process_info* proc, struct function_info* func) {
   proc->context_reg.r0 = (uint32_t)func->arg;
-  proc->context_reg.lr = (uint32_t)process_ret;
+  proc->context_reg.lr = (uint32_t)ret_from_interrupt_user;
   proc->context_reg.pc = (uint32_t)func->ptr;
   proc->context_reg.cpsr = PM_SVC;
 }

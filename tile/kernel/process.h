@@ -7,6 +7,8 @@
 
 #define STACK_END_MAGIC 0x57ac6e9d
 
+#define stack_begin(proc) (proc + 1)
+#define stack_end(proc) ((uint32_t)proc + THREAD_SIZE - 8)
 #define current current_process()
 
 /*
@@ -91,8 +93,6 @@ struct function_info {
 int process_clone(int type, struct function_info* func);
 int process_exec(char* filename);
 int get_process_number();
-
-void process_ret();
 
 void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();
