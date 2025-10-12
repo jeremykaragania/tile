@@ -487,11 +487,12 @@ void* memory_page_alloc(size_t count) {
     inside.
   */
   data = (void*)phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, count, count, 1));
-  page_group_insert(page_groups, virt_to_phys((uint32_t)data) - PAGE_SIZE, 1);
 
   if (!data) {
     return NULL;
   }
+
+  page_group_insert(page_groups, virt_to_phys((uint32_t)data) - PAGE_SIZE, 1);
 
   head = (void*)((uint32_t)data - PAGE_SIZE);
   block = (void*)((uint32_t)data - sizeof(struct initmem_block));
@@ -588,6 +589,10 @@ void* memory_block_alloc(size_t size) {
 */
 void* memory_page_data_alloc() {
   void* data = (void*)(phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
+
+  if (!data) {
+    return NULL;
+  }
 
   struct initmem_block block = {
     (uint32_t)data + sizeof(struct initmem_block),
