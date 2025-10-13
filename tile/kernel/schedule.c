@@ -46,3 +46,11 @@ void schedule() {
 
   context_switch(&current->context_reg, &proc->context_reg);
 }
+
+void enable_preemption() {
+  current->sched.preempt = 1;
+}
+
+void disable_preemption() {
+  current->sched.preempt = 0;
+}

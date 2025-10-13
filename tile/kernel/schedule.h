@@ -8,11 +8,15 @@
 */
 struct schedule_info {
   int reschedule;
+  int preempt;
 };
 
 void schedule_init();
 void schedule_tick();
 void schedule();
+
+void enable_preemption();
+void disable_preemption();
 
 extern void context_switch(struct processor_registers* from, struct processor_registers *to);
 
