@@ -42,7 +42,7 @@ vector_table:
   ldr r0, =disable_interrupts
   blx r0
 
-  ldr r0, [sp, #PR_CPSR * 4]
+  ldr r0, [sp, #PR_CPSR_OFFSET]
   and r0, #0x1f
   eor r0, #PM_SVC
   cmp r0, #0
@@ -156,7 +156,7 @@ get_ifar:
 */
 .global ret_from_interrupt
 ret_from_interrupt:
-  ldr r1, [r0, #PR_CPSR * 4]
+  ldr r1, [r0, #PR_CPSR_OFFSET]
   msr cpsr, r1
   isb
   ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr, pc}
@@ -181,21 +181,20 @@ ret_from_interrupt_user:
 */
 preserve_registers:
   mov r2, #0
+preserve:
   ldr r4, [sp, r2, lsl #2]
   str r4, [r0, r2, lsl #2]
   add r2, #1
   cmp r2, #17
-  ble preserve_registers+4
+  ble preserve
 
   /* Adjust the preserved stack pointer and program counter.*/
-  mov r2, #13 /* Stack pointer register number. */
-  ldr r4, [r0, r2, lsl #2]
+  ldr r4, [r0, #PR_SP_OFFSET]
   sub r4, #8
-  str r4, [r0, r2, lsl #2]
+  str r4, [r0, #PR_SP_OFFSET]
 
-  mov r2, #15 /* Program counter register number. */
-  ldr r4, [r0, r2, lsl #2]
+  ldr r4, [r0, #PR_PC_OFFSET]
   add r4, r1
-  str r4, [r0, r2, lsl #2]
+  str r4, [r0, #PR_PC_OFFSET]
 
   bx lr

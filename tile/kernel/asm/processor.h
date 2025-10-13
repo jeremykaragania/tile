@@ -12,23 +12,23 @@
 #define PM_UND 0x1b
 #define PM_SYS 0x1f
 
-/* Processor register indexes. */
-#define PR_R0 0
-#define PR_R1 1
-#define PR_R2 2
-#define PR_R3 3
-#define PR_R4 4
-#define PR_R5 5
-#define PR_R6 6
-#define PR_R7 7
-#define PR_R8 8
-#define PR_R9 9
-#define PR_R10 10
-#define PR_R11 11
-#define PR_R12 12
-#define PR_SP 13
-#define PR_LR 14
-#define PR_PC 15
-#define PR_CPSR 16
+/* Processor register offsets. */
+#define PR_R0_OFFSET 0
+#define PR_R1_OFFSET 4
+#define PR_R2_OFFSET 8
+#define PR_R3_OFFSET 12
+#define PR_R4_OFFSET 16
+#define PR_R5_OFFSET 20
+#define PR_R6_OFFSET 24
+#define PR_R7_OFFSET 28
+#define PR_R8_OFFSET 32
+#define PR_R9_OFFSET 36
+#define PR_R10_OFFSET 40
+#define PR_R11_OFFSET 44
+#define PR_R12_OFFSET 48
+#define PR_SP_OFFSET 52
+#define PR_LR_OFFSET 56
+#define PR_PC_OFFSET 60
+#define PR_CPSR_OFFSET 64
 
 #endif
