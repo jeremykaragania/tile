@@ -94,7 +94,6 @@ do_prefetch_abort_stub_kernel:
   blx r0
 
   mov r0, sp
-  add sp, #68
   ldr r1, =ret_from_interrupt
   blx r1
 
