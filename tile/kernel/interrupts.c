@@ -73,8 +73,6 @@ void do_prefetch_abort() {
   if (!handle_fault(ifar)) {
     panic();
   }
-
-  schedule();
 }
 
 /*
@@ -87,8 +85,6 @@ void do_data_abort() {
   if (!handle_fault(dfar)) {
     panic();
   }
-
-  schedule();
 }
 
 /*
@@ -111,7 +107,6 @@ void do_irq_interrupt() {
   /* Signal interrupt processing completion. */
   gicc->eoi = ia;
   gic_enable_interrupt(ia);
-  schedule();
 }
 
 /*

@@ -106,7 +106,6 @@ do_data_abort_stub_kernel:
   blx r0
 
   mov r0, sp
-  add sp, #68
   ldr r1, =ret_from_interrupt
   blx r1
 
@@ -118,7 +117,6 @@ do_irq_interrupt_stub_kernel:
   blx r0
 
   mov r0, sp
-  add sp, #68
   ldr r1, =ret_from_interrupt
   blx r1
 
@@ -156,6 +154,9 @@ get_ifar:
 */
 .global ret_from_interrupt
 ret_from_interrupt:
+  push {r0, r1}
+  bl schedule
+  pop {r0, r1}
   ldr r1, [r0, #PR_CPSR_OFFSET]
   msr cpsr, r1
   isb
@@ -168,7 +169,7 @@ ret_from_interrupt:
 .global ret_from_interrupt_user
 ret_from_interrupt_user:
   ldr r0, =current_registers
-  blx current_registers
+  blx r0
   b ret_from_interrupt
 
 /*
