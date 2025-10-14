@@ -7,15 +7,15 @@
 .global context_switch
 context_switch:
   // Preserve registers.
-  push {r0, r1}
+  push {r0}
 
   stmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr}
   str lr, [r0, #PR_PC_OFFSET]
 
-  mrs r1, cpsr
-  str r1, [r0, #64]
+  mrs r2, cpsr
+  str r2, [r0, #PR_CPSR_OFFSET]
 
-  pop {r0, r1}
+  pop {r0}
 
   // Restore registers.
   ldr r0, [r1, #PR_CPSR_OFFSET]
