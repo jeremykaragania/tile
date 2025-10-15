@@ -7,6 +7,7 @@
 .global enable_interrupts
 enable_interrupts:
   cpsie aif
+  isb
   bx lr
 
 /*
@@ -15,6 +16,7 @@ enable_interrupts:
 .global disable_interrupts
 disable_interrupts:
   cpsid aif
+  isb
   bx lr
 
 /*
