@@ -37,16 +37,26 @@ vector_table:
   cps #PM_SVC
 
   /* Preserve the remaining registers. */
-  push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr}
+  push {r0 - lr}
 
   ldr r0, =disable_interrupts
   blx r0
 
-  ldr r0, [sp, #PR_CPSR_OFFSET]
-  and r0, #0x1f
+  ldr r1, [sp, #PR_CPSR_OFFSET]
+  and r0, r1, #0x1f
   eor r0, #PM_SVC
   cmp r0, #0
-  beq do_\name\()_stub_kernel
+  beq 0f
+  b 1f
+/* From kernelspace. */
+0:
+  b do_\name\()_stub_kernel
+/* From userspace. */
+1:
+  ldr r0, =current_registers
+  blx r0
+  stm r0, {r0 - pc}^
+  str r1, [r0, #PR_CPSR_OFFSET]
   b do_\name\()_stub_user
 .endm
 
@@ -94,7 +104,7 @@ do_prefetch_abort_stub_kernel:
   blx r0
 
   mov r0, sp
-  ldr r1, =ret_from_interrupt
+  ldr r1, =ret_from_interrupt_kernel
   blx r1
 
 do_prefetch_abort_stub_user:
@@ -105,7 +115,7 @@ do_data_abort_stub_kernel:
   blx r0
 
   mov r0, sp
-  ldr r1, =ret_from_interrupt
+  ldr r1, =ret_from_interrupt_kernel
   blx r1
 
 do_data_abort_stub_user:
@@ -116,7 +126,7 @@ do_irq_interrupt_stub_kernel:
   blx r0
 
   mov r0, sp
-  ldr r1, =ret_from_interrupt
+  ldr r1, =ret_from_interrupt_kernel
   blx r1
 
 do_irq_interrupt_stub_user:
@@ -148,18 +158,16 @@ get_ifar:
   bx lr
 
 /*
-  ret_from_interrupt returns from an interrupt. It restores the preserved
-  registers in the struct process_registers in r0.
+  ret_from_interrupt_kernel returns from an interrupt. It restores the
+  preserved registers in the struct process_registers in r0.
 */
-.global ret_from_interrupt
-ret_from_interrupt:
+.global ret_from_interrupt_kernel
+ret_from_interrupt_kernel:
   push {r0, r1}
   bl schedule
   pop {r0, r1}
-  ldr r1, [r0, #PR_CPSR_OFFSET]
-  msr cpsr, r1
-  isb
-  ldmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, sp, lr, pc}
+  ldmia r0, {r0 - lr}
+  rfefd sp!
 
 /*
   ret_from_interrupt_user returns from an interrupt to userspace, restoring
@@ -167,9 +175,9 @@ ret_from_interrupt:
 */
 .global ret_from_interrupt_user
 ret_from_interrupt_user:
-  ldr r0, =current_registers
-  blx r0
-  b ret_from_interrupt
+  bl current_registers
+  add r0, #PR_PC_OFFSET
+  rfefd r0
 
 /*
   preserve_registers preserves the processor's registers before a C exception

@@ -9,7 +9,7 @@ context_switch:
   // Preserve registers.
   push {r0}
 
-  stmia r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr}
+  stmia r0, {r0 - lr}
   str lr, [r0, #PR_PC_OFFSET]
 
   // Adjust stack pointer to account for push.
@@ -27,4 +27,4 @@ context_switch:
   msr cpsr, r0
   isb
   bl disable_interrupts
-  ldmia r1, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr, pc}
+  ldmia r1, {r0 - pc}
