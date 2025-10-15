@@ -15,11 +15,15 @@
 char tile_banner[] = "Tile\n";
 
 int user_init() {
+  if (!process_exec("/sbin/init")) {
+    panic();
+  }
+
   return 0;
 }
 
 int kernel_init() {
-  return 0;
+  while(1);
 }
 
 void init_processes() {
@@ -57,6 +61,5 @@ void start_kernel() {
   schedule_init();
   init_processes();
   enable_interrupts();
-  filesystem_put();
   while(1);
 }
