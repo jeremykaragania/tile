@@ -153,7 +153,7 @@ struct processor_registers* current_context_registers() {
 */
 void function_to_process(struct process_info* proc, struct function_info* func) {
   proc->context_reg.r0 = (uint32_t)func->arg;
-  proc->context_reg.lr = (uint32_t)ret_from_interrupt_user;
-  proc->context_reg.pc = (uint32_t)func->ptr;
+  proc->context_reg.r1 = (uint32_t)func->ptr;
+  proc->context_reg.pc = (uint32_t)ret_from_clone;
   proc->context_reg.cpsr = PM_SVC;
 }

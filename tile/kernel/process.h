@@ -82,6 +82,7 @@ extern int process_num_count;
 extern struct memory_info init_memory_info;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
+extern void ret_from_clone(int (*ptr)(void*), void* arg);
 
 /*
   struct funciton_info represents a function which can be scheduled.
