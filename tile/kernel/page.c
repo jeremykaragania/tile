@@ -425,26 +425,30 @@ uint32_t create_pmd_page_table(uint32_t* page_table) {
 /*
   create_pte creates and returns a page table entry for a page table. The entry
   is specified by which physical address "p_addr" it maps to, and with which
-  flags "flags".
+  flags "flags". If a page is executable or writable, then it is at least
+  readable.
 */
 uint32_t create_pte(uint32_t p_addr, int flags) {
   uint32_t pte = (p_addr & 0xfffff000) | 1 << 1;
 
-  switch (flags) {
-    case PAGE_RWX: {
-      pte |= 1 << 4;
-      break;
-    }
-    case PAGE_RW:
-      pte |= 1;
-      pte |= 1 << 4;
-      break;
-    case PAGE_RO: {
-      pte |= 1;
-      pte |= 1 << 4;
-      pte |= 1 << 9;
-      break;
-    }
+  if (!flags) {
+    return pte;
+  }
+
+  if (flags & PAGE_KERNEL) {
+    pte |= 1 << 4;
+  }
+  else {
+    pte |= 1 << 4;
+    pte |= 1 << 5;
+  }
+
+  if (!(flags & PAGE_WRITE)) {
+    pte |= 1 << 9;
+  }
+
+  if (!(flags & PAGE_EXECUTE)) {
+    pte |= 1;
   }
 
   return pte;

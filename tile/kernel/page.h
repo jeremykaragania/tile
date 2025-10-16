@@ -5,6 +5,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define PAGE_RWX (PAGE_READ | PAGE_WRITE | PAGE_EXECUTE)
+#define PAGE_RW (PAGE_READ | PAGE_WRITE)
+#define PAGE_RO PAGE_READ
+
 #define pmd_count(x) (((x) + PMD_SIZE - 1) >> PG_DIR_SHIFT)
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
@@ -29,9 +33,10 @@ struct page_region {
   enum page_region_flags represents the attributes of a virtual page region.
 */
 enum page_region_flags {
-  PAGE_RWX,
-  PAGE_RW,
-  PAGE_RO,
+  PAGE_READ = 0x1,
+  PAGE_WRITE = 0x2,
+  PAGE_EXECUTE = 0x4,
+  PAGE_KERNEL = 0x8
 };
 
 const extern uint32_t* vector_table_begin;
