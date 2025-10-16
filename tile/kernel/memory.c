@@ -79,28 +79,23 @@ void update_memory_map() {
     b = &initmem_info.memory->blocks[i];
 
     if (!IS_ALIGNED(b->begin, PAGE_SIZE)) {
-      initmem_mask_block(b, BLOCK_RESERVED, 1);
+      continue;
     }
-  }
 
-  for (size_t i = 0; i < initmem_info.memory->size; ++i) {
     b_end = b->begin + b->size - 1;
 
-    if (!(b->flags & BLOCK_RESERVED)) {
-      if (b->begin < vmalloc_min_paddr) {
-        if (b_end > vmalloc_min_paddr) {
-          lowmem_end = vmalloc_min_paddr;
-        }
-        else {
-          lowmem_end = b_end;
-        }
-      }
+    if (b_end > vmalloc_min_paddr) {
+      lowmem_end = vmalloc_min_paddr;
+      initmem_split_block(initmem_info.memory, lowmem_end);
+      break;
+    }
+    else {
+      lowmem_end = b_end;
     }
   }
 
   high_memory = phys_to_virt(lowmem_end);
   initmem_info.limit = lowmem_end;
-  initmem_split_block(initmem_info.memory, initmem_info.limit);
   lowmem_end -= 1;
 }
 
@@ -160,18 +155,6 @@ void memory_alloc_init() {
 
   memory_page_infos.next = NULL;
   memory_page_infos.data = memory_page_data_alloc();
-}
-
-/*
-  initmem_mask_block sets a flag "flag" to "mask" in "block".
-*/
-void initmem_mask_block(struct initmem_block* block, int flag, int mask) {
-  if (mask) {
-    block->flags |= flag;
-  }
-  else {
-    block->flags &= ~flag;
-  }
 }
 
 /*
@@ -500,14 +483,12 @@ void* memory_page_alloc(size_t count) {
   /* Initialize the block information to describe the page allocation. */
   block->begin = (uint32_t)data;
   block->size = count * PAGE_SIZE;
-  block->flags = BLOCK_RW;
   block->next = NULL;
   block->prev = head;
 
   /* Initialize the dummy head block information to link to the previous block. */
   head->begin = (uint32_t)data - PAGE_SIZE + sizeof(struct initmem_block);
   head->size = 0;
-  head->flags = BLOCK_RW;
   head->next = block;
   head->prev = NULL;
 
@@ -597,7 +578,6 @@ void* memory_page_data_alloc() {
   struct initmem_block block = {
     (uint32_t)data + sizeof(struct initmem_block),
     0,
-    BLOCK_RW,
     NULL,
     NULL
   };
@@ -619,7 +599,6 @@ void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t
   }
 
   next.size = size;
-  next.flags = BLOCK_RW;
 
   while (curr) {
     struct initmem_block* next_addr = (struct initmem_block*)(ALIGN(curr->begin + curr->size + sizeof(struct initmem_block), align) - sizeof(struct initmem_block));

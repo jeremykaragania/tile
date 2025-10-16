@@ -50,7 +50,6 @@ enum initmem_block_flags {
 struct initmem_block {
   uint32_t begin;
   uint32_t size;
-  int flags;
   struct initmem_block* next;
   struct initmem_block* prev;
 };
@@ -112,7 +111,6 @@ void memory_alloc_init();
 
 void update_memory_map();
 
-void initmem_mask_block(struct initmem_block* block, int flag, int mask);
 void initmem_merge_blocks(struct initmem_group* group, int begin, int end);
 void initmem_insert_block(struct initmem_group* group, int pos, uint32_t begin, uint32_t size);
 void initmem_add_block(struct initmem_group* group, uint32_t begin, uint32_t size);
