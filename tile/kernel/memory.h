@@ -28,15 +28,6 @@
 #define is_power_of_two(num) (num != 0 && (num & (num - 1)) == 0)
 
 /*
-  enum memory_flags represents the attributes of a memory region.
-*/
-enum memory_flags {
-  BLOCK_RWX,
-  BLOCK_RW,
-  BLOCK_RO
-};
-
-/*
   enum initmem_block_flags represents the attribute of a memory block.
 */
 enum initmem_block_flags {

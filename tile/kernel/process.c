@@ -92,7 +92,7 @@ int process_exec(char* name) {
     return 0;
   }
 
-  addr = file_map(fd, BLOCK_RWX);
+  addr = file_map(fd, PAGE_RWX);
 
   if (!addr) {
     return 0;

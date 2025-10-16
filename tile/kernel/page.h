@@ -25,6 +25,15 @@ struct page_region {
   struct list_link link;
 };
 
+/*
+  enum page_region_flags represents the attributes of a virtual page region.
+*/
+enum page_region_flags {
+  PAGE_RWX,
+  PAGE_RW,
+  PAGE_RO,
+};
+
 const extern uint32_t* vector_table_begin;
 const extern uint32_t* vector_table_end;
 
