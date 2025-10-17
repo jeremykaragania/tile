@@ -5,10 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define PAGE_RWX (PAGE_READ | PAGE_WRITE | PAGE_EXECUTE)
-#define PAGE_RW (PAGE_READ | PAGE_WRITE)
-#define PAGE_RO PAGE_READ
-
 #define pmd_count(x) (((x) + PMD_SIZE - 1) >> PG_DIR_SHIFT)
 #define pgd_index_abs(addr) (addr >> PG_DIR_SHIFT)
 #define pmd_index_abs(addr) ((addr & PAGE_MASK) >> PAGE_SHIFT)
@@ -37,6 +33,16 @@ enum page_region_flags {
   PAGE_WRITE = 0x2,
   PAGE_EXECUTE = 0x4,
   PAGE_KERNEL = 0x8
+};
+
+/*
+  struct descriptor_bits represents the bit indexes of certain descriptor
+  protection bits. "ap" are the access permissions bits, and "xn" is the
+  execute-never bit.
+*/
+struct descriptor_bits {
+  uint8_t ap[3];
+  uint8_t xn;
 };
 
 const extern uint32_t* vector_table_begin;
@@ -75,6 +81,7 @@ void* create_pgd();
 uint32_t create_pmd_section(uint32_t p_addr, int flags);
 uint32_t create_pmd_page_table(uint32_t* page_table);
 uint32_t create_pte(uint32_t p_addr, int flags);
+uint32_t set_descriptor_protection(uint32_t entry, const struct descriptor_bits* bits, int flags);
 
 void create_page_region_bounds(struct list_link* head);
 struct page_region* create_page_region(struct list_link* head, uint32_t begin, size_t count, int flags);

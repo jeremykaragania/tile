@@ -26,6 +26,16 @@
 #include <lib/string.h>
 #include <limits.h>
 
+const struct descriptor_bits pmd_section_bits = {
+  .ap = {10, 11, 15},
+  .xn = 4
+};
+
+const struct descriptor_bits pte_bits = {
+  .ap = {4, 5, 9},
+  .xn = 0
+};
+
 /*
   init_paging initializes the kernel's paging and maps required memory regions.
   Currently the kernel is mapped using 1MB sections. These sections are
@@ -391,26 +401,11 @@ void* create_pgd() {
   maps to, and with which flags "flags".
 */
 uint32_t create_pmd_section(uint32_t p_addr, int flags) {
-  uint32_t pte = (p_addr & 0xfffffc00) | 1 << 1;
+  uint32_t pmd = (p_addr & 0xfffffc00) | 1 << 1;
 
-  switch (flags) {
-    case PAGE_RWX: {
-      pte |= 1 << 10;
-      break;
-    }
-    case PAGE_RW:
-      pte |= 1 << 4;
-      pte |= 1 << 10;
-      break;
-    case PAGE_RO: {
-      pte |= 1 << 4;
-      pte |= 1 << 10;
-      pte |= 1 << 15;
-      break;
-    }
-  }
+  pmd = set_descriptor_protection(pmd, &pmd_section_bits, flags);
 
-  return pte;
+  return pmd;
 }
 
 /*
@@ -431,27 +426,38 @@ uint32_t create_pmd_page_table(uint32_t* page_table) {
 uint32_t create_pte(uint32_t p_addr, int flags) {
   uint32_t pte = (p_addr & 0xfffff000) | 1 << 1;
 
+  pte = set_descriptor_protection(pte, &pte_bits, flags);
+
+  return pte;
+}
+
+/*
+  set_descriptor_protection sets the memory protection of the descriptor
+  "descriptor". The descriptor bit indexes are specified by "bits" and the
+  memory protection by "flags".
+*/
+uint32_t set_descriptor_protection(uint32_t descriptor, const struct descriptor_bits* bits, int flags) {
   if (!flags) {
-    return pte;
+    return descriptor;
   }
 
   if (flags & PAGE_KERNEL) {
-    pte |= 1 << 4;
+    descriptor |= 1 << bits->ap[0];
   }
   else {
-    pte |= 1 << 4;
-    pte |= 1 << 5;
+    descriptor |= 1 << bits->ap[0];
+    descriptor |= 1 << bits->ap[1];
   }
 
   if (!(flags & PAGE_WRITE)) {
-    pte |= 1 << 9;
+    descriptor |= 1 << bits->ap[2];
   }
 
   if (!(flags & PAGE_EXECUTE)) {
-    pte |= 1;
+    descriptor |= 1 << bits->xn;
   }
 
-  return pte;
+  return descriptor;
 }
 
 /*
