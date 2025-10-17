@@ -98,7 +98,7 @@ int process_exec(char* name) {
     return 0;
   }
 
-  current->reg.cpsr = PM_SVC;
+  current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(current);
   current->reg.pc = (uint32_t)addr;
   return 1;
