@@ -55,7 +55,7 @@ vector_table:
 1:
   ldr r0, =current_registers
   blx r0
-  stm r0, {r0 - pc}^
+  stm r0, {r0 - lr}^
   str r1, [r0, #PR_CPSR_OFFSET]
   b do_\name\()_stub_user
 .endm
@@ -108,7 +108,11 @@ do_prefetch_abort_stub_kernel:
   blx r1
 
 do_prefetch_abort_stub_user:
-  b .
+  ldr r0, =do_prefetch_abort
+  blx r0
+
+  ldr r0, =ret_from_interrupt_user
+  bx r0
 
 do_data_abort_stub_kernel:
   ldr r0, =do_data_abort
@@ -119,7 +123,11 @@ do_data_abort_stub_kernel:
   blx r1
 
 do_data_abort_stub_user:
-  b .
+  ldr r0, =do_data_abort
+  blx r0
+
+  ldr r0, =ret_from_interrupt_user
+  bx r0
 
 do_irq_interrupt_stub_kernel:
   ldr r0, =do_irq_interrupt
@@ -130,7 +138,11 @@ do_irq_interrupt_stub_kernel:
   blx r1
 
 do_irq_interrupt_stub_user:
-  b .
+  ldr r0, =do_irq_interrupt
+  blx r0
+
+  ldr r0, =ret_from_interrupt_user
+  bx r0
 
 do_fiq_interrupt_stub_kernel:
   b .
@@ -167,6 +179,11 @@ ret_from_interrupt_kernel:
   bl schedule
   pop {r0, r1}
   ldmia r0, {r0 - lr}
+  /*
+    This works since one of the first thing we do when entering an exception is
+    execute the save return state instruction to the supervisor stack and
+    that's the stack pointer which is preserved.
+  */
   rfefd sp!
 
 /*
@@ -175,6 +192,9 @@ ret_from_interrupt_kernel:
 */
 .global ret_from_interrupt_user
 ret_from_interrupt_user:
+  push {r0, r1}
+  bl schedule
+  pop {r0, r1}
   bl current_registers
   add r0, #PR_PC_OFFSET
   rfefd r0
