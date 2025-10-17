@@ -50,14 +50,41 @@ vector_table:
   b 1f
 /* From kernelspace. */
 0:
-  b do_\name\()_stub_kernel
+  interrupt_stub_kernel \name
 /* From userspace. */
 1:
+  interrupt_stub_user \name
+.endm
+
+/*
+  interrupt_stub_kernel generates an interrupt handler when an interrupt was
+  taken from kernelspace. The preserved registers will be on the stack.
+*/
+.macro interrupt_stub_kernel name
+  ldr r0, =do_\name
+  blx r0
+
+  mov r0, sp
+  ldr r1, =ret_from_interrupt_kernel
+  blx r1
+.endm
+
+/*
+  interrupt_stub_user generates an interrupt handler when an interrupt was
+  taken from userspace. Here, we preserve the userspace registers in the
+  process information structure.
+*/
+.macro interrupt_stub_user name
   ldr r0, =current_registers
   blx r0
   stm r0, {r0 - lr}^
   str r1, [r0, #PR_CPSR_OFFSET]
-  b do_\name\()_stub_user
+
+  ldr r0, =do_\name
+  blx r0
+
+  ldr r0, =ret_from_interrupt_user
+  bx r0
 .endm
 
 do_reset_stub:
@@ -80,75 +107,6 @@ do_irq_interrupt_stub:
 
 do_fiq_interrupt_stub:
   interrupt_stub name="fiq_interrupt" adjustment=-4
-
-do_reset_stub_kernel:
-  b .
-
-do_reset_stub_user:
-  b .
-
-do_undefined_instruction_stub_kernel:
-  b .
-
-do_undefined_instruction_stub_user:
-  b .
-
-do_supervisor_call_stub_kernel:
-  b .
-
-do_supervisor_call_stub_user:
-  b .
-
-do_prefetch_abort_stub_kernel:
-  ldr r0, =do_prefetch_abort
-  blx r0
-
-  mov r0, sp
-  ldr r1, =ret_from_interrupt_kernel
-  blx r1
-
-do_prefetch_abort_stub_user:
-  ldr r0, =do_prefetch_abort
-  blx r0
-
-  ldr r0, =ret_from_interrupt_user
-  bx r0
-
-do_data_abort_stub_kernel:
-  ldr r0, =do_data_abort
-  blx r0
-
-  mov r0, sp
-  ldr r1, =ret_from_interrupt_kernel
-  blx r1
-
-do_data_abort_stub_user:
-  ldr r0, =do_data_abort
-  blx r0
-
-  ldr r0, =ret_from_interrupt_user
-  bx r0
-
-do_irq_interrupt_stub_kernel:
-  ldr r0, =do_irq_interrupt
-  blx r0
-
-  mov r0, sp
-  ldr r1, =ret_from_interrupt_kernel
-  blx r1
-
-do_irq_interrupt_stub_user:
-  ldr r0, =do_irq_interrupt
-  blx r0
-
-  ldr r0, =ret_from_interrupt_user
-  bx r0
-
-do_fiq_interrupt_stub_kernel:
-  b .
-
-do_fiq_interrupt_stub_user:
-  b .
 
 .section .text
 /*
