@@ -84,16 +84,16 @@ void map_kernel() {
   uint32_t text_end = pmd_to_addr(mem->pgd, addr_to_pmd(mem->pgd, mem->text_end)) + PMD_SIZE;
 
   /* Map the memory in the ".text" section. */
-  create_mapping(mem->text_begin, virt_to_phys(mem->text_begin), mem->text_end - mem->text_begin, PAGE_RWX);
+  create_mapping(mem->text_begin, virt_to_phys(mem->text_begin), mem->text_end - mem->text_begin, PAGE_RWX | PAGE_KERNEL);
 
   /* Map the section memory before the ".text" section. */
-  create_mapping(text_begin, virt_to_phys(text_begin), mem->text_begin - text_begin, PAGE_RW);
+  create_mapping(text_begin, virt_to_phys(text_begin), mem->text_begin - text_begin, PAGE_RW | PAGE_KERNEL);
 
   /* Map the section memory after the ".text" section. */
-  create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, PAGE_RW);
+  create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, PAGE_RW | PAGE_KERNEL);
 
   /* Map the kernel memory after the ".text" section. */
-  create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), PAGE_RW);
+  create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), PAGE_RW | PAGE_KERNEL);
 }
 
 /*
@@ -101,8 +101,8 @@ void map_kernel() {
   controller.
 */
 void map_peripherals() {
-  create_mapping(GICD_VADDR, (uint32_t)gicd, PAGE_SIZE, PAGE_RW);
-  create_mapping(GICC_VADDR, (uint32_t)gicc, PAGE_SIZE, PAGE_RW);
+  create_mapping(GICD_VADDR, (uint32_t)gicd, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  create_mapping(GICC_VADDR, (uint32_t)gicc, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
   gicd = (volatile struct gic_distributor_registers*)GICD_VADDR;
   gicc = (volatile struct gic_cpu_interface_registers*)GICC_VADDR;
 }
@@ -112,7 +112,7 @@ void map_peripherals() {
   the memory executable.
 */
 void map_vector_table() {
-  create_mapping(VECTOR_TABLE_VADDR, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, PAGE_RWX);
+  create_mapping(VECTOR_TABLE_VADDR, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, PAGE_RWX | PAGE_KERNEL);
 }
 
 /*
@@ -120,9 +120,9 @@ void map_vector_table() {
   directory and maps the MCI and the UART.
 */
 void map_smc() {
-  mci = create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, PAGE_RW);
-  uart_0 = create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, PAGE_RW);
-  timer_0 = create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, PAGE_RW);
+  mci = create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  uart_0 = create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  timer_0 = create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
 }
 
 /*
@@ -221,7 +221,7 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
       does.
     */
     if ((uint32_t)page_table < pmd_end && (uint32_t)page_table > pmd_begin) {
-      pmd_insert(insert_pmd, (uint32_t)page_table, virt_to_phys((uint32_t)page_table), PAGE_RW);
+      pmd_insert(insert_pmd, (uint32_t)page_table, virt_to_phys((uint32_t)page_table), PAGE_RW | PAGE_KERNEL);
     }
 
     /* We either insert into the new page table or the existing one. */
