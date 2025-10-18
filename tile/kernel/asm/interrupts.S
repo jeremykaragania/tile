@@ -156,31 +156,3 @@ ret_from_interrupt_user:
   bl current_registers
   add r0, #PR_PC_OFFSET
   rfefd r0
-
-/*
-  preserve_registers preserves the processor's registers before a C exception
-  handler is called. It assumes that all core registers have been pushed to the
-  stack in order. It must adjust the stack pointer and program counter to
-  account for the adjustments made in the exception handler stub. The
-  preservation destination is stored in r0 and the amount the program counter
-  must be adjusted is stored in r1.
-*/
-preserve_registers:
-  mov r2, #0
-preserve:
-  ldr r4, [sp, r2, lsl #2]
-  str r4, [r0, r2, lsl #2]
-  add r2, #1
-  cmp r2, #17
-  ble preserve
-
-  /* Adjust the preserved stack pointer and program counter.*/
-  ldr r4, [r0, #PR_SP_OFFSET]
-  sub r4, #8
-  str r4, [r0, #PR_SP_OFFSET]
-
-  ldr r4, [r0, #PR_PC_OFFSET]
-  add r4, r1
-  str r4, [r0, #PR_PC_OFFSET]
-
-  bx lr
