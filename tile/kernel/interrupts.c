@@ -88,9 +88,9 @@ void do_data_abort() {
 }
 
 /*
-  do_irq_interrupt handles the IRQ interrupt exception.
+  do_irq handles the IRQ exception.
 */
-void do_irq_interrupt() {
+void do_irq() {
   uint32_t ia = gicc->ia;
 
   gic_disable_interrupt(ia);
@@ -110,6 +110,6 @@ void do_irq_interrupt() {
 }
 
 /*
-  do_fiq_interrupt handles the FIQ interrupt exception.
+  do_fiq handles the FIQ exception.
 */
-void do_fiq_interrupt() {}
+void do_fiq() {}

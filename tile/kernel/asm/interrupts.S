@@ -9,8 +9,8 @@ vector_table:
   b do_prefetch_abort_stub
   b do_data_abort_stub
   b .
-  b do_irq_interrupt_stub
-  b do_fiq_interrupt_stub
+  b do_irq_stub
+  b do_fiq_stub
 
 /*
   When we return from any of these interrupts, we want the state to be the same
@@ -102,11 +102,11 @@ do_prefetch_abort_stub:
 do_data_abort_stub:
   interrupt_stub name="data_abort" adjustment=-8
 
-do_irq_interrupt_stub:
-  interrupt_stub name="irq_interrupt" adjustment=-4
+do_irq_stub:
+  interrupt_stub name="irq" adjustment=-4
 
-do_fiq_interrupt_stub:
-  interrupt_stub name="fiq_interrupt" adjustment=-4
+do_fiq_stub:
+  interrupt_stub name="fiq" adjustment=-4
 
 .section .text
 /*
