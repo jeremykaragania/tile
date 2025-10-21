@@ -15,6 +15,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define FS_ACCESS (FA_READ_OWNER | FA_WRITE_OWNER | FA_EXEC_OWNER | \
+                   FA_READ_GROUP | FA_EXEC_GROUP | \
+                   FA_READ_OTHERS | FA_EXEC_OTHERS)
+
 #define DIRECTORIES_SIZE 14
 
 #define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
@@ -276,6 +280,7 @@ struct file_info_ext* mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext*
   file = alloc_file(ctx);
   file->type = FT_DIRECTORY;
   file->size = 0;
+  file->access = FS_ACCESS;
 
   directory.num = file->num;
   strcpy(directory.name, ".");
@@ -441,6 +446,7 @@ int main(int argc, char* argv[]) {
 
     init = alloc_file(&ctx);
     init->size = 0;
+    init->access = FS_ACCESS;
 
     write_file_to_directory(&ctx, sbin, init, "init");
     copy_file(&ctx, init, init_addr, init_size);
