@@ -18,7 +18,7 @@
 #define DIRECTORIES_SIZE 14
 
 #define file_num_to_offset(num) (file_num_to_block_num(num) * BLOCK_SIZE + file_num_to_block_offset(num))
-#define get_file(ctx, num) ((struct file_info_ext*)((uint64_t)ctx->device_addr + file_num_to_offset(num)))
+#define get_file(ctx, num) ((struct file_info_ext*)((uint64_t)(ctx)->device_addr + file_num_to_offset(num)))
 #define get_block(ctx, num) ((void*)(num * BLOCK_SIZE + (uint64_t)ctx->device_addr))
 
 char* program;
@@ -423,11 +423,9 @@ int main(int argc, char* argv[]) {
   /* Initialize the file information blocks. */
   for (size_t i = 0; i < info.file_infos_size; ++i) {
     for (size_t j = 0; j < FILE_INFO_PER_BLOCK; ++j) {
-      struct file_info_ext file_info_ext;
-      file_info_ext.num = i * FILE_INFO_PER_BLOCK + j + 1;
-      file_info_ext.type = 0;
-      file_info_ext.size = 0;
-      ((struct file_info_ext*)((uint64_t)device_addr + ((1 + i) * BLOCK_SIZE)))[j] = file_info_ext;
+      size_t file_num = i * FILE_INFO_PER_BLOCK + j + 1;
+      struct file_info_ext* file= get_file(&ctx, file_num);
+      file->num = file_num;
     }
   }
 
