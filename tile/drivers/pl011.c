@@ -189,58 +189,22 @@ int uart_printf(const char *format, ...) {
           }
           break;
         }
-        case 'x': {
-          switch (length) {
-            case LM_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long), 'x');
-              break;
-            }
-            case LM_LONG_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long long), 'x');
-              break;
-            }
-            case LM_CHAR:
-            case LM_SHORT:
-            default: {
-              uart_put_unsigned_integer(va_arg(args, unsigned int), 'x');
-              break;
-            }
-          }
-          break;
-        }
+        case 'u':
+        case 'x':
         case 'X': {
           switch (length) {
             case LM_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long), 'X');
+              uart_put_unsigned_integer(va_arg(args, unsigned long), format[i]);
               break;
             }
             case LM_LONG_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long long), 'X');
+              uart_put_unsigned_integer(va_arg(args, unsigned long long), format[i]);
               break;
             }
             case LM_CHAR:
             case LM_SHORT:
             default: {
-              uart_put_unsigned_integer(va_arg(args, unsigned int), 'X');
-              break;
-            }
-          }
-          break;
-        }
-        case 'u': {
-          switch (length) {
-            case LM_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long), 'd');
-              break;
-            }
-            case LM_LONG_LONG: {
-              uart_put_unsigned_integer(va_arg(args, unsigned long long), 'd');
-              break;
-            }
-            case LM_CHAR:
-            case LM_SHORT:
-            default: {
-              uart_put_unsigned_integer(va_arg(args, unsigned int), 'd');
+              uart_put_unsigned_integer(va_arg(args, unsigned int), format[i]);
               break;
             }
           }
