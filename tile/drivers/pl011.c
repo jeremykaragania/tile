@@ -53,6 +53,10 @@ void uart_put_unsigned_integer(unsigned long long a, const char format) {
     size_t i = 0;
 
     switch (format) {
+      case 'o': {
+        base = 8;
+        break;
+      }
       case 'x': {
         offsets[1] = 87;
         base = 16;
@@ -190,6 +194,7 @@ int uart_printf(const char *format, ...) {
           break;
         }
         case 'u':
+        case 'o':
         case 'x':
         case 'X': {
           switch (length) {
