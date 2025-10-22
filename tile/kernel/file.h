@@ -44,11 +44,20 @@
 #define blocks_in_file(size) ((size + BLOCK_SIZE - 1) / BLOCK_SIZE)
 
 /*
-  enum file_status represents the status of an operation on a file.
+  enum file_status represents the status of an operation on an open file.
 */
 enum file_status {
   FS_READ = (1 << 0),
   FS_WRITE = (1 << 1)
+};
+
+/*
+  enum file_operation represents an operation on a file.
+*/
+enum file_operation {
+  FO_READ = (1 << 0),
+  FO_WRITE = (1 << 1),
+  FO_EXEC = (1 << 2)
 };
 
 /*
@@ -192,6 +201,8 @@ extern struct list_link files_head;
 
 void filesystem_init();
 void filesystem_put();
+
+int file_operation_allowed(int user, int operation, struct file_info_int* file);
 
 int file_open(const char* name, int flags);
 int file_read(int fd, void* buf, size_t count);

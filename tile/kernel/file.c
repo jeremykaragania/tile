@@ -106,6 +106,60 @@ void filesystem_put() {
 }
 
 /*
+  file_operation_allowed checks if the user "user" can perform the operation
+  "operation" on the file "file". It returns 1 if the operation is allowed, and
+  0 if it is not allowed.
+*/
+int file_operation_allowed(int user, int operation, struct file_info_int* file) {
+  uint32_t access = file->ext.access;
+  struct file_owner owner = file->ext.owner;
+
+  if (user == 0) {
+    return 1;
+  }
+
+  if (operation & FO_READ) {
+    if (!((user == owner.user && access & FA_READ_OWNER) || access & FA_READ_OTHERS)) {
+      return 0;
+    }
+  }
+
+  if (operation & FO_WRITE) {
+    if (!((user == owner.user && access & FA_WRITE_OWNER) || access & FA_WRITE_OTHERS)) {
+      return 0;
+    }
+  }
+
+  if (operation & FO_EXEC) {
+    if (!((user == owner.user && access & FA_EXEC_OWNER) || access & FA_EXEC_OTHERS)) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+/*
+  open_flag_to_file_operation converts a file open flag to a file operation
+  flag. It returns -1 on failure.
+*/
+int open_flag_to_file_operation(int flags) {
+  if (flags & O_RDONLY) {
+    return FO_READ;
+  }
+
+  if (flags & O_RDWR) {
+    return FO_READ | FO_WRITE;
+  }
+
+  if (flags & O_WRONLY) {
+    return FO_WRITE;
+  }
+
+  return -1;
+}
+
+/*
   file_open opens a file specified by its name "name" and the access modes
   specified by "flags". On success, it returns a positive file descriptor to
   the file.
@@ -115,10 +169,19 @@ int file_open(const char* name, int flags) {
   struct file_table_entry* file_tab;
   int ret;
   int status = 0;
+  int operation = open_flag_to_file_operation(flags);
+
+  if (operation < 0) {
+    return -1;
+  }
 
   file = name_to_file(name);
 
   if (!file) {
+    return -1;
+  }
+
+  if (!file_operation_allowed(current->euid, operation, file)) {
     return -1;
   }
 
@@ -679,6 +742,10 @@ struct file_info_int* name_to_file(const char* name) {
     for (size_t j = 0; j < (f->ext.size / sizeof(struct directory_info)); ++j) {
       struct filesystem_addr addr;
       struct buffer_info* b;
+
+      if (!file_operation_allowed(current->euid, FO_READ | FO_EXEC, f)) {
+        return NULL;
+      }
 
       addr = file_offset_to_addr(f, j * sizeof(struct directory_info));
       b = buffer_get(addr.num);
