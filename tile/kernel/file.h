@@ -77,7 +77,7 @@ enum file_access {
   FA_EXEC_GROUP = 00010,
   FA_READ_OTHERS = 00004,
   FA_WRITE_OTHERS = 00002,
-  FA_EXECUTE_OTHERS = 00001
+  FA_EXEC_OTHERS = 00001
 };
 
 /*
@@ -146,6 +146,7 @@ struct file_info_ext {
   uint32_t num;
   uint32_t blocks[FILE_INFO_BLOCKS_SIZE];
   int32_t type;
+  struct file_owner owner;
   uint32_t access;
   uint32_t size;
 };

@@ -29,6 +29,7 @@ char* program;
 char* optstring = ":b:i:";
 char* directories[DIRECTORIES_SIZE] = {"bin", "boot", "dev", "etc", "lib", "media", "mnt", "opt", "run", "sbin", "srv", "tmp", "usr", "var"};
 struct file_info_ext* directory_infos[DIRECTORIES_SIZE];
+struct file_owner root_owner = {0, 0};
 
 struct mkfs_context {
   void* device_addr;
@@ -280,6 +281,7 @@ struct file_info_ext* mkfs_mkdir(struct mkfs_context* ctx, struct file_info_ext*
   file = alloc_file(ctx);
   file->type = FT_DIRECTORY;
   file->size = 0;
+  file->owner = root_owner;
   file->access = FS_ACCESS;
 
   directory.num = file->num;
@@ -445,7 +447,9 @@ int main(int argc, char* argv[]) {
     struct file_info_ext* sbin = get_directory("sbin");
 
     init = alloc_file(&ctx);
+    init->type = FT_REGULAR;
     init->size = 0;
+    init->owner = root_owner;
     init->access = FS_ACCESS;
 
     write_file_to_directory(&ctx, sbin, init, "init");
