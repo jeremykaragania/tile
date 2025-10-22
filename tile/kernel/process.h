@@ -53,7 +53,8 @@ struct process_info {
   int num;
   int type;
   int state;
-  int owner;
+  int uid;
+  int euid;
   uint32_t file_num;
   struct file_table_entry* file_tab;
   struct memory_info* mem;
