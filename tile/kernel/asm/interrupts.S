@@ -77,8 +77,8 @@ vector_table:
 .macro interrupt_stub_user name
   ldr r0, =current_registers
   blx r0
-  stm r0, {r0 - lr}^
-  str r1, [r0, #PR_CPSR_OFFSET]
+  ldr r1, =preserve_registers
+  blx r1
 
   ldr r0, =do_\name
   blx r0
@@ -156,3 +156,18 @@ ret_from_interrupt_user:
   bl current_registers
   add r0, #PR_PC_OFFSET
   rfefd r0
+
+/*
+  preserve_registers preserves userspace registers into a process's register
+  information. The destination is passed in r0. It's basically just a memcpy
+  but from the stack pointer.
+*/
+preserve_registers:
+  mov r2, #0
+preserve:
+  ldr r4, [sp, r2, lsl #2]
+  str r4, [r0, r2, lsl #2]
+  add r2, #1
+  cmp r2, #17
+  ble preserve
+  bx lr
