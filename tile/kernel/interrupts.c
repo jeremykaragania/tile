@@ -7,6 +7,7 @@
 #include <kernel/page.h>
 #include <kernel/process.h>
 #include <kernel/schedule.h>
+#include <kernel/syscall.h>
 
 /*
   handle_fault handles a fault on address "addr". This fault can either be
@@ -62,7 +63,13 @@ void do_undefined_instruction() {}
 /*
   do_supervisor_call handles the supervisor call exception.
 */
-void do_supervisor_call() {}
+void do_supervisor_call() {
+  uint32_t number = get_syscall_number();
+  int ret;
+
+  ret = do_syscall(number);
+  current->reg.r0 = ret;
+}
 
 /*
   do_prefetch_abort handles the prefetch abort exception.
