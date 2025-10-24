@@ -26,6 +26,22 @@ uint32_t syscall_table[] = {
 };
 
 /*
+  do_syscall does some initial checks before passing the system call number to
+  the system call dispatcher.
+*/
+int do_syscall(uint32_t number) {
+  int ret;
+
+  if (number > MAX_SYSCALL_NUMBER) {
+    return -1;
+  }
+
+  ret = dispatch_syscall(number);
+
+  return ret;
+}
+
+/*
   get_syscall_number returns the syscall number of the current process.
 */
 uint32_t get_syscall_number() {

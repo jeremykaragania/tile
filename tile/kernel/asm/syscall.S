@@ -2,12 +2,12 @@
 
 .text
 /*
-  do_syscall dispatches a syscall to the correct handler. The syscall number is
-  passed in "r0". It assumes that the arguments have already been preserved in
-  the current process's register information.
+  dispatch_syscall dispatches a syscall to the correct handler. The syscall
+  number is passed in "r0". It assumes that the arguments have already been
+  preserved in the current process's register information.
 */
-.global do_syscall
-do_syscall:
+.global dispatch_syscall
+dispatch_syscall:
   push {lr}
 
   mov r0, r7
