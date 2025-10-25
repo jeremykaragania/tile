@@ -127,6 +127,6 @@ void* memory_page_data_alloc();
 void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t align);
 
 void* memory_alloc(size_t size);
-int memory_free(void* ptr);
+void memory_free(void* ptr);
 
 #endif

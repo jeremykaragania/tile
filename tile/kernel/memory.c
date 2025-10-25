@@ -652,12 +652,8 @@ void* memory_alloc(size_t size) {
 /*
   memory_free frees the block which "ptr" points to.
 */
-int memory_free(void* ptr) {
+void memory_free(void* ptr) {
   struct initmem_block* block;
-
-  if (!ptr) {
-    return 0;
-  }
 
   block = (struct initmem_block*)((uint32_t)ptr - sizeof(struct initmem_block));
 
@@ -672,6 +668,4 @@ int memory_free(void* ptr) {
   if (block->size > PAGE_SIZE - sizeof(struct initmem_block)) {
     page_group_clear(page_groups, virt_to_phys((uint32_t)block->begin), block->size >> PAGE_SHIFT);
   }
-
-  return 1;
 }
