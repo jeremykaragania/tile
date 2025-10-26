@@ -9,7 +9,7 @@ extern uint32_t syscall_table[];
 
 int do_syscall(uint32_t number);
 uint32_t get_syscall_number();
-void undefined_syscall();
+int undefined_syscall();
 
 extern int dispatch_syscall(uint32_t number);
 

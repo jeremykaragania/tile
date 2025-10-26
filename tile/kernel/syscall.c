@@ -51,4 +51,6 @@ uint32_t get_syscall_number() {
 /*
   undefined_syscall handles an undefined syscall. Currently it just returns.
 */
-void undefined_syscall() {}
+int undefined_syscall() {
+  return -1;
+}
