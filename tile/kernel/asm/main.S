@@ -128,4 +128,5 @@ turn_mmu_on:
   mrc p15, #0x0, r0, c1, c0, #0x0
   orr r0, r0, #0x1
   mcr p15, #0x0, r0, c1, c0, #0x0 // Set MMU enable.
-  bx lr
+  ldr r0, =mmap_switched
+  bx r0
