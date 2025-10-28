@@ -75,7 +75,7 @@ enum memory_page_flags {
 struct memory_page_info {
   int flags;
   void* data;
-  struct memory_page_info* next;
+  struct list_link link;
 };
 
 /*
@@ -93,6 +93,7 @@ struct page_group {
 
 extern struct initmem_info initmem_info;
 extern struct memory_page_info memory_page_infos;
+extern struct list_link memory_page_infos_head;
 
 extern struct page_group* page_groups;
 extern struct list_link page_groups_head;

@@ -35,6 +35,7 @@ struct page_group* page_groups;
 struct list_link page_groups_head;
 
 struct memory_page_info memory_page_infos;
+struct list_link memory_page_infos_head;
 
 uint32_t high_memory;
 
@@ -145,8 +146,7 @@ void memory_alloc_init() {
   }
 
   page_groups = list_data(page_groups_head.next, struct page_group, link);
-  memory_page_infos.next = NULL;
-  memory_page_infos.data = memory_page_data_alloc();
+  list_init(&memory_page_infos_head);
 }
 
 /*
@@ -344,11 +344,11 @@ void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, s
   for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
     addr = page_group_addr(group, i);
 
-    /*
-      The page is aligned to "align" pages and it has "gap" free pages
-      before it.
-    */
-    if (addr % (align << PAGE_SHIFT) == 0 && page_group_is_free(group, addr - gap_size, count)) {
+    if (!page_group_is_free(group, addr, 1) || addr % (align << PAGE_SHIFT) != 0) {
+      continue;
+    }
+
+    if (page_group_is_free(group, addr - gap_size, count)) {
       page_group_insert(group, addr, count);
       return (void*)addr;
     }
@@ -444,7 +444,6 @@ int initmem_free(void* ptr) {
 */
 void* memory_page_alloc(size_t count) {
   void* data;
-  struct memory_page_info* curr;
   struct memory_page_info* page;
   struct initmem_block* block;
   struct initmem_block* head;
@@ -482,14 +481,8 @@ void* memory_page_alloc(size_t count) {
 
   page = memory_block_alloc(sizeof(struct memory_page_info));
   page->data = head;
-  page->next = NULL;
 
-  curr = &memory_page_infos;
-  while (curr->next) {
-    curr = curr->next;
-  }
-
-  curr->next = page;
+  list_push(&memory_page_infos_head, &page->link);
 
   return data;
 }
@@ -499,33 +492,26 @@ void* memory_page_alloc(size_t count) {
   pointer to it.
 */
 void* memory_block_alloc(size_t size) {
-  struct memory_page_info* curr = &memory_page_infos;
+  struct memory_page_info* page;
+  struct list_link* curr;
   struct memory_page_info tmp;
-  void* ret = NULL;
+  void* ret;
   size_t align = 4;
-
-  if (!size || size > PAGE_SIZE - sizeof(struct initmem_block)) {
-    return NULL;
-  }
 
   if (is_power_of_two(size)) {
     align = size;
   }
 
+  curr = memory_page_infos_head.next;
+
   /*
     We try to allocate in one of the existing pages.
   */
-  while (curr) {
-    if ((ret = memory_block_page_alloc(curr, size, align))) {
-      return ret;
-    }
+  while (curr != &memory_page_infos_head) {
+    page = list_data(curr, struct memory_page_info, link);
 
-    /*
-      If we've tried all of the pages, then we allocate a new one and try to
-      allocate inside of it.
-    */
-    if (!curr->next) {
-      break;
+    if ((ret = memory_block_page_alloc(page, size, align))) {
+      return ret;
     }
 
     curr = curr->next;
@@ -537,18 +523,17 @@ void* memory_block_alloc(size_t size) {
     page information.
   */
   tmp.data = memory_page_data_alloc();
-  tmp.next = NULL;
-  curr->next = memory_block_page_alloc(&tmp, sizeof(struct memory_page_info), 1);
-  curr->next->data = tmp.data;
-  curr->next->next = NULL;
+  page = memory_block_page_alloc(&tmp, sizeof(struct memory_page_info), 1);
+  page->data = tmp.data;
+  list_push(&memory_page_infos_head, &page->link);
 
-  if ((ret = memory_block_page_alloc(curr->next, size, align))) {
+  if ((ret = memory_block_page_alloc(page, size, align))) {
     return ret;
   }
 
-  page_group_clear(page_groups, virt_to_phys((uint32_t)tmp.data), 1);
-  memory_free(curr->next);
-  curr->next = NULL;
+  page_group_clear(page_groups, virt_to_phys((uint32_t)page->data), 1);
+  memory_free(page);
+  list_remove(&memory_page_infos_head, &page->link);
   return NULL;
 }
 
@@ -607,7 +592,7 @@ void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t
     }
 
     /* We allocate between the current block and the next block. */
-    if (next.begin + size < (uint32_t)curr->next) {
+    if (next.begin + size <= (uint32_t)curr->next) {
       next.next = curr->next;
       *next_addr = next;
       curr->next = next_addr;
