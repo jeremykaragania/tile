@@ -3,6 +3,7 @@
 
 #include <kernel/asm/memory.h>
 #include <kernel/asm/page.h>
+#include <kernel/list.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -87,13 +88,14 @@ struct page_group {
   struct memory_page_info* pages;
   uint32_t size;
   uint32_t offset;
-  struct page_group* next;
+  struct list_link link;
 };
 
 extern struct initmem_info initmem_info;
 extern struct memory_page_info memory_page_infos;
 
 extern struct page_group* page_groups;
+extern struct list_link page_groups_head;
 
 extern uint32_t high_memory;
 

@@ -32,6 +32,7 @@ static struct initmem_group initmem_reserved_group;
 struct initmem_info initmem_info;
 
 struct page_group* page_groups;
+struct list_link page_groups_head;
 
 struct memory_page_info memory_page_infos;
 
@@ -105,36 +106,23 @@ void update_memory_map() {
 void memory_alloc_init() {
   struct initmem_block* block;
   struct memory_page_info* page;
-  struct page_group* curr;
-  struct page_group* prev;
+  struct page_group* group;
+  struct list_link* curr;
 
-  curr = NULL;
-  prev = NULL;
+  list_init(&page_groups_head);
 
-  /*
-    For each memory block in the initial memory map's memory group, we allocate
-    a physical page page_group to map that memory block.
-  */
   for (size_t i = 0; i < initmem_info.memory->size; ++i) {
     block = &initmem_info.memory->blocks[i];
-    curr = initmem_alloc(sizeof(struct page_group));
+    group = initmem_alloc(sizeof(struct page_group));
 
-    if (!prev) {
-      page_groups = curr;
-    }
-    else {
-      prev->next = curr;
-    }
+    group->pages = initmem_alloc((block->size >> PAGE_SHIFT) * sizeof(struct memory_page_info));
+    group->size = block->size;
+    group->offset = block->begin;
 
-    curr->pages = initmem_alloc((block->size >> PAGE_SHIFT) * sizeof(struct memory_page_info));
-    curr->size = block->size;
-    curr->offset = block->begin;
-    curr->next = NULL;
-
-    prev = curr;
+    list_push(&page_groups_head, &group->link);
   }
 
-  curr = page_groups;
+  curr = page_groups_head.next;
 
   /*
     For each memory block in the initial memory map's reserved group, we
@@ -143,16 +131,20 @@ void memory_alloc_init() {
   for (size_t i = 0; i < initmem_info.reserved->size; ++i) {
     block = &initmem_info.reserved->blocks[i];
 
-    while (block->begin > page_group_end(curr)) {
+    group = list_data(curr, struct page_group, link);
+
+    while (block->begin > page_group_end(group)) {
       curr = curr->next;
+      group = list_data(curr, struct page_group, link);
     }
 
-    for (size_t j = page_group_index(curr, block->begin); j < page_group_index(curr, ALIGN(block->begin + block->size, PAGE_SIZE)); ++j) {
-      page = &curr->pages[j];
+    for (size_t j = page_group_index(group, block->begin); j < page_group_index(group, ALIGN(block->begin + block->size, PAGE_SIZE)); ++j) {
+      page = &group->pages[j];
       page->flags = PAGE_RESERVED;
     }
   }
 
+  page_groups = list_data(page_groups_head.next, struct page_group, link);
   memory_page_infos.next = NULL;
   memory_page_infos.data = memory_page_data_alloc();
 }
@@ -349,21 +341,17 @@ void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, s
   uint32_t addr;
   uint32_t gap_size = gap << PAGE_SHIFT;
 
-  while (group) {
-    for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
-      addr = page_group_addr(group, i);
+  for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
+    addr = page_group_addr(group, i);
 
-      /*
-        The page is aligned to "align" pages and it has "gap" free pages
-        before it.
-      */
-      if (addr % (align << PAGE_SHIFT) == 0 && page_group_is_free(group, addr - gap_size, count)) {
-        page_group_insert(group, addr, count);
-        return (void*)addr;
-      }
+    /*
+      The page is aligned to "align" pages and it has "gap" free pages
+      before it.
+    */
+    if (addr % (align << PAGE_SHIFT) == 0 && page_group_is_free(group, addr - gap_size, count)) {
+      page_group_insert(group, addr, count);
+      return (void*)addr;
     }
-
-    group = group->next;
   }
 
   return NULL;
