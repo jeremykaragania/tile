@@ -478,7 +478,7 @@ void* memory_page_alloc(size_t count) {
   head->next = block;
   head->prev = NULL;
 
-  page = memory_block_alloc(sizeof(struct phys_page));
+  page = page_group_get(page_groups, virt_to_phys((uint32_t)head));
   page->data = head;
 
   list_push(&alloc_pages_head, &page->link);
@@ -522,7 +522,7 @@ void* memory_block_alloc(size_t size) {
     page information.
   */
   tmp.data = memory_page_data_alloc();
-  page = memory_block_page_alloc(&tmp, sizeof(struct phys_page), 1);
+  page = page_group_get(page_groups, virt_to_phys((uint32_t)tmp.data));
   page->data = tmp.data;
   list_push(&alloc_pages_head, &page->link);
 
