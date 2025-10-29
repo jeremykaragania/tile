@@ -69,10 +69,9 @@ enum memory_page_flags {
 };
 
 /*
-  struct memory_page_info represents the information of a page use for memory
-  allocation.
+  struct phys_page represents the information of a physical page.
 */
-struct memory_page_info {
+struct phys_page {
   int flags;
   void* data;
   struct list_link link;
@@ -85,15 +84,14 @@ struct memory_page_info {
   the first address "offset"; and a pointer to the next page group "next".
 */
 struct page_group {
-  struct memory_page_info* pages;
+  struct phys_page* pages;
   uint32_t size;
   uint32_t offset;
   struct list_link link;
 };
 
 extern struct initmem_info initmem_info;
-extern struct memory_page_info memory_page_infos;
-extern struct list_link memory_page_infos_head;
+extern struct list_link alloc_pages_head;
 
 extern struct page_group* page_groups;
 extern struct list_link page_groups_head;
@@ -113,7 +111,7 @@ int initmem_split_block(struct initmem_group* group, uint32_t begin);
 size_t page_group_index(const struct page_group* group, uint32_t addr);
 uint32_t page_group_addr(const struct page_group* group, uint32_t index);
 uint32_t page_group_end(const struct page_group* group);
-struct memory_page_info* page_group_get(const struct page_group* group, uint32_t addr);
+struct phys_page* page_group_get(const struct page_group* group, uint32_t addr);
 int page_group_is_free(const struct page_group* group, uint32_t addr, size_t count);
 void page_group_insert(struct page_group* group, uint32_t addr, size_t count);
 void page_group_clear(struct page_group* group, uint32_t addr, size_t count);
@@ -127,7 +125,7 @@ void* memory_page_alloc(size_t count);
 void* memory_block_alloc(size_t size);
 
 void* memory_page_data_alloc();
-void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t align);
+void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align);
 
 void* memory_alloc(size_t size);
 void memory_free(void* ptr);

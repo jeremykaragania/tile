@@ -34,8 +34,7 @@ struct initmem_info initmem_info;
 struct page_group* page_groups;
 struct list_link page_groups_head;
 
-struct memory_page_info memory_page_infos;
-struct list_link memory_page_infos_head;
+struct list_link alloc_pages_head;
 
 uint32_t high_memory;
 
@@ -106,7 +105,7 @@ void update_memory_map() {
 */
 void memory_alloc_init() {
   struct initmem_block* block;
-  struct memory_page_info* page;
+  struct phys_page* page;
   struct page_group* group;
   struct list_link* curr;
 
@@ -116,7 +115,7 @@ void memory_alloc_init() {
     block = &initmem_info.memory->blocks[i];
     group = initmem_alloc(sizeof(struct page_group));
 
-    group->pages = initmem_alloc((block->size >> PAGE_SHIFT) * sizeof(struct memory_page_info));
+    group->pages = initmem_alloc((block->size >> PAGE_SHIFT) * sizeof(struct phys_page));
     group->size = block->size;
     group->offset = block->begin;
 
@@ -146,7 +145,7 @@ void memory_alloc_init() {
   }
 
   page_groups = list_data(page_groups_head.next, struct page_group, link);
-  list_init(&memory_page_infos_head);
+  list_init(&alloc_pages_head);
 }
 
 /*
@@ -287,7 +286,7 @@ uint32_t page_group_end(const struct page_group* group) {
   page_group_get returns the page information from a page group "group" and a
   page address "addr".
 */
-struct memory_page_info* page_group_get(const struct page_group* group, uint32_t addr) {
+struct phys_page* page_group_get(const struct page_group* group, uint32_t addr) {
   return &group->pages[page_group_index(group, addr)];
 }
 
@@ -444,7 +443,7 @@ int initmem_free(void* ptr) {
 */
 void* memory_page_alloc(size_t count) {
   void* data;
-  struct memory_page_info* page;
+  struct phys_page* page;
   struct initmem_block* block;
   struct initmem_block* head;
 
@@ -479,10 +478,10 @@ void* memory_page_alloc(size_t count) {
   head->next = block;
   head->prev = NULL;
 
-  page = memory_block_alloc(sizeof(struct memory_page_info));
+  page = memory_block_alloc(sizeof(struct phys_page));
   page->data = head;
 
-  list_push(&memory_page_infos_head, &page->link);
+  list_push(&alloc_pages_head, &page->link);
 
   return data;
 }
@@ -492,9 +491,9 @@ void* memory_page_alloc(size_t count) {
   pointer to it.
 */
 void* memory_block_alloc(size_t size) {
-  struct memory_page_info* page;
+  struct phys_page* page;
   struct list_link* curr;
-  struct memory_page_info tmp;
+  struct phys_page tmp;
   void* ret;
   size_t align = 4;
 
@@ -502,13 +501,13 @@ void* memory_block_alloc(size_t size) {
     align = size;
   }
 
-  curr = memory_page_infos_head.next;
+  curr = alloc_pages_head.next;
 
   /*
     We try to allocate in one of the existing pages.
   */
-  while (curr != &memory_page_infos_head) {
-    page = list_data(curr, struct memory_page_info, link);
+  while (curr != &alloc_pages_head) {
+    page = list_data(curr, struct phys_page, link);
 
     if ((ret = memory_block_page_alloc(page, size, align))) {
       return ret;
@@ -523,9 +522,9 @@ void* memory_block_alloc(size_t size) {
     page information.
   */
   tmp.data = memory_page_data_alloc();
-  page = memory_block_page_alloc(&tmp, sizeof(struct memory_page_info), 1);
+  page = memory_block_page_alloc(&tmp, sizeof(struct phys_page), 1);
   page->data = tmp.data;
-  list_push(&memory_page_infos_head, &page->link);
+  list_push(&alloc_pages_head, &page->link);
 
   if ((ret = memory_block_page_alloc(page, size, align))) {
     return ret;
@@ -533,7 +532,7 @@ void* memory_block_alloc(size_t size) {
 
   page_group_clear(page_groups, virt_to_phys((uint32_t)page->data), 1);
   memory_free(page);
-  list_remove(&memory_page_infos_head, &page->link);
+  list_remove(&alloc_pages_head, &page->link);
   return NULL;
 }
 
@@ -563,7 +562,7 @@ void* memory_page_data_alloc() {
   memory_block_page_alloc allocates a block of "size" bytes aligned to "align"
   bytes from the page information "page" and returns a pointer to it.
 */
-void* memory_block_page_alloc(struct memory_page_info* page, size_t size, size_t align) {
+void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align) {
   struct initmem_block* curr = (struct initmem_block*)page->data;
   struct initmem_block next;
 
