@@ -327,7 +327,7 @@ void page_group_insert(struct page_group* group, uint32_t addr, size_t count) {
 */
 void page_group_clear(struct page_group* group, uint32_t addr, size_t count) {
   for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
-    page_group_get(group, addr)->flags |= ~PAGE_RESERVED;
+    page_group_get(group, addr)->flags &= ~PAGE_RESERVED;
   }
 }
 
