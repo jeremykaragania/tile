@@ -473,13 +473,8 @@ void* memory_page_alloc(size_t count) {
   block->prev = head;
 
   /* Initialize the dummy head block information to link to the previous block. */
-  head->begin = (uint32_t)data - PAGE_SIZE + sizeof(struct initmem_block);
-  head->size = 0;
+  page = alloc_page_init(head);
   head->next = block;
-  head->prev = NULL;
-
-  page = page_group_get(page_groups, virt_to_phys((uint32_t)head));
-  page->data = head;
 
   list_push(&alloc_pages_head, &page->link);
 
@@ -493,7 +488,7 @@ void* memory_page_alloc(size_t count) {
 void* memory_block_alloc(size_t size) {
   struct phys_page* page;
   struct list_link* curr;
-  struct phys_page tmp;
+  void* data;
   void* ret;
   size_t align = 4;
 
@@ -517,13 +512,16 @@ void* memory_block_alloc(size_t size) {
   }
 
   /*
-    To allocate the actual page information, we first need to allocate a
-    page, allocate that page information within it, and then initialize that
-    page information.
+    We couldn't allocate in one of the existing pages, so create a new
+    allocation page.
   */
-  tmp.data = memory_page_data_alloc();
-  page = page_group_get(page_groups, virt_to_phys((uint32_t)tmp.data));
-  page->data = tmp.data;
+  data = (void*)(phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
+
+  if (!data) {
+    return NULL;
+  }
+
+  page = alloc_page_init(data);
   list_push(&alloc_pages_head, &page->link);
 
   if ((ret = memory_block_page_alloc(page, size, align))) {
@@ -531,31 +529,28 @@ void* memory_block_alloc(size_t size) {
   }
 
   page_group_clear(page_groups, virt_to_phys((uint32_t)page->data), 1);
-  memory_free(page);
   list_remove(&alloc_pages_head, &page->link);
   return NULL;
 }
 
 /*
-  memory_page_data_alloc allocates a page for memory allocation. The first byte
-  of a page used for memory allocation contains an empty memory map block.
+  alloc_page_init initializes the physical page correlating to the virtual
+  address specified by "data" for memory allocation and returns it.
 */
-void* memory_page_data_alloc() {
-  void* data = (void*)(phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
+struct phys_page* alloc_page_init(void* data) {
+  struct phys_page* page;
+  struct initmem_block* block;
 
-  if (!data) {
-    return NULL;
-  }
+  page = page_group_get(page_groups, virt_to_phys((uint32_t)data));
 
-  struct initmem_block block = {
-    (uint32_t)data + sizeof(struct initmem_block),
-    0,
-    NULL,
-    NULL
-  };
+  page->data = data;
+  block = page->data;
+  block->begin = (uint32_t)page->data + sizeof(struct initmem_block);
+  block->size = 0;
+  block->next = NULL;
+  block->prev = NULL;
 
-  *(struct initmem_block*)data = block;
-  return data;
+  return page;
 }
 
 /*

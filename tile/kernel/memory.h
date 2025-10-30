@@ -124,7 +124,7 @@ int initmem_free(void* ptr);
 void* memory_page_alloc(size_t count);
 void* memory_block_alloc(size_t size);
 
-void* memory_page_data_alloc();
+struct phys_page* alloc_page_init(void* data);
 void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align);
 
 void* memory_alloc(size_t size);
