@@ -621,6 +621,7 @@ void* memory_alloc(size_t size) {
 */
 void memory_free(void* ptr) {
   struct initmem_block* block;
+  struct phys_page* page;
 
   block = (struct initmem_block*)((uint32_t)ptr - sizeof(struct initmem_block));
 
@@ -634,5 +635,15 @@ void memory_free(void* ptr) {
   /* Handle memory allocated by the page allocator. */
   if (block->size > PAGE_SIZE - sizeof(struct initmem_block)) {
     page_group_clear(page_groups, virt_to_phys((uint32_t)block->begin), block->size >> PAGE_SHIFT);
+  }
+
+  /*
+    If the allocation page is empty, then unreserve it and remove it from the
+    allocation page list.
+  */
+  if (!block->prev->prev && !block->prev->next) {
+    page = page_group_get(page_groups, virt_to_phys((uint32_t)block->prev));
+    page_group_clear(page_groups, virt_to_phys((uint32_t)block->prev), 1);
+    list_remove(&alloc_pages_head, &page->link);
   }
 }
