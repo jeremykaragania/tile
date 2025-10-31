@@ -2,6 +2,7 @@
 #define PAGE_H
 
 #include <kernel/list.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -74,7 +75,7 @@ void pmd_clear(uint32_t* pgd, uint32_t addr);
 void pte_clear(uint32_t* pmd, uint32_t addr);
 void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags);
 
-int pmd_is_page_table(uint32_t* pmd);
+bool pmd_is_page_table(uint32_t* pmd);
 uint32_t* pmd_to_page_table(uint32_t* pmd);
 
 void* create_pgd();

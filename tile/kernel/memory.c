@@ -294,7 +294,7 @@ struct phys_page* page_group_get(const struct page_group* group, uint32_t addr) 
   page_group_addr_is_free returns true if "count" contiguous pages are free
   from the address "addr" in the page group "group".
 */
-int page_group_is_free(const struct page_group* group, uint32_t addr, size_t count) {
+bool page_group_is_free(const struct page_group* group, uint32_t addr, size_t count) {
   if (addr >= group->offset && addr + count * PAGE_SIZE <= page_group_end(group)) {
     int is_free = 1;
 
@@ -302,13 +302,13 @@ int page_group_is_free(const struct page_group* group, uint32_t addr, size_t cou
       is_free &= !(page_group_get(group, addr)->flags & PAGE_RESERVED);
 
       if (!is_free) {
-        return 0;
+        return false;
       }
     }
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /*

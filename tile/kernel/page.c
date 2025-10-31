@@ -193,7 +193,7 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
   uint32_t pmd_end;
   uint32_t* page_table;
   uint32_t* insert_pmd;
-  int is_page_table;
+  bool is_page_table;
   uint32_t pmd_page_table;
   uint32_t end = v_addr + size;
 
@@ -356,7 +356,7 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
   pmd_is_page_table returns a positive integer if the page middle directory
   "pmd" is a page table.
 */
-int pmd_is_page_table(uint32_t* pmd) {
+bool pmd_is_page_table(uint32_t* pmd) {
   return *pmd & 1;
 }
 

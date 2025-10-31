@@ -4,6 +4,7 @@
 #include <kernel/asm/memory.h>
 #include <kernel/asm/page.h>
 #include <kernel/list.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -112,7 +113,7 @@ size_t page_group_index(const struct page_group* group, uint32_t addr);
 uint32_t page_group_addr(const struct page_group* group, uint32_t index);
 uint32_t page_group_end(const struct page_group* group);
 struct phys_page* page_group_get(const struct page_group* group, uint32_t addr);
-int page_group_is_free(const struct page_group* group, uint32_t addr, size_t count);
+bool page_group_is_free(const struct page_group* group, uint32_t addr, size_t count);
 void page_group_insert(struct page_group* group, uint32_t addr, size_t count);
 void page_group_clear(struct page_group* group, uint32_t addr, size_t count);
 void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, size_t align, size_t gap);
