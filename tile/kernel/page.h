@@ -78,7 +78,7 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags);
 bool pmd_is_page_table(uint32_t* pmd);
 uint32_t* pmd_to_page_table(uint32_t* pmd);
 
-void* create_pgd();
+uint32_t* create_pgd();
 uint32_t create_pmd_section(uint32_t p_addr, int flags);
 uint32_t create_pmd_page_table(uint32_t* page_table);
 uint32_t create_pte(uint32_t p_addr, int flags);

@@ -377,12 +377,12 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
   create_pgd creates a new page global directory and copies the kernel mappings
   into it since they must remain present in all processes.
 */
-void* create_pgd() {
+uint32_t* create_pgd() {
   uint32_t* pgd;
   uint32_t* init_pgd;
   uint32_t pgd_virt_offset;
 
-  init_pgd = current->mem->pgd;
+  init_pgd = init_memory_info.pgd;
   pgd = memory_alloc(PG_DIR_SIZE);
   pgd_virt_offset = (uint32_t)addr_to_pmd(pgd, VIRT_OFFSET) - (uint32_t)pgd;
 
