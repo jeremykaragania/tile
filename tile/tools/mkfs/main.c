@@ -202,6 +202,8 @@ uint32_t push_block(struct mkfs_context* ctx, struct file_info_ext* file) {
     block_num = ((uint32_t*)block)[curr_index];
   }
 
+  file->size += BLOCK_SIZE;
+
   return ret;
 }
 
@@ -322,6 +324,10 @@ void copy_file(struct mkfs_context* ctx, struct file_info_ext* file, void* addr,
     curr_size -= count;
   }
 
+  /*
+    While pushing blocks we've already been incrementing the file size, but it
+    will be block aligned.
+  */
   file->size = size;
 }
 
