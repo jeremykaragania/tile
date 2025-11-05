@@ -131,7 +131,7 @@ typedef int32_t Elf32_Sword;
 typedef uint32_t Elf32_Word;
 
 // ELF header.
-typedef struct {
+typedef struct elf_hdr {
   unsigned char e_ident[EI_NIDENT];
   Elf32_Half e_type;
   Elf32_Half e_machine;
@@ -149,7 +149,7 @@ typedef struct {
 } Elf32_Ehdr;
 
 // Section header.
-typedef struct {
+typedef struct elf_shdr {
   Elf32_Word sh_name;
   Elf32_Word sh_type;
   Elf32_Word sh_flags;
@@ -163,7 +163,7 @@ typedef struct {
 } Elf32_Shdr;
 
 // Symbol table entry.
-typedef struct {
+typedef struct elf_sym {
   Elf32_Word st_name;
   Elf32_Addr st_value;
   Elf32_Word st_size;
@@ -173,19 +173,19 @@ typedef struct {
 } Elf32_Sym;
 
 // Relocation entries.
-typedef struct {
+typedef struct elf_rel {
   Elf32_Addr r_offset;
   Elf32_Word r_info;
 } Elf32_Rel;
 
-typedef struct {
+typedef struct elf_rela {
   Elf32_Addr r_offset;
   Elf32_Word r_info;
   Elf32_Sword r_addend;
 } Elf32_Rela;
 
 // Program header.
-typedef struct {
+typedef struct elf_phdr {
   Elf32_Word p_type;
   Elf32_Off p_offset;
   Elf32_Addr p_vaddr;
