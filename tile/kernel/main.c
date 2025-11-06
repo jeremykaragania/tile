@@ -48,8 +48,8 @@ void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process);
   initmem_init();
-  update_memory_map();
   memory_alloc_init();
+  update_memory_map();
   init_paging();
   uart_init();
   mci_init();
