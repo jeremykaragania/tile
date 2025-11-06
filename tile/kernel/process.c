@@ -56,13 +56,7 @@ int process_clone(int type, struct function_info* func) {
 
   /* Userspace processes have a unique virtual memory context. */
   if (type == PT_USER) {
-    struct memory_info* mem = memory_alloc(sizeof(struct memory_info));
-
-    if (!mem) {
-      return -1;
-    }
-
-    proc->mem = mem;
+    proc->mem = create_memory_info();
   }
 
   proc->num = num;
@@ -157,4 +151,19 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
   proc->context_reg.r1 = (uint32_t)func->ptr;
   proc->context_reg.pc = (uint32_t)ret_from_clone;
   proc->context_reg.cpsr = PM_SVC;
+}
+
+/*
+  create_memory_info creates a new empty memory context and returns it. It is
+  used when a process does not wish to share the parent's memory context.
+*/
+struct memory_info* create_memory_info() {
+  struct memory_info* mem = memory_alloc(sizeof(struct memory_info));
+
+  mem->pgd = create_pgd();
+
+  list_init(&mem->pages_head);
+  create_page_region_bounds(&mem->pages_head);
+
+  return mem;
 }

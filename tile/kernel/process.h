@@ -103,4 +103,6 @@ struct processor_registers* current_registers();
 struct processor_registers* current_context_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
+struct memory_info* create_memory_info();
+
 #endif
