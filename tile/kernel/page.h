@@ -50,7 +50,7 @@ const extern uint32_t* vector_table_begin;
 const extern uint32_t* vector_table_end;
 
 extern void invalidate_entire_tlb();
-extern void set_pgd(uint32_t* pgd);
+extern void set_pgd(uint32_t pgd);
 
 void init_paging();
 void init_pgd();

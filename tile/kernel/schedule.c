@@ -1,7 +1,8 @@
 #include <kernel/schedule.h>
-#include <kernel/process.h>
 #include <kernel/list.h>
+#include <kernel/memory.h>
 #include <kernel/page.h>
+#include <kernel/process.h>
 
 /*
   schedule_init initializes the scheduler.
@@ -41,7 +42,7 @@ void schedule() {
 
   /* If the next process has a different memory context, then we switch it too. */
   if (current->mem != proc->mem) {
-    set_pgd(proc->mem->pgd);
+    set_pgd(virt_to_phys((uint32_t)(proc->mem->pgd)));
   }
 
   context_switch(&current->context_reg, &proc->context_reg);
