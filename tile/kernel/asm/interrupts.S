@@ -80,6 +80,9 @@ vector_table:
   ldr r1, =preserve_registers
   blx r1
 
+  // We don't need the registers on the stack anymore.
+  add sp, #68
+
   ldr r0, =do_\name
   blx r0
 
