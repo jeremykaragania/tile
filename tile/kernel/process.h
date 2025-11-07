@@ -4,6 +4,8 @@
 #include <kernel/list.h>
 #include <kernel/processor.h>
 #include <kernel/schedule.h>
+#include <lib/elf.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define STACK_END_MAGIC 0x57ac6e9d
@@ -94,8 +96,11 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
-int process_exec(char* filename);
+int process_exec(const char* filename);
 int get_process_number();
+
+int load_elf(const void* elf);
+bool is_elf_header_valid(const struct elf_hdr* hdr);
 
 void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();

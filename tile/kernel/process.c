@@ -77,9 +77,11 @@ int process_clone(int type, struct function_info* func) {
   process_exec executes the file specified by its name "name". Currently there
   isn't an executable file format and this function supports instruction blobs.
 */
-int process_exec(char* name) {
+int process_exec(const char* name) {
   int fd;
-  void* addr;
+  struct file_info_int* file;
+  uint32_t file_size;
+  void* buf;
 
   fd = file_open(name, O_RDWR);
 
@@ -87,15 +89,19 @@ int process_exec(char* name) {
     return 0;
   }
 
-  addr = file_map(fd, PAGE_RWX);
+  file = (&current->file_tab[fd])->file_int;
+  file_size = file->ext.size;
 
-  if (!addr) {
+  buf = memory_alloc(ALIGN(file_size, PAGE_SIZE));
+  file_read(fd, buf, file_size);
+
+  if (load_elf(buf) > 0) {
     return 0;
   }
 
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(current);
-  current->reg.pc = (uint32_t)addr;
+
   return 1;
 }
 
@@ -105,6 +111,75 @@ int process_exec(char* name) {
 */
 int get_process_number() {
   return ++process_num_count;
+}
+
+/*
+  laod_elf loads an ELF file into the userspace portion of the current process.
+  It loads all of the loadable segments and sets the program counter to the
+  entry point.
+*/
+int load_elf(const void* elf) {
+  const struct elf_hdr* hdr;
+  const struct elf_phdr* phdr;
+
+  hdr = (struct elf_hdr*)elf;
+
+  if (!is_elf_header_valid(hdr)) {
+    return -1;
+  }
+
+  phdr = (struct elf_phdr*)((uint32_t)elf + hdr->e_phoff);
+
+  for (uint32_t i = 0; i < hdr->e_phnum; ++i) {
+    phdr = &phdr[i];
+
+    /* We only care about PT_LOAD segments. */
+    if (phdr->p_type != PT_LOAD) {
+      continue;
+    }
+
+    create_mapping(phdr->p_vaddr, virt_to_phys((uint32_t)elf + phdr->p_offset), phdr->p_memsz, PAGE_RWX);
+  }
+
+  current->reg.pc = hdr->e_entry;
+
+  return 0;
+}
+
+/*
+  is_elf_header_valid checks if the ELF file meets the basic and ARM-specific
+  identification requirements, and if it meets the kernel's requirements for
+  execution.
+*/
+bool is_elf_header_valid(const struct elf_hdr* hdr) {
+  if (hdr->e_ident[EI_MAG0] != ELFMAG0 ||
+      hdr->e_ident[EI_MAG1] != ELFMAG1 ||
+      hdr->e_ident[EI_MAG2] != ELFMAG2 ||
+      hdr->e_ident[EI_MAG3] != ELFMAG3) {
+    return false;
+  }
+
+  if (hdr->e_type != ET_EXEC) {
+    return false;
+  }
+
+  if (hdr->e_ident[EI_CLASS] != ELFCLASS32) {
+    return false;
+  }
+
+  if (hdr->e_ident[EI_DATA] != ELFDATA2LSB && hdr->e_ident[EI_DATA] != ELFDATA2MSB) {
+    return false;
+  }
+
+  if (hdr->e_machine != EM_ARM) {
+    return false;
+  }
+
+  if (!hdr->e_phoff) {
+    return false;
+  }
+
+  return true;
 }
 
 /*
