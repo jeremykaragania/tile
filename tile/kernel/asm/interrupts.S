@@ -133,9 +133,9 @@ get_ifar:
 */
 .global ret_from_interrupt_kernel
 ret_from_interrupt_kernel:
-  push {r0, r1}
+  push {r0}
   bl schedule
-  pop {r0, r1}
+  pop {r0}
   ldmia r0, {r0 - lr}
   /*
     This works since one of the first thing we do when entering an exception is
@@ -150,12 +150,16 @@ ret_from_interrupt_kernel:
 */
 .global ret_from_interrupt_user
 ret_from_interrupt_user:
-  push {r0, r1}
+  push {r0}
   bl schedule
-  pop {r0, r1}
+  pop {r0}
   bl current_registers
-  add r0, #PR_PC_OFFSET
-  rfefd r0
+  mov lr, r0
+  ldmia lr, {r0, r12}
+  add lr, #PR_SP_OFFSET
+  ldmia lr, {sp, lr}^
+  add lr, #8
+  rfefd lr
 
 /*
   preserve_registers preserves userspace registers into a process's register
