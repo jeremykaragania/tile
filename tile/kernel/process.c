@@ -29,7 +29,7 @@ struct process_info init_process __attribute__((section(".init_process"))) = {
   .file_num = 1,
   .file_tab = NULL,
   .mem = &init_memory_info,
-  .stack = &init_process_stack,
+  .stack = &init_process_stack
 };
 
 /*
@@ -95,7 +95,7 @@ int process_exec(const char* name) {
   buf = memory_alloc(ALIGN(file_size, PAGE_SIZE));
   file_read(fd, buf, file_size);
 
-  if (load_elf(buf) > 0) {
+  if (load_elf(buf) < 0) {
     return 0;
   }
 
@@ -114,7 +114,7 @@ int get_process_number() {
 }
 
 /*
-  laod_elf loads an ELF file into the userspace portion of the current process.
+  load_elf loads an ELF file into the userspace portion of the current process.
   It loads all of the loadable segments and sets the program counter to the
   entry point.
 */
