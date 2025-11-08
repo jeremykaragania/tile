@@ -48,7 +48,6 @@ struct list_link files_head;
 */
 void filesystem_init() {
   struct buffer_info* buffer_info = NULL;
-  struct file_info_int* curr;
 
   /*
     Initialize the file table of the kernel's init process.

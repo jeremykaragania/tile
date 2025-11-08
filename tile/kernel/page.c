@@ -133,7 +133,6 @@ void map_smc() {
 void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   const uint32_t ret = v_addr;
   const uint32_t count = page_count(size);
-  const uint32_t begin = v_addr;
   const uint32_t end = v_addr + size;
   size_t i = 0;
   uint32_t step;
