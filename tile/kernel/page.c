@@ -198,7 +198,7 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
     pmd = addr_to_pmd(pgd, v_addr);
     pmd_begin = pmd_to_addr(pgd, pmd);
     pmd_end = pmd_begin + PMD_SIZE - 1;
-    is_page_table = pmd_is_page_table(pmd);
+    is_page_table = is_pmd_page_table(pmd);
 
     /*
       This pmd isn't a page table, so we will allocate and replace it with
@@ -350,10 +350,10 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
 }
 
 /*
-  pmd_is_page_table returns a positive integer if the page middle directory
+  is_pmd_page_table returns a positive integer if the page middle directory
   "pmd" is a page table.
 */
-bool pmd_is_page_table(uint32_t* pmd) {
+bool is_pmd_page_table(uint32_t* pmd) {
   return *pmd & 1;
 }
 
@@ -362,7 +362,7 @@ bool pmd_is_page_table(uint32_t* pmd) {
   "pmd" if there's one.
 */
 uint32_t* pmd_to_page_table(uint32_t* pmd) {
-  if (pmd_is_page_table(pmd)) {
+  if (is_pmd_page_table(pmd)) {
     return (uint32_t*)phys_to_virt(*pmd & 0xfffffc00);
   }
 

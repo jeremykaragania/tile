@@ -430,11 +430,11 @@ int initmem_free(void* ptr) {
     if (block->begin == virt_to_phys((uint32_t)ptr)) {
       memmove(block, block + 1, (initmem_info.reserved->size - i) * sizeof(*block));
       --initmem_info.reserved->size;
-      return 1;
+      return 0;
     }
   }
 
-  return 0;
+  return -1;
 }
 
 /*

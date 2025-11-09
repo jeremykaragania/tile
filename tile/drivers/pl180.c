@@ -73,7 +73,7 @@ int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg) {
   uint32_t command = 0;
 
   if (cmd_index > 63) {
-    return 0;
+    return -1;
   }
 
   command |= cmd_index;
@@ -81,5 +81,5 @@ int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg) {
   mci->argument = cmd_arg;
   mci->command = command;
 
-  return 1;
+  return 0;
 }

@@ -3,6 +3,7 @@
 
 #include <kernel/asm/file.h>
 #include <kernel/list.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -202,7 +203,7 @@ extern struct list_link files_head;
 void filesystem_init();
 void filesystem_put();
 
-int file_operation_allowed(int user, int operation, struct file_info_int* file);
+bool is_file_operation_allowed(int user, int operation, struct file_info_int* file);
 
 int file_open(const char* name, int flags);
 int file_read(int fd, void* buf, size_t count);

@@ -105,37 +105,37 @@ void filesystem_put() {
 }
 
 /*
-  file_operation_allowed checks if the user "user" can perform the operation
+  is_file_operation_allowed checks if the user "user" can perform the operation
   "operation" on the file "file". It returns 1 if the operation is allowed, and
   0 if it is not allowed.
 */
-int file_operation_allowed(int user, int operation, struct file_info_int* file) {
+bool is_file_operation_allowed(int user, int operation, struct file_info_int* file) {
   uint32_t access = file->ext.access;
   struct file_owner owner = file->ext.owner;
 
   if (user == 0) {
-    return 1;
+    return true;
   }
 
   if (operation & FO_READ) {
     if (!((user == owner.user && access & FA_READ_OWNER) || access & FA_READ_OTHERS)) {
-      return 0;
+      return false;
     }
   }
 
   if (operation & FO_WRITE) {
     if (!((user == owner.user && access & FA_WRITE_OWNER) || access & FA_WRITE_OTHERS)) {
-      return 0;
+      return false;
     }
   }
 
   if (operation & FO_EXEC) {
     if (!((user == owner.user && access & FA_EXEC_OWNER) || access & FA_EXEC_OTHERS)) {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 /*
@@ -180,7 +180,7 @@ int file_open(const char* name, int flags) {
     return -1;
   }
 
-  if (!file_operation_allowed(current->euid, operation, file)) {
+  if (!is_file_operation_allowed(current->euid, operation, file)) {
     return -1;
   }
 
@@ -307,22 +307,22 @@ int file_write(int fd, const void* buf, size_t count) {
 }
 
 /*
-  file_close closes the file specified by the file descriptor "fd". On success 1
-  is returned, and on failure 0 is returned.
+  file_close closes the file specified by the file descriptor "fd". On success 0
+  is returned, and on failure -1 is returned.
 */
 int file_close(int fd) {
   if (fd < 1 || fd >= FILE_TABLE_SIZE) {
-    return 0;
+    return -1;
   }
 
   current->file_tab[fd].file_int = NULL;
 
-  return 1;
+  return 0;
 }
 
 /*
   file_mkdnod tries to create a node specified by "pathname" of type "type". It
-  returns 1 on success, and 0 on failure.
+  returns 0 on success, and -1 on failure.
 */
 int file_mknod(const char* pathname, int type) {
   struct file_info_int* file = name_to_file(pathname);
@@ -335,7 +335,7 @@ int file_mknod(const char* pathname, int type) {
   struct buffer_info* buffer;
 
   if (file) {
-    return 0;
+    return -1;
   }
 
   parent_name = memory_alloc(strlen(pathname));
@@ -348,7 +348,7 @@ int file_mknod(const char* pathname, int type) {
     A file can only be created in a directory.
   */
   if (!parent || parent->ext.type != FT_DIRECTORY) {
-    return 0;
+    return -1;
   }
 
   parent_size = parent->ext.size;
@@ -371,7 +371,7 @@ int file_mknod(const char* pathname, int type) {
 
   buffer_put(buffer);
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -442,13 +442,13 @@ void* file_map(int fd, int flags) {
 
 /*
   file_chdir changes the current directory to the directory specified by
-  "pathname". It returns 1 on success, and 0 on failure.
+  "pathname". It returns 0 on success, and -1 on failure.
 */
 int file_chdir(const char* pathname) {
   struct file_info_int* file = name_to_file(pathname);
 
   if (!file || file->ext.type != FT_DIRECTORY) {
-    return 0;
+    return -1;
   }
 
   /*
@@ -458,7 +458,7 @@ int file_chdir(const char* pathname) {
   file_put(file_get(current->file_num));
   current->file_num = file->ext.num;
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -477,7 +477,7 @@ int get_file_descriptor(const struct file_table_entry* file_tab) {
 
 /*
   file_resize resizes the file specified by "file" until it is at least "size"
-  bytes. It returns 1 on success and 0 on failure.
+  bytes. It returns 0 on success and -1 on failure.
 */
 int file_resize(struct file_info_int* file, size_t size) {
   size_t curr_blocks = blocks_in_file(file->ext.size);
@@ -486,7 +486,7 @@ int file_resize(struct file_info_int* file, size_t size) {
   int sign = delta > 0 ? 1 : -1;
 
   if (size > MAX_FILE_SIZE) {
-    return 0;
+    return -1;
   }
 
   if (sign > 0) {
@@ -499,7 +499,7 @@ int file_resize(struct file_info_int* file, size_t size) {
   file->ext.size = size;
   file_put(file);
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -742,7 +742,7 @@ struct file_info_int* name_to_file(const char* name) {
       struct filesystem_addr addr;
       struct buffer_info* b;
 
-      if (!file_operation_allowed(current->euid, FO_READ | FO_EXEC, f)) {
+      if (!is_file_operation_allowed(current->euid, FO_READ | FO_EXEC, f)) {
         return NULL;
       }
 

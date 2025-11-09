@@ -24,7 +24,7 @@ int handle_fault(uint32_t addr) {
   region = find_page_region(pages_head, addr);
 
   if (!region) {
-    return 0;
+    return -1;
   }
 
   file_int = region->file_int;
@@ -42,12 +42,12 @@ int handle_fault(uint32_t addr) {
   }
 
   if (!phys_addr) {
-    return 0;
+    return -1;
   }
 
   create_mapping(addr, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -77,7 +77,7 @@ void do_supervisor_call() {
 void do_prefetch_abort() {
   uint32_t ifar = get_ifar();
 
-  if (!handle_fault(ifar)) {
+  if (handle_fault(ifar) < 0) {
     panic();
   }
 }
@@ -89,7 +89,7 @@ void do_prefetch_abort() {
 void do_data_abort() {
   uint32_t dfar = get_dfar();
 
-  if (!handle_fault(dfar)) {
+  if (handle_fault(dfar) < 0) {
     panic();
   }
 }

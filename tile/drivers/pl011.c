@@ -110,7 +110,7 @@ int uart_putstring(const char* s) {
     uart_putchar(s[i]);
     ++i;
   }
-  return 0;
+  return i;
 }
 
 /*

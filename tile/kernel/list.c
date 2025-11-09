@@ -26,7 +26,7 @@ struct list_link* list_pop(struct list_link* head) {
 
   ret = head->next;
 
-  if (list_remove(head, ret)) {
+  if (list_remove(head, ret) == 0) {
     return ret;
   }
 
@@ -38,11 +38,11 @@ struct list_link* list_pop(struct list_link* head) {
 */
 int list_remove(struct list_link* head, struct list_link* link) {
   if (head == link) {
-    return 0;
+    return -1;
   }
 
   link->next->prev = link->prev;
   link->prev->next = link->next;
 
-  return 1;
+  return 0;
 }

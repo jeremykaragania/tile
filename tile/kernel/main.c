@@ -15,7 +15,7 @@
 char tile_banner[] = "Tile\n";
 
 int user_init() {
-  if (!process_exec("/sbin/init")) {
+  if (process_exec("/sbin/init") < 0) {
     panic();
   }
 

@@ -86,7 +86,7 @@ int process_exec(const char* name) {
   fd = file_open(name, O_RDWR);
 
   if (fd < 0) {
-    return 0;
+    return -1;
   }
 
   file = (&current->file_tab[fd])->file_int;
@@ -96,13 +96,13 @@ int process_exec(const char* name) {
   file_read(fd, buf, file_size);
 
   if (load_elf(buf) < 0) {
-    return 0;
+    return -1;
   }
 
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(current);
 
-  return 1;
+  return 0;
 }
 
 /*
