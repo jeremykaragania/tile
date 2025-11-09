@@ -321,7 +321,7 @@ uint32_t pte_to_addr(uint32_t pte) {
 void pmd_clear(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
 
-  pmd = addr_to_pmd(current->mem->pgd, addr);
+  pmd = addr_to_pmd(pgd, addr);
   *pmd = 0x0;
 }
 
