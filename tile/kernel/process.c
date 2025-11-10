@@ -121,6 +121,7 @@ int get_process_number() {
 int load_elf(const void* elf) {
   const struct elf_hdr* hdr;
   const struct elf_phdr* phdr;
+  int flags;
 
   hdr = (struct elf_hdr*)elf;
 
@@ -138,7 +139,8 @@ int load_elf(const void* elf) {
       continue;
     }
 
-    create_mapping(phdr->p_vaddr, virt_to_phys((uint32_t)elf + phdr->p_offset), phdr->p_memsz, PAGE_RWX);
+    flags = elf_segment_to_page_flags(phdr->p_flags);
+    create_mapping(phdr->p_vaddr, virt_to_phys((uint32_t)elf + phdr->p_offset), phdr->p_memsz, flags);
   }
 
   current->reg.pc = hdr->e_entry;
@@ -180,6 +182,28 @@ bool is_elf_header_valid(const struct elf_hdr* hdr) {
   }
 
   return true;
+}
+
+/*
+  elf_segment_to_page_flags converts the ELF program header flags to page
+  region flags.
+*/
+int elf_segment_to_page_flags(uint32_t flags) {
+  int ret = 0;
+
+  if (flags & PF_X) {
+    ret |= PAGE_EXECUTE;
+  }
+
+  if (flags & PF_W) {
+    ret |= PAGE_WRITE;
+  }
+
+  if (flags & PF_R) {
+    ret |= PAGE_READ;
+  }
+
+  return ret;
 }
 
 /*

@@ -101,6 +101,7 @@ int get_process_number();
 
 int load_elf(const void* elf);
 bool is_elf_header_valid(const struct elf_hdr* hdr);
+int elf_segment_to_page_flags(uint32_t flags);
 
 void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();
