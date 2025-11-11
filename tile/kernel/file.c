@@ -414,6 +414,22 @@ int file_seek(int fd, size_t offset) {
 }
 
 /*
+  file_access checks the calling process's permissions to access the file
+  specified by "file".
+*/
+int file_access(char* pathname, int mode) {
+  struct file_info_int* file;
+
+  file = name_to_file(pathname);
+
+  if (!file || !is_file_operation_allowed(current->euid, mode, file)) {
+    return -1;
+  }
+
+  return 0;
+}
+
+/*
   file_map maps the file specified by the file descriptor "fd" with the flags
   "flags". On success it returns a pointer to the mapped area.
 */

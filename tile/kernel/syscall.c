@@ -15,6 +15,7 @@
   The syscall table indexed by a syscall number.
 */
 uint32_t syscall_table[] = {
+  (uint32_t)file_access,
   (uint32_t)file_open,
   (uint32_t)file_read,
   (uint32_t)file_write,
