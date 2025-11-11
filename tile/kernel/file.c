@@ -117,19 +117,19 @@ bool is_file_operation_allowed(int user, int operation, struct file_info_int* fi
     return true;
   }
 
-  if (operation & FO_READ) {
+  if (operation & R_OK) {
     if (!((user == owner.user && access & FA_READ_OWNER) || access & FA_READ_OTHERS)) {
       return false;
     }
   }
 
-  if (operation & FO_WRITE) {
+  if (operation & W_OK) {
     if (!((user == owner.user && access & FA_WRITE_OWNER) || access & FA_WRITE_OTHERS)) {
       return false;
     }
   }
 
-  if (operation & FO_EXEC) {
+  if (operation & X_OK) {
     if (!((user == owner.user && access & FA_EXEC_OWNER) || access & FA_EXEC_OTHERS)) {
       return false;
     }
@@ -144,15 +144,15 @@ bool is_file_operation_allowed(int user, int operation, struct file_info_int* fi
 */
 int open_flag_to_file_operation(int flags) {
   if (flags & O_RDONLY) {
-    return FO_READ;
+    return R_OK;
   }
 
   if (flags & O_RDWR) {
-    return FO_READ | FO_WRITE;
+    return R_OK | W_OK;
   }
 
   if (flags & O_WRONLY) {
-    return FO_WRITE;
+    return W_OK;
   }
 
   return -1;
@@ -742,7 +742,7 @@ struct file_info_int* name_to_file(const char* name) {
       struct filesystem_addr addr;
       struct buffer_info* b;
 
-      if (!is_file_operation_allowed(current->euid, FO_READ | FO_EXEC, f)) {
+      if (!is_file_operation_allowed(current->euid, R_OK | X_OK, f)) {
         return NULL;
       }
 

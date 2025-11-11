@@ -91,6 +91,15 @@ enum file_access {
 };
 
 /*
+  file_mode represents the access mode of a file.
+*/
+enum file_mode {
+  R_OK = 4,
+  W_OK = 2,
+  X_OK = 1
+};
+
+/*
   file_open_flag represents the flags which can be passed when opening a file.
   They are the same as the POSIX ones.
 */
