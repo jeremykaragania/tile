@@ -105,6 +105,13 @@ void filesystem_put() {
 }
 
 /*
+  is_file_owner checks if the user "user" is the owner of the file "file".
+*/
+bool is_file_owner(int user, struct file_info_int* file) {
+  return user == 0 || file->ext.owner.user == user;
+}
+
+/*
   is_file_operation_allowed checks if the user "user" can perform the operation
   "operation" on the file "file". It returns 1 if the operation is allowed, and
   0 if it is not allowed.
