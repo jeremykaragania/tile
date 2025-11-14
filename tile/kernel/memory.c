@@ -589,6 +589,7 @@ void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align)
     if (next.begin + size <= (uint32_t)curr->next) {
       next.next = curr->next;
       *next_addr = next;
+      curr->next->prev = next_addr;
       curr->next = next_addr;
       return (uint32_t*)next.begin;
     }
