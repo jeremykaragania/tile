@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #define MEMORY_MAP_GROUP_LENGTH 128
+#define MAX_BLOCK_SIZE (PAGE_SIZE - sizeof(struct initmem_block))
 
 /*
   virt_to_phys returns a physical address from a virtual address "x".
@@ -28,6 +29,7 @@
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
 #define is_power_of_two(num) (num != 0 && (num & (num - 1)) == 0)
+#define ptr_to_block(ptr) ((struct initmem_block*)((uint32_t)ptr - sizeof(struct initmem_block)))
 
 /*
   enum initmem_block_flags represents the attribute of a memory block.

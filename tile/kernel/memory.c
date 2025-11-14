@@ -561,7 +561,7 @@ void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align)
   struct initmem_block* curr = (struct initmem_block*)page->data;
   struct initmem_block next;
 
-  if (!size || size > PAGE_SIZE - sizeof(struct initmem_block)) {
+  if (!size || size > MAX_BLOCK_SIZE) {
     return NULL;
   }
 
@@ -609,7 +609,7 @@ void* memory_alloc(size_t size) {
   if (!size) {
     return NULL;
   }
-  else if (size <= PAGE_SIZE - sizeof(struct initmem_block)) {
+  else if (size <= MAX_BLOCK_SIZE) {
     return memory_block_alloc(size);
   }
   else {
@@ -624,7 +624,7 @@ void memory_free(void* ptr) {
   struct initmem_block* block;
   struct phys_page* page;
 
-  block = (struct initmem_block*)((uint32_t)ptr - sizeof(struct initmem_block));
+  block = ptr_to_block(ptr);
 
   if (block->prev) {
     block->prev->next = block->next;
@@ -634,7 +634,7 @@ void memory_free(void* ptr) {
   }
 
   /* Handle memory allocated by the page allocator. */
-  if (block->size > PAGE_SIZE - sizeof(struct initmem_block)) {
+  if (block->size > MAX_BLOCK_SIZE) {
     page_group_clear(page_groups, virt_to_phys((uint32_t)block->begin), block->size >> PAGE_SHIFT);
   }
 
