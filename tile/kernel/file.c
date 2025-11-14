@@ -437,6 +437,43 @@ int file_access(char* pathname, int mode) {
 }
 
 /*
+  file_chmod changes the access permissions of the file specified by "pathname"
+  to the mode "mode".
+*/
+int file_chmod(char* pathname, int mode) {
+  struct file_info_int* file;
+
+  file = name_to_file(pathname);
+
+  if (!file || !is_file_owner(current->euid, file)) {
+    return -1;
+  }
+
+  file->ext.access = mode;
+
+  return 0;
+}
+
+/*
+  file_chown changes the owner and group of the file specified by "pathname" to
+  "owner" and "group" respectively.
+*/
+int file_chown(char* pathname, int owner, int group) {
+  struct file_info_int* file;
+
+  file = name_to_file(pathname);
+
+  if (!file || !is_file_owner(current->euid, file)) {
+    return -1;
+  }
+
+  file->ext.owner.user = owner;
+  file->ext.owner.group = group;
+
+  return 0;
+}
+
+/*
   file_map maps the file specified by the file descriptor "fd" with the flags
   "flags". On success it returns a pointer to the mapped area.
 */

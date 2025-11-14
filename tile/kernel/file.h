@@ -223,6 +223,8 @@ int file_mknod(const char* pathname, int type);
 int file_creat(const char* pathname, int flags);
 int file_seek(int fd, size_t offset);
 int file_access(char* pathname, int mode);
+int file_chmod(char* pathname, int mode);
+int file_chown(char* pathname, int owner, int group);
 
 void* file_map(int fd, int flags);
 
