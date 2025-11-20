@@ -97,7 +97,10 @@ struct function_info {
 
 int process_clone(int type, struct function_info* func);
 int process_exec(const char* filename);
-int get_process_number();
+int getpid();
+int getuid();
+
+int next_process_number();
 
 int load_elf(const void* elf);
 bool is_elf_header_valid(const struct elf_hdr* hdr);

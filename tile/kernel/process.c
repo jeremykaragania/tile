@@ -52,7 +52,7 @@ int process_clone(int type, struct function_info* func) {
 
   *proc = *current;
 
-  num = get_process_number();
+  num = next_process_number();
 
   /* Userspace processes have a unique virtual memory context. */
   if (type == PT_USER) {
@@ -106,10 +106,24 @@ int process_exec(const char* name) {
 }
 
 /*
-  get_process_number increments the process number count and returns the new
+  getpid returns the process ID of the calling process.
+*/
+int getpid() {
+  return current->num;
+}
+
+/*
+  getuid returns the real user ID of the calling process.
+*/
+int getuid() {
+  return current->uid;
+}
+
+/*
+  next_process_number increments the process number count and returns the new
   value.
 */
-int get_process_number() {
+int next_process_number() {
   return ++process_num_count;
 }
 
