@@ -106,6 +106,19 @@ int process_exec(const char* name) {
 }
 
 /*
+  process_exit causes the calling process to terminate. I
+*/
+int process_exit(int status) {
+  struct process_info* proc = current;
+
+  list_remove(&processes_head, &proc->link);
+
+  memory_free(proc->mem);
+  memory_free(proc);
+
+}
+
+/*
   getpid returns the process ID of the calling process.
 */
 int getpid() {
