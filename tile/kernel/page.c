@@ -154,6 +154,8 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
     i += page_count(step);
   }
 
+  create_page_region(&current->mem->pages_head, ret, count, flags);
+
   return (void*)ret;
 }
 
