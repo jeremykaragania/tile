@@ -29,6 +29,10 @@ int handle_fault(uint32_t addr) {
 
   file_int = region->file_int;
 
+  if (!file_int) {
+    return -1;
+  }
+
   /* The page region is backed by a file. */
   if (file_int) {
     uint32_t offset = addr - region->begin;
@@ -36,9 +40,6 @@ int handle_fault(uint32_t addr) {
 
     buffer = buffer_get(addr.num);
     phys_addr = virt_to_phys(buffer->data);
-  }
-  else {
-    phys_addr = page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0);
   }
 
   if (!phys_addr) {
