@@ -21,6 +21,7 @@
 #include <drivers/pl011.h>
 #include <drivers/pl180.h>
 #include <drivers/sp804.h>
+#include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/process.h>
 #include <lib/string.h>
@@ -590,4 +591,26 @@ struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
   }
 
   return NULL;
+}
+
+/*
+  free_page_regions frees all the page regions and backing memory in the
+  current process.
+*/
+void free_page_regions() {
+  struct list_link* pages_head = &current->mem->pages_head;
+  struct list_link* curr = pages_head->next;
+  struct page_region* region;
+
+  while (curr != pages_head) {
+    region = list_data(curr, struct page_region, link);
+
+    if (region->file_int) {
+      file_put(region->file_int);
+    }
+
+    list_remove(pages_head, curr);
+    curr = curr->next;
+    memory_free(region);
+  }
 }
