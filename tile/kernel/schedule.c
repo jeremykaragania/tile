@@ -17,7 +17,7 @@ void schedule_init() {
 */
 void schedule_tick() {
   /* For now, the current process is always rescheduled. */
-  current->sched.reschedule = 1;
+  current->sched.reschedule = true;
 }
 
 /*
@@ -48,10 +48,16 @@ void schedule() {
   context_switch(&current->context_reg, &proc->context_reg);
 }
 
+/*
+  enable_preemption enables preemption in the current process.
+*/
 void enable_preemption() {
-  current->sched.preempt = 1;
+  current->sched.preempt = true;
 }
 
+/*
+  disable_preemption disables preemption in the current process.
+*/
 void disable_preemption() {
-  current->sched.preempt = 0;
+  current->sched.preempt = false;
 }

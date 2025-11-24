@@ -2,13 +2,14 @@
 #define SCHEDULE_H
 
 #include <kernel/processor.h>
+#include <stdbool.h>
 
 /*
   schedule_info represents scheduling information about a process.
 */
 struct schedule_info {
-  int reschedule;
-  int preempt;
+  bool reschedule;
+  bool preempt;
 };
 
 void schedule_init();
