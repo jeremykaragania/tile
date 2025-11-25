@@ -799,7 +799,7 @@ struct file_info_int* name_to_file(const char* name) {
     /*
       Search for the file in the directory.
     */
-    for (size_t j = 0; j < (f->ext.size / sizeof(struct directory_info)); ++j) {
+    for (size_t j = 0; j < f->ext.size; j += sizeof(struct directory_info)) {
       struct filesystem_addr addr;
       struct buffer_info* b;
 
@@ -807,9 +807,9 @@ struct file_info_int* name_to_file(const char* name) {
         return NULL;
       }
 
-      addr = file_offset_to_addr(f, j * sizeof(struct directory_info));
+      addr = file_offset_to_addr(f, j);
       b = buffer_get(addr.num);
-      d = *((struct directory_info*)b->data + (j % DIRECTORIES_PER_BLOCK));
+      d = *(struct directory_info*)(b->data + addr.offset);
       buffer_put(b);
 
       if (strcmp(d.name, component) == 0) {
