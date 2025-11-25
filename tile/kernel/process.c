@@ -106,16 +106,20 @@ int process_exec(const char* name) {
 }
 
 /*
-  process_exit causes the calling process to terminate. I
+  process_exit causes the calling process to terminate.
 */
-int process_exit(int status) {
+void process_exit(int status) {
   struct process_info* proc = current;
 
+  /* Stop the process from being scheduled and force rescheduling. */
   list_remove(&processes_head, &proc->link);
+  proc->sched.reschedule = true;
+
+  /* Clean up held resources. */
+  free_page_regions();
 
   memory_free(proc->mem);
   memory_free(proc);
-
 }
 
 /*

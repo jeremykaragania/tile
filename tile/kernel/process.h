@@ -97,7 +97,7 @@ struct function_info {
 
 int process_clone(int type, struct function_info* func);
 int process_exec(const char* filename);
-int process_exit(int status);
+void process_exit(int status);
 int getpid();
 int getuid();
 
