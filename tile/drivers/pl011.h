@@ -61,6 +61,8 @@ void uart_init();
 void uart_put_signed_integer(long long a);
 void uart_put_unsigned_integer(unsigned long long a, const char format);
 
+int uart_write(void* buf, size_t count);
+
 int uart_putchar(const int c);
 int uart_putstring(const char* s);
 int uart_puts(const char* s);

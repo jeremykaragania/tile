@@ -93,6 +93,17 @@ void uart_put_unsigned_integer(unsigned long long a, const char format) {
 }
 
 /*
+  uart_write writes up to "count" bytes from the buffer "buf" to the UART.
+*/
+int uart_write(void* buf, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    uart_putchar(((char*)buf)[i]);
+  }
+
+  return count;
+}
+
+/*
   uart_putchar writes a byte "c" to the UART data register.
 */
 int uart_putchar(const int c) {
