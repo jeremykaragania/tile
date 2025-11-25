@@ -992,7 +992,6 @@ struct file_info_int* file_alloc() {
   num = filesystem_info.free_file_infos[filesystem_info.free_file_infos_size];
   ret = file_get(num);
   ret->ext.type = 1;
-  file_put(ret);
   return ret;
 }
 
