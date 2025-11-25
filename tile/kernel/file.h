@@ -199,6 +199,26 @@ struct file_table_entry {
   struct file_info_int* file_int;
 };
 
+/*
+  struct device_operations represents the operations which can be performed on
+  either a character or block device.
+*/
+struct device_operations {
+  int (*open)(int);
+  int (*close)();
+  int (*read)(void*, size_t);
+  int (*write)(void*, size_t);
+};
+
+/*
+  struct device_info represents information about either a character or block
+  device.
+*/
+struct device_info {
+  struct device_operations* ops;
+  struct list_link link;
+};
+
 extern const char* current_directory;
 extern const char* parent_directory;
 
@@ -208,6 +228,11 @@ extern struct filesystem_info filesystem_info;
   "files_head" is the head node of the internal file information list.
 */
 extern struct list_link files_head;
+
+/*
+  "devices_head" is the head node of the device information list.
+*/
+extern struct list_link devices_head;
 
 void filesystem_init();
 void filesystem_put();
