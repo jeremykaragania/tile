@@ -168,6 +168,8 @@ struct file_info_ext {
   struct file_owner owner;
   uint32_t access;
   uint32_t size;
+  uint16_t major;
+  uint16_t minor;
 };
 
 /*
@@ -244,7 +246,7 @@ int file_open(const char* name, int flags);
 int file_read(int fd, void* buf, size_t count);
 int file_write(int fd, const void* buf, size_t count);
 int file_close(int fd);
-int file_mknod(const char* pathname, int type);
+int file_mknod(const char* pathname, int mode, int dev);
 int file_creat(const char* pathname, int flags);
 int file_seek(int fd, size_t offset);
 int file_access(char* pathname, int mode);
@@ -254,6 +256,10 @@ int file_chown(char* pathname, int owner, int group);
 void* file_map(int fd, int flags);
 
 int file_chdir(const char* pathname);
+
+int make_dev(uint16_t major, uint16_t minor);
+uint16_t get_major(int dev);
+uint16_t get_minor(int dev);
 
 int get_file_descriptor(const struct file_table_entry* file_tab);
 

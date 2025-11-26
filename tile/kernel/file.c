@@ -332,7 +332,7 @@ int file_close(int fd) {
   file_mkdnod tries to create a node specified by "pathname" of type "type". It
   returns 0 on success, and -1 on failure.
 */
-int file_mknod(const char* pathname, int type) {
+int file_mknod(const char* pathname, int mode, int dev) {
   struct file_info_int* file = name_to_file(pathname);
   char* parent_name;
   char* file_name;
@@ -352,6 +352,8 @@ int file_mknod(const char* pathname, int type) {
 
   parent = name_to_file(parent_name);
 
+  memory_free(parent_name);
+
   /*
     A file can only be created in a directory.
   */
@@ -366,7 +368,8 @@ int file_mknod(const char* pathname, int type) {
     directory entry for the new file.
   */
   file = file_alloc();
-  file->ext.type = type;
+  file->ext.type = mode;
+
   file_resize(parent, parent_size + sizeof(struct directory_info));
 
   addr = file_offset_to_addr(parent, parent_size);
@@ -378,6 +381,14 @@ int file_mknod(const char* pathname, int type) {
   memcpy(buffer->data + addr.offset, &directory, sizeof(directory));
 
   buffer_put(buffer);
+  file_put(parent);
+
+  if (mode == FT_CHARACTER || mode == FT_BLOCK) {
+    file->ext.major = get_major(dev);
+    file->ext.minor = get_minor(dev);
+  }
+
+  file_put(file);
 
   return 0;
 }
@@ -391,7 +402,7 @@ int file_creat(const char* pathname, int flags) {
   struct file_table_entry* file_tab;
   int ret;
 
-  if (!file_mknod(pathname, FT_REGULAR)) {
+  if (!file_mknod(pathname, FT_REGULAR, 0)) {
     return -1;
   }
 
@@ -499,6 +510,28 @@ void* file_map(int fd, int flags) {
   region->file_int = file;
 
   return addr;
+}
+
+/*
+  make_dev creates a device integer representing a device's major and minor
+  numbers.
+*/
+int make_dev(uint16_t major, uint16_t minor) {
+  return (((uint32_t)major) << 16) | (uint32_t)minor;
+}
+
+/*
+  get_major returns the major number from a device integer.
+*/
+uint16_t get_major(int dev) {
+  return dev >> 16;
+}
+
+/*
+  get_minor returns the major number from a device integer.
+*/
+uint16_t get_minor(int dev) {
+  return dev & 0xffff;
 }
 
 /*
