@@ -146,6 +146,14 @@ bool is_file_operation_allowed(int user, int operation, struct file_info_int* fi
 }
 
 /*
+  is_file_device checks if the file specified by "file" is a device. It returns
+  true if the device is either a character or block device and false otherwise.
+*/
+bool is_file_device(struct file_info_int* file) {
+  return file->ext.type == FT_CHARACTER || file->ext.type == FT_BLOCK;
+}
+
+/*
   open_flag_to_file_operation converts a file open flag to a file operation
   flag. It returns -1 on failure.
 */

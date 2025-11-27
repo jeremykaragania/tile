@@ -240,6 +240,7 @@ void filesystem_put();
 
 bool is_file_owner(int user, struct file_info_int* file);
 bool is_file_operation_allowed(int user, int operation, struct file_info_int* file);
+bool is_file_device(struct file_info_int* file);
 
 int file_open(const char* name, int flags);
 int file_read(int fd, void* buf, size_t count);
