@@ -178,6 +178,7 @@ struct file_info_ext {
 struct file_info_int {
   struct file_info_ext ext;
   int status;
+  struct file_operations* ops;
   struct list_link link;
 };
 
@@ -201,23 +202,14 @@ struct file_table_entry {
 };
 
 /*
-  struct device_operations represents the operations which can be performed on
-  either a character or block device.
+  struct file_operations represents the operations which can be performed on a
+  device.
 */
-struct device_operations {
+struct file_operations {
   int (*open)(int);
   int (*close)();
   int (*read)(void*, size_t);
   int (*write)(void*, size_t);
-};
-
-/*
-  struct device_info represents information about either a character or block
-  device.
-*/
-struct device_info {
-  struct device_operations* ops;
-  struct list_link link;
 };
 
 extern const char* current_directory;
