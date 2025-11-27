@@ -8,7 +8,6 @@
 #include <stdint.h>
 
 #define FILE_INFO_PER_BLOCK (BLOCK_SIZE / sizeof(struct file_info_ext))
-#define FILE_INFO_CACHE_SIZE 32
 #define FILE_TABLE_SIZE 32
 #define FILESYSTEM_INFO_CACHE_SIZE 32
 #define FILE_NAME_SIZE 28

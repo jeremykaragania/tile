@@ -37,7 +37,6 @@ const char* current_directory = ".";
 const char* parent_directory = "..";
 
 struct filesystem_info filesystem_info;
-struct file_info_int file_info_pool[FILE_INFO_CACHE_SIZE];
 
 struct list_link files_head;
 struct list_link devices_head;
