@@ -206,10 +206,10 @@ struct file_table_entry {
   device.
 */
 struct file_operations {
-  int (*open)(int);
-  int (*close)();
-  int (*read)(void*, size_t);
-  int (*write)(void*, size_t);
+  int (*open)(const char*, int flags);
+  int (*close)(int);
+  int (*read)(int, void*, size_t);
+  int (*write)(int, const void*, size_t);
 };
 
 extern const char* current_directory;
