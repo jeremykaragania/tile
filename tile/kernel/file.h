@@ -15,6 +15,8 @@
 #define BLOCK_NUMS_PER_BLOCK (BLOCK_SIZE / sizeof(uint32_t))
 #define DIRECTORIES_PER_BLOCK (BLOCK_SIZE / sizeof(struct directory_info))
 
+#define DEVICE_TABLE_SIZE 32
+
 /*
   A file's data is accessed through four levels of indirection. Zeroth level
   blocks contain direct data, first level blocks contain the numbers of zeroth
@@ -42,6 +44,8 @@
 #define file_num_to_block_num(num) (1 + (num - 1) / FILE_INFO_PER_BLOCK)
 #define file_num_to_block_offset(num) (sizeof(struct file_info_ext) * ((num - 1) % FILE_INFO_PER_BLOCK))
 #define blocks_in_file(size) ((size + BLOCK_SIZE - 1) / BLOCK_SIZE)
+
+#define fd_to_file(fd) (current->file_tab[(fd)].file_int)
 
 /*
   enum file_status represents the status of an operation on an open file.
@@ -227,6 +231,11 @@ extern struct list_link files_head;
 */
 extern struct list_link devices_head;
 
+extern struct file_operations regular_operations;
+
+extern struct file_operations* character_device_table[DEVICE_TABLE_SIZE];
+extern struct file_operations* block_device_table[DEVICE_TABLE_SIZE];
+
 void filesystem_init();
 void filesystem_put();
 
@@ -248,6 +257,9 @@ int file_chown(char* pathname, int owner, int group);
 void* file_map(int fd, int flags);
 
 int file_chdir(const char* pathname);
+
+int regular_read(int fd, void* buf, size_t count);
+int regular_write(int fd, const void* buf, size_t count);
 
 int make_dev(uint16_t major, uint16_t minor);
 uint16_t get_major(int dev);

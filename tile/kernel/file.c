@@ -41,6 +41,14 @@ struct filesystem_info filesystem_info;
 struct list_link files_head;
 struct list_link devices_head;
 
+struct file_operations regular_operations = {
+  .read = regular_read,
+  .write = regular_write
+};
+
+struct file_operations* character_device_table[DEVICE_TABLE_SIZE];
+struct file_operations* block_device_table[DEVICE_TABLE_SIZE];
+
 /*
   filesystem_init initializes the filesystem and the relevant structures used
   by the kernel. It assumes that the filesystem begins at the beginning address
@@ -181,6 +189,7 @@ int open_flag_to_file_operation(int flags) {
 int file_open(const char* name, int flags) {
   struct file_info_int* file;
   struct file_table_entry* file_tab;
+  int (*open)(const char*, int flags);
   int ret;
   int status = 0;
   int operation = open_flag_to_file_operation(flags);
@@ -191,11 +200,7 @@ int file_open(const char* name, int flags) {
 
   file = name_to_file(name);
 
-  if (!file) {
-    return -1;
-  }
-
-  if (!is_file_operation_allowed(current->euid, operation, file)) {
+  if (!file || !is_file_operation_allowed(current->euid, operation, file)) {
     return -1;
   }
 
@@ -221,6 +226,38 @@ int file_open(const char* name, int flags) {
   file_tab->offset = 0;
   file_tab->file_int = file;
 
+  /*
+    Set the file operations table depending on if the file is a device or
+    regular file.
+  */
+  if (is_file_device(file)) {
+
+    if (file->ext.type == FT_CHARACTER) {
+      file->ops = character_device_table[file->ext.major];
+    }
+    else {
+    }
+
+  }
+  else {
+    file->ops = &regular_operations;
+  }
+
+  open = file->ops->open;
+
+  if (!open) {
+    return ret;
+  }
+
+  /*
+    If there's a special open handler, then try to call it. If it fails cleanup
+    and return.
+  */
+  if (open(name, flags) < 0) {
+    file_tab->file_int = NULL;
+    return -1;
+  }
+
   return ret;
 }
 
@@ -230,49 +267,14 @@ int file_open(const char* name, int flags) {
   read.
 */
 int file_read(int fd, void* buf, size_t count) {
-  struct file_table_entry* file_tab;
-  struct file_info_int* file;
-  struct filesystem_addr addr;
-  struct buffer_info* buffer;
-  int ret = 0;
+  struct file_info_int* file = fd_to_file(fd);
+  int (*read)(int, void*, size_t) = file->ops->read;
 
-  file_tab = &current->file_tab[fd];
-  file = file_tab->file_int;
-
-  if (!(file_tab->status & FS_READ)) {
+  if (!read) {
     return -1;
   }
 
-  /*
-    We cap "count" at the file's size.
-  */
-  if (count > file->ext.size) {
-    count = file->ext.size;
-  }
-
-  /*
-    Read as many blocks as we can without exceeding "count".
-  */
-  for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * BLOCK_SIZE + current->file_tab[fd].offset);
-    buffer = buffer_get(addr.num);
-    memcpy((char*)buf + ret, buffer->data + addr.offset, BLOCK_SIZE);
-    buffer_put(buffer);
-    ret += BLOCK_SIZE;
-  }
-
-  /*
-    Read the remaining bytes.
-  */
-  addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
-  buffer = buffer_get(addr.num);
-  memcpy((char*)buf + ret, buffer->data + addr.offset, count % BLOCK_SIZE);
-  buffer_put(buffer);
-  ret += count % BLOCK_SIZE;
-
-  current->file_tab[fd].offset += ret;
-
-  return ret;
+  return read(fd, buf, count);
 }
 
 /*
@@ -281,44 +283,14 @@ int file_read(int fd, void* buf, size_t count) {
   written.
 */
 int file_write(int fd, const void* buf, size_t count) {
-  struct file_table_entry* file_tab;
-  struct file_info_int* file;
-  struct filesystem_addr addr;
-  struct buffer_info* buffer;
-  int ret = 0;
+  struct file_info_int* file = fd_to_file(fd);
+  int (*write)(int, const void*, size_t) = file->ops->write;
 
-  file_tab = &current->file_tab[fd];
-  file = file_tab->file_int;
-
-  if (!(file_tab->status & FS_WRITE)) {
+  if (!write) {
     return -1;
   }
 
-  file_resize(file, file_tab->offset + count);
-
-  /*
-    Write as many blocks as we can without exceeding "count".
-  */
-  for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * BLOCK_SIZE + file_tab->offset);
-    buffer = buffer_get(addr.num);
-    memcpy(buffer->data + addr.offset, (char*)buf + ret, BLOCK_SIZE);
-    buffer_put(buffer);
-    ret += BLOCK_SIZE;
-  }
-
-  /*
-    Write the remaining bytes.
-  */
-  addr = file_offset_to_addr(file, ret + file_tab->offset);
-  buffer = buffer_get(addr.num);
-  memcpy(buffer->data + addr.offset, (char*)buf + ret, count % BLOCK_SIZE);
-  buffer_put(buffer);
-  ret += count % BLOCK_SIZE;
-
-  file_tab->offset += ret;
-
-  return ret;
+  return write(fd, buf, count);
 }
 
 /*
@@ -326,17 +298,33 @@ int file_write(int fd, const void* buf, size_t count) {
   is returned, and on failure -1 is returned.
 */
 int file_close(int fd) {
+  struct file_info_int* file = fd_to_file(fd);
+  int (*close)(int) = file->ops->close;
+
   if (fd < 1 || fd >= FILE_TABLE_SIZE) {
     return -1;
   }
 
   current->file_tab[fd].file_int = NULL;
 
+  if (!close) {
+    return 0;
+  }
+
+  /*
+    If there's a special close handler, then try to call it. If it fails
+    cleanup and return.
+  */
+  if (close(fd) < 0) {
+    current->file_tab[fd].file_int = file;
+    return -1;
+  }
+
   return 0;
 }
 
 /*
-  file_mkdnod tries to create a node specified by "pathname" of type "type". It
+  file_mknod tries to create a node specified by "pathname" of type "type". It
   returns 0 on success, and -1 on failure.
 */
 int file_mknod(const char* pathname, int mode, int dev) {
@@ -517,6 +505,101 @@ void* file_map(int fd, int flags) {
   region->file_int = file;
 
   return addr;
+}
+
+/*
+  regular_read handles writing to regular files. It reads up to "count" bytes
+  into the buffer "buf" from the regular file specified by "fd".
+*/
+int regular_read(int fd, void* buf, size_t count) {
+  struct file_table_entry* file_tab;
+  struct file_info_int* file;
+  struct filesystem_addr addr;
+  struct buffer_info* buffer;
+  int ret = 0;
+
+  file_tab = &current->file_tab[fd];
+  file = file_tab->file_int;
+
+  if (!(file_tab->status & FS_READ)) {
+    return -1;
+  }
+
+  /*
+    We cap "count" at the file's size.
+  */
+  if (count > file->ext.size) {
+    count = file->ext.size;
+  }
+
+  /*
+    Read as many blocks as we can without exceeding "count".
+  */
+  for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
+    addr = file_offset_to_addr(file, i * BLOCK_SIZE + current->file_tab[fd].offset);
+    buffer = buffer_get(addr.num);
+    memcpy((char*)buf + ret, buffer->data + addr.offset, BLOCK_SIZE);
+    buffer_put(buffer);
+    ret += BLOCK_SIZE;
+  }
+
+  /*
+    Read the remaining bytes.
+  */
+  addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
+  buffer = buffer_get(addr.num);
+  memcpy((char*)buf + ret, buffer->data + addr.offset, count % BLOCK_SIZE);
+  buffer_put(buffer);
+  ret += count % BLOCK_SIZE;
+
+  current->file_tab[fd].offset += ret;
+
+  return ret;
+}
+
+/*
+  regular_write handles writing to regular files. It writes up to "count" bytes
+  from the buffer "buf" to the regular file specified by "fd".
+*/
+int regular_write(int fd, const void* buf, size_t count) {
+  struct file_table_entry* file_tab;
+  struct file_info_int* file;
+  struct filesystem_addr addr;
+  struct buffer_info* buffer;
+  int ret = 0;
+
+  file_tab = &current->file_tab[fd];
+  file = file_tab->file_int;
+
+  if (!(file_tab->status & FS_WRITE)) {
+    return -1;
+  }
+
+  file_resize(file, file_tab->offset + count);
+
+  /*
+    Write as many blocks as we can without exceeding "count".
+  */
+  for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
+    addr = file_offset_to_addr(file, i * BLOCK_SIZE + file_tab->offset);
+    buffer = buffer_get(addr.num);
+    memcpy(buffer->data + addr.offset, (char*)buf + ret, BLOCK_SIZE);
+    buffer_put(buffer);
+    ret += BLOCK_SIZE;
+  }
+
+  /*
+    Write the remaining bytes.
+  */
+  addr = file_offset_to_addr(file, ret + file_tab->offset);
+  buffer = buffer_get(addr.num);
+  memcpy(buffer->data + addr.offset, (char*)buf + ret, count % BLOCK_SIZE);
+  buffer_put(buffer);
+  ret += count % BLOCK_SIZE;
+
+  file_tab->offset += ret;
+
+  return ret;
 }
 
 /*
