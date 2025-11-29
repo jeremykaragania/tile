@@ -239,6 +239,8 @@ extern struct file_operations* block_device_table[DEVICE_TABLE_SIZE];
 void filesystem_init();
 void filesystem_put();
 
+void devices_init();
+
 bool is_file_owner(int user, struct file_info_int* file);
 bool is_file_operation_allowed(int user, int operation, struct file_info_int* file);
 bool is_file_device(struct file_info_int* file);

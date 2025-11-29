@@ -24,6 +24,7 @@
   up to four levels of indirection depending on its offset.
 */
 
+#include <drivers/pl011.h>
 #include <kernel/file.h>
 #include <kernel/buffer.h>
 #include <kernel/list.h>
@@ -73,6 +74,8 @@ void filesystem_init() {
     Initialize the file information list.
   */
   list_init(&files_head);
+
+  devices_init();
 }
 
 /*
@@ -110,6 +113,27 @@ void filesystem_put() {
     buffer_put(buffer);
     curr = next;
   }
+}
+
+/*
+  devices_init initializes devices and creates their respective special files.
+  Currently the devices created are just hard-coded.
+*/
+void devices_init() {
+  uint16_t major;
+  uint16_t minor;
+  int dev;
+
+  /*
+    Expose the UART driver through the console device.
+  */
+  major = 5;
+  minor = 1;
+  dev = make_dev(5, 1);
+
+  file_mknod("/dev/console", FT_CHARACTER, dev);
+
+  character_device_table[major] = &uart_operations;
 }
 
 /*
@@ -230,14 +254,11 @@ int file_open(const char* name, int flags) {
     Set the file operations table depending on if the file is a device or
     regular file.
   */
-  if (is_file_device(file)) {
-
-    if (file->ext.type == FT_CHARACTER) {
-      file->ops = character_device_table[file->ext.major];
-    }
-    else {
-    }
-
+  if (file->ext.type == FT_CHARACTER) {
+    file->ops = character_device_table[file->ext.major];
+  }
+  else if (file->ext.type == FT_BLOCK) {
+    file->ops = block_device_table[file->ext.major];
   }
   else {
     file->ops = &regular_operations;
