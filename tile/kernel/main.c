@@ -37,6 +37,12 @@ void init_processes() {
     NULL
   };
 
+  /* Open /dev/console for standard streams. */
+  int fd = file_open("/dev/console", O_RDWR);
+
+  file_dup(fd);
+  file_dup(fd);
+
   process_clone(PT_KERNEL, &user);
   process_clone(PT_KERNEL, &kernel);
 }
