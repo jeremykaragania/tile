@@ -288,8 +288,16 @@ int file_open(const char* name, int flags) {
   read.
 */
 int file_read(int fd, void* buf, size_t count) {
-  struct file_info_int* file = fd_to_file(fd);
-  int (*read)(int, void*, size_t) = file->ops->read;
+  struct file_info_int* file;
+  int (*read)(int, void*, size_t);
+
+  file = fd_to_file(fd);
+
+  if (!file) {
+    return -1;
+  }
+
+  read = file->ops->read;
 
   if (!read) {
     return -1;
@@ -304,8 +312,16 @@ int file_read(int fd, void* buf, size_t count) {
   written.
 */
 int file_write(int fd, const void* buf, size_t count) {
-  struct file_info_int* file = fd_to_file(fd);
-  int (*write)(int, const void*, size_t) = file->ops->write;
+  struct file_info_int* file;
+  int (*write)(int, const void*, size_t);
+
+  file = fd_to_file(fd);
+
+  if (!file) {
+    return -1;
+  }
+
+  write = file->ops->write;
 
   if (!write) {
     return -1;
@@ -319,14 +335,22 @@ int file_write(int fd, const void* buf, size_t count) {
   is returned, and on failure -1 is returned.
 */
 int file_close(int fd) {
-  struct file_info_int* file = fd_to_file(fd);
-  int (*close)(int) = file->ops->close;
+  struct file_info_int* file;
+  int (*close)(int);
 
-  if (fd < 1 || fd >= FILE_TABLE_SIZE) {
+  if (fd < 0 || fd >= FILE_TABLE_SIZE) {
     return -1;
   }
 
   current->file_tab[fd].file_int = NULL;
+
+  file = fd_to_file(fd);
+
+  if (!file) {
+    return -1;
+  }
+
+  close = file->ops->close;
 
   if (!close) {
     return 0;
