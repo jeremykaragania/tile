@@ -125,7 +125,7 @@ void devices_init() {
   int dev;
 
   /*
-    Expose the UART driver through the console device.
+    Expose the UART driver through the console device file.
   */
   major = 5;
   minor = 1;
@@ -434,6 +434,31 @@ int file_creat(const char* pathname, int flags) {
 }
 
 /*
+  file_dup duplicates the file descriptor "fd" and returns the lowest available
+  file descriptor.
+*/
+int file_dup(int fd) {
+  int ret;
+  struct file_table_entry* file_tab;
+
+  file_tab = current->file_tab;
+
+  if (!file_tab[fd].file_int) {
+    return -1;
+  }
+
+  ret = get_file_descriptor(file_tab);
+
+  if (ret < 0) {
+    return -1;
+  }
+
+  file_tab[ret] = file_tab[fd];
+
+  return ret;
+}
+
+/*
   file_seek sets the offset of a file descriptor "fd" to "offset".
 */
 int file_seek(int fd, size_t offset) {
@@ -671,7 +696,7 @@ int file_chdir(const char* pathname) {
   "file_tab" and returns it on success, and -1 on failure.
 */
 int get_file_descriptor(const struct file_table_entry* file_tab) {
-  for (size_t i = 3; i < FILE_TABLE_SIZE; ++i) {
+  for (size_t i = 0; i < FILE_TABLE_SIZE; ++i) {
     if (!file_tab[i].file_int) {
       return i;
     }

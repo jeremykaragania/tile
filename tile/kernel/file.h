@@ -251,6 +251,7 @@ int file_write(int fd, const void* buf, size_t count);
 int file_close(int fd);
 int file_mknod(const char* pathname, int mode, int dev);
 int file_creat(const char* pathname, int flags);
+int file_dup(int fd);
 int file_seek(int fd, size_t offset);
 int file_access(char* pathname, int mode);
 int file_chmod(char* pathname, int mode);

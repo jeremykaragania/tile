@@ -18,6 +18,7 @@ uint32_t syscall_table[] = {
   (uint32_t)file_access,
   (uint32_t)file_chmod,
   (uint32_t)file_chown,
+  (uint32_t)file_dup,
   (uint32_t)file_open,
   (uint32_t)file_read,
   (uint32_t)file_write,
