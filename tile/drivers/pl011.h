@@ -2,6 +2,7 @@
 #define UART_H
 
 #include <kernel/asm/memory.h>
+#include <kernel/file.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -55,6 +56,7 @@ enum length_modifier {
 };
 
 extern volatile struct uart_registers* uart_0;
+extern struct file_operations uart_operations;
 
 void uart_init();
 

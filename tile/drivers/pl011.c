@@ -10,6 +10,10 @@
 */
 volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc90000;
 
+struct file_operations uart_operations = {
+  .write = uart_write
+};
+
 char uart_buf[256];
 
 /*
