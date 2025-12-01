@@ -118,6 +118,8 @@ void process_exit(int status) {
   /* Clean up held resources. */
   free_page_regions();
 
+  close_open_files();
+
   memory_free(proc->mem);
   memory_free(proc);
 }
