@@ -269,6 +269,7 @@ uint16_t get_major(int dev);
 uint16_t get_minor(int dev);
 
 int get_file_descriptor(const struct file_table_entry* file_tab);
+int close_open_files();
 
 int file_resize(struct file_info_int* file, size_t size);
 void file_push_blocks(struct file_info_int* file, size_t count);

@@ -730,6 +730,26 @@ int get_file_descriptor(const struct file_table_entry* file_tab) {
 }
 
 /*
+  close_open_files closes the open files in the current process's file table.
+*/
+int close_open_files() {
+  struct file_info_int* file;
+  struct file_table_entry* file_tab;
+
+  file_tab = current->file_tab;
+
+  for (size_t i = 0; i < FILE_TABLE_SIZE; ++i) {
+    file = file_tab[i].file_int;
+
+    if (file) {
+      file_tab[i].file_int = NULL;
+    }
+
+    file_close(i);
+  }
+}
+
+/*
   file_resize resizes the file specified by "file" until it is at least "size"
   bytes. It returns 0 on success and -1 on failure.
 */
