@@ -9,7 +9,7 @@ make
 ```
 ## Usage
 ```bash
-./mkfs [-b blocks-count] [-i init] device
+./mkfs -i init.S device
 qemu-system-arm \
     -machine vexpress-a15 \
     -cpu cortex-a15 \
