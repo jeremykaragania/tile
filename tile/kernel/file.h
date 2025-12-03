@@ -182,6 +182,7 @@ struct file_info_ext {
 struct file_info_int {
   struct file_info_ext ext;
   int status;
+  unsigned int ref;
   struct file_operations* ops;
   struct list_link link;
 };

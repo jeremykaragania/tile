@@ -1125,6 +1125,7 @@ struct file_info_int* file_get(uint32_t file_info_num) {
     file = list_data(curr, struct file_info_int, link);
 
     if (file->ext.num == file_info_num) {
+      ++file->ref;
       return file;
     }
 
@@ -1133,6 +1134,7 @@ struct file_info_int* file_get(uint32_t file_info_num) {
 
   file = memory_alloc(sizeof(struct file_info_int));
   file->ext = *(struct file_info_ext*)(buffer->data + addr.offset);
+  file->ref = 1;
   list_push(&files_head, &file->link);
 
   return file;
@@ -1147,13 +1149,15 @@ void file_put(struct file_info_int* file_info) {
   struct filesystem_addr addr;
   struct buffer_info* buffer;
 
-  addr = file_to_addr(file_info->ext.num);
-  buffer = buffer_get(addr.num);
+  if (--file_info->ref == 0) {
+    addr = file_to_addr(file_info->ext.num);
+    buffer = buffer_get(addr.num);
 
-  memcpy(buffer->data + addr.offset, &file_info->ext, sizeof(struct file_info_ext));
-  buffer_put(buffer);
-  list_remove(&files_head, &file_info->link);
-  memory_free(file_info);
+    memcpy(buffer->data + addr.offset, &file_info->ext, sizeof(struct file_info_ext));
+    buffer_put(buffer);
+    list_remove(&files_head, &file_info->link);
+    memory_free(file_info);
+  }
 }
 
 /*
