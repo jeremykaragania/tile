@@ -350,6 +350,10 @@ int file_close(int fd) {
     return -1;
   }
 
+  if (--file->ref == 0) {
+    file_put(file);
+  }
+
   close = file->ops->close;
 
   if (!close) {
