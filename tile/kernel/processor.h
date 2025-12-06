@@ -31,6 +31,6 @@ extern void disable_interrupts();
 extern void set_processor_mode(uint32_t mode);
 extern void restore_registers(struct processor_registers* r);
 
-void panic();
+void panic(const char* s);
 
 #endif

@@ -79,7 +79,7 @@ void do_prefetch_abort() {
   uint32_t ifar = get_ifar();
 
   if (handle_fault(ifar) < 0) {
-    panic();
+    panic("");
   }
 }
 
@@ -91,7 +91,7 @@ void do_data_abort() {
   uint32_t dfar = get_dfar();
 
   if (handle_fault(dfar) < 0) {
-    panic();
+    panic("");
   }
 }
 
