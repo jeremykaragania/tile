@@ -432,6 +432,7 @@ int file_mknod(const char* pathname, int mode, int dev) {
     file->ext.minor = get_minor(dev);
   }
 
+  memory_free(file_name);
   file_put(file);
 
   return 0;
