@@ -4,10 +4,11 @@
 #include <drivers/sp804.h>
 #include <kernel/asm/memory.h>
 #include <kernel/buffer.h>
-#include <kernel/interrupts.h>
 #include <kernel/file.h>
-#include <kernel/memory.h>
+#include <kernel/interrupts.h>
 #include <kernel/list.h>
+#include <kernel/log.h>
+#include <kernel/memory.h>
 #include <kernel/page.h>
 #include <kernel/process.h>
 #include <kernel/schedule.h>
@@ -63,7 +64,7 @@ void start_kernel() {
   dual_timer_init();
   buffer_init();
   filesystem_init();
-  uart_printf(tile_banner);
+  log_printf(tile_banner);
   schedule_init();
   init_processes();
   enable_interrupts();
