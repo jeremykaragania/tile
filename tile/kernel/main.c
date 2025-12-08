@@ -13,7 +13,7 @@
 #include <kernel/process.h>
 #include <kernel/schedule.h>
 
-char tile_banner[] = "Tile\n";
+const char tile_banner[] = "Tile\n";
 
 int user_init() {
   if (process_exec("/sbin/init") < 0) {
@@ -64,7 +64,7 @@ void start_kernel() {
   dual_timer_init();
   buffer_init();
   filesystem_init();
-  log_printf(tile_banner);
+  log_printf("%s", tile_banner);
   schedule_init();
   init_processes();
   enable_interrupts();
