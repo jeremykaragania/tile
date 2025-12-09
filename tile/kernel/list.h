@@ -2,6 +2,7 @@
 #define LIST_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 /*
   list_data returns the data which the list link "link" links give its type
