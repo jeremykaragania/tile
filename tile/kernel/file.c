@@ -129,7 +129,7 @@ void devices_init() {
   */
   major = 5;
   minor = 1;
-  dev = make_dev(5, 1);
+  dev = make_dev(major, minor);
 
   file_mknod("/dev/console", FT_CHARACTER, dev);
 
@@ -752,6 +752,8 @@ int close_open_files() {
 
     file_close(i);
   }
+
+  return 0;
 }
 
 /*
