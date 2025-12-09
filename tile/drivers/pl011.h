@@ -60,6 +60,7 @@ extern struct file_operations uart_operations;
 
 void uart_init();
 
+int uart_read(int fd, void* buf, size_t count);
 int uart_write(int fd, const void* buf, size_t count);
 
 int uart_putchar(const int c);
