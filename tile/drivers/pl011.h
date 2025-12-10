@@ -44,17 +44,6 @@ struct uart_registers {
   uint32_t dmacr;
 };
 
-/*
-  enum length_modifier represents a format string's length modifiers.
-*/
-enum length_modifier {
-  LM_NONE,
-  LM_CHAR,
-  LM_SHORT,
-  LM_LONG,
-  LM_LONG_LONG
-};
-
 extern volatile struct uart_registers* uart_0;
 extern struct file_operations uart_operations;
 
