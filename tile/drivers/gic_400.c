@@ -1,3 +1,7 @@
+/*
+  gic_400.c provides a CoreLink GIC-400 Generic Interrupt Controller driver.
+*/
+
 #include <drivers/gic_400.h>
 
 volatile struct gic_distributor_registers* gicd = (volatile struct gic_distributor_registers*)GICD_PADDR;
