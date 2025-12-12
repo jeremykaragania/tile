@@ -15,8 +15,6 @@
 #define BLOCK_NUMS_PER_BLOCK (BLOCK_SIZE / sizeof(uint32_t))
 #define DIRECTORIES_PER_BLOCK (BLOCK_SIZE / sizeof(struct directory_info))
 
-#define DEVICE_TABLE_SIZE 32
-
 /*
   A file's data is accessed through four levels of indirection. Zeroth level
   blocks contain direct data, first level blocks contain the numbers of zeroth
@@ -227,20 +225,10 @@ extern struct filesystem_info filesystem_info;
 */
 extern struct list_link files_head;
 
-/*
-  "devices_head" is the head node of the device information list.
-*/
-extern struct list_link devices_head;
-
 extern struct file_operations regular_operations;
-
-extern struct file_operations* character_device_table[DEVICE_TABLE_SIZE];
-extern struct file_operations* block_device_table[DEVICE_TABLE_SIZE];
 
 void filesystem_init();
 void filesystem_put();
-
-void devices_init();
 
 bool is_file_owner(int user, struct file_info_int* file);
 bool is_file_operation_allowed(int user, int operation, struct file_info_int* file);

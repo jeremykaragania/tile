@@ -4,6 +4,7 @@
 #include <drivers/sp804.h>
 #include <kernel/asm/memory.h>
 #include <kernel/buffer.h>
+#include <kernel/device.h>
 #include <kernel/file.h>
 #include <kernel/interrupts.h>
 #include <kernel/list.h>
@@ -64,6 +65,7 @@ void start_kernel() {
   dual_timer_init();
   buffer_init();
   filesystem_init();
+  devices_init();
   log_printf("%s", tile_banner);
   schedule_init();
   init_processes();

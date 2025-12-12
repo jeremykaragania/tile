@@ -2,6 +2,7 @@
 #define UART_H
 
 #include <kernel/asm/memory.h>
+#include <kernel/device.h>
 #include <kernel/file.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -46,6 +47,7 @@ struct uart_registers {
 
 extern volatile struct uart_registers* uart_0;
 extern struct file_operations uart_operations;
+extern struct device uart_device;
 
 void uart_init();
 
