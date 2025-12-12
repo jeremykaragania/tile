@@ -29,9 +29,9 @@ void fifo_free(struct fifo* fifo) {
 }
 
 /*
-  fifo_push pushes the element "src" to the FIFO "fifo".
+  fifo_push tries to push the element "src" to the FIFO "fifo".
 */
-int fifo_push(struct fifo* fifo, void* src) {
+int fifo_push(struct fifo* fifo, const void* src) {
   if (is_fifo_full(fifo)) {
     return -1;
   }
@@ -43,7 +43,7 @@ int fifo_push(struct fifo* fifo, void* src) {
 }
 
 /*
-  fifo_pop pops the first element from the FIFO "fifo" into "dest".
+  fifo_pop tries to pop the first element from the FIFO "fifo" into "dest".
 */
 int fifo_pop(struct fifo* fifo, void* dest) {
   if (is_fifo_empty(fifo)) {
@@ -54,6 +54,41 @@ int fifo_pop(struct fifo* fifo, void* dest) {
   fifo->begin = (fifo->begin + 1) % fifo->n;
 
   return 0;
+}
+
+/*
+  fifo_push_n tries to push "n" elements to the FIFO "fifo" from "src".
+*/
+size_t fifo_push_n(struct fifo* fifo, const void* src, size_t n) {
+  size_t i = 0;
+
+  while (i < n) {
+    if (fifo_push(fifo, (char*)src + i * fifo->size) < 0) {
+      break;
+    }
+
+    ++i;
+  }
+
+  return i;
+}
+
+/*
+  fifo_pop_n tries to pop the first "n" elements from the FIFO "fifo" into
+  "dest".
+*/
+size_t fifo_pop_n(struct fifo* fifo, void* dest, size_t n) {
+  size_t i = 0;
+
+  while (i < n) {
+    if (fifo_pop(fifo, (char*)dest + i * fifo->size) < 0) {
+      break;
+    }
+
+    ++i;
+  }
+
+  return i;
 }
 
 /*
