@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define GICC_IAR_INT_ID_MASK 0x3ff
+
 /*
   struct gic_distributor_registers represents the registers of the distributor
   of the GIC-400.

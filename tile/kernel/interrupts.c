@@ -103,7 +103,7 @@ void do_irq() {
 
   gic_disable_interrupt(ia);
 
-  switch (ia) {
+  switch (ia & GICC_IAR_INT_ID_MASK) {
     case TIM01INT:
       timer_0->timer1_int_clr = 0;
       schedule_tick();
