@@ -3,6 +3,7 @@
 
 #include <kernel/asm/memory.h>
 #include <kernel/device.h>
+#include <kernel/fifo.h>
 #include <kernel/file.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -22,6 +23,7 @@
 #define CR_RXE (1 << 9)
 #define CR_TXE (1 << 8)
 #define CR_UARTEN (1 << 0)
+#define UART_FIFO_SIZE 256
 
 /*
   struct uart_registers represents the registers of the PrimeCell UART (PL011).
@@ -48,6 +50,7 @@ struct uart_registers {
 extern volatile struct uart_registers* uart_0;
 extern struct file_operations uart_operations;
 extern struct device uart_device;
+extern struct fifo uart_fifo;
 
 void uart_init();
 

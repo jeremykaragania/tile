@@ -23,6 +23,8 @@ struct device uart_device = {
   .type = DT_CHARACTER
 };
 
+struct fifo uart_fifo;
+
 /*
   uart_init initializes the UART.
 */
@@ -43,6 +45,8 @@ void uart_init() {
   uart_0->lcr_h |= LCR_H_WLEN;
   uart_0->lcr_h &= ~LCR_H_STP2;
   uart_0->cr |= CR_UARTEN;
+
+  fifo_alloc(&uart_fifo, UART_FIFO_SIZE, 1);
 }
 
 /*
