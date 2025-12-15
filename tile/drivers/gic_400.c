@@ -30,14 +30,40 @@ void gic_init() {
   }
 }
 
+/*
+  gic_get_interrupt_priority returns the prioritiy for the interrupt with ID
+  "id".
+*/
+uint8_t gic_get_interrupt_priority(uint32_t id) {
+  uint32_t n = id >> 2;
+
+  return ((uint8_t*)(gicd->ipriority + n))[id % 4];
+}
+
+/*
+  gic_set_interrupt_priority sets the prioritiy for the interrupt ID "id" to
+  "priority".
+*/
+void gic_set_interrupt_priority(uint32_t id, uint8_t priority) {
+  uint32_t n = id >> 2;
+
+  ((uint8_t*)(gicd->ipriority + n))[id % 4] = priority;
+}
+
+/*
+  gic_disable_interrupt disables the interrupt with ID "id".
+*/
 void gic_disable_interrupt(uint32_t id) {
-  uint32_t n = id / 32;
+  uint32_t n = id >> 5;
 
   gicd->icenable[n] |= 1 << (id % 32);
 }
 
+/*
+  gic_enable_interrupt enables the interrupt with ID "id".
+*/
 void gic_enable_interrupt(uint32_t id) {
-  uint32_t n = id / 32;
+  uint32_t n = id >> 5;
 
   gicd->isenable[n] |= 1 << (id % 32);
 }

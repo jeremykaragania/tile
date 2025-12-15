@@ -91,6 +91,9 @@ extern uint32_t gicd_it_lines_number;
 
 void gic_init();
 
+uint8_t gic_get_interrupt_priority(uint32_t id);
+void gic_set_interrupt_priority(uint32_t id, uint8_t priority);
+
 void gic_disable_interrupt(uint32_t id);
 void gic_enable_interrupt(uint32_t id);
 
