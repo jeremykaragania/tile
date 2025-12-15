@@ -1,5 +1,6 @@
 #include <kernel/interrupts.h>
 #include <drivers/gic_400.h>
+#include <drivers/pl011.h>
 #include <drivers/sp804.h>
 #include <kernel/buffer.h>
 #include <kernel/file.h>
@@ -108,12 +109,15 @@ void do_irq() {
       timer_0->timer1_int_clr = 0;
       schedule_tick();
       break;
+    case UART0INTR:
+      do_uart_irq();
+      break;
     default:
       break;
   }
 
   /* Signal interrupt processing completion. */
-  gicc->eoi = ia;
+  gicc->eoi = ia & GICC_IAR_INT_ID_MASK;
   gic_enable_interrupt(ia);
 }
 

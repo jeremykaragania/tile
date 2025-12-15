@@ -29,8 +29,12 @@ struct fifo uart_fifo;
   uart_init initializes the UART.
 */
 void uart_init() {
+  /* Disable the UART. */
   uart_0->cr &= ~CR_UARTEN;
+
+  /* Wait for the end of transmission or reception of the current character. */
   while (uart_0->fr & FR_BUSY);
+
   uart_0->lcr_h &= ~LCR_H_FEN;
 
   /*
@@ -44,6 +48,8 @@ void uart_init() {
   uart_0->lcr_h |= LCR_H_FEN;
   uart_0->lcr_h |= LCR_H_WLEN;
   uart_0->lcr_h &= ~LCR_H_STP2;
+
+  /* Enable the UART. */
   uart_0->cr |= CR_UARTEN;
 
   fifo_alloc(&uart_fifo, UART_FIFO_SIZE, 1);
@@ -72,11 +78,15 @@ int uart_read(int fd, void* buf, size_t count) {
   uart_write writes up to "count" bytes from the buffer "buf" to the UART.
 */
 int uart_write(int fd, const void* buf, size_t count) {
-  for (size_t i = 0; i < count; ++i) {
-    uart_putchar(((char*)buf)[i]);
-  }
+  int ret;
 
-  return count;
+  ret = fifo_push_n(&uart_fifo, (char*)buf + 1, count - 1) + 1;
+
+  /* We need to kick off the transmit interrupt by writing to the FIFO. */
+  uart_0->dr = *(char*)buf;
+  uart_begin();
+
+  return ret;
 }
 
 /*
@@ -97,4 +107,52 @@ int uart_getchar() {
     return -1;
   }
   return uart_0->dr & DR_DATA;
+}
+
+/*
+  uart_begin begins UART transmission.
+*/
+void uart_begin() {
+  uart_0->imsc |= IMSC_TXIM;
+}
+
+/*
+  uart_end ends UART transmission.
+*/
+void uart_end() {
+  uart_0->imsc &= ~IMSC_TXIM;
+}
+
+/*
+  do_uart_irq_transmit handles a UART transmit IRQ exception.
+*/
+void do_uart_irq_transmit() {
+  char c;
+
+  while (1) {
+    if (uart_0->fr & FR_TXFF) {
+      break;
+    }
+
+    if (fifo_pop(&uart_fifo, &c) < 0) {
+      break;
+    }
+
+    uart_0->dr = c;
+  }
+
+  if (is_fifo_empty(&uart_fifo)) {
+    uart_end();
+  }
+}
+
+/*
+  do_uart_irq handles a UART IRQ exception.
+*/
+void do_uart_irq() {
+  uint32_t mis = uart_0->mis;
+
+  if (mis & MIS_TXMIS) {
+    do_uart_irq_transmit();
+  }
 }

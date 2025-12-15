@@ -3,6 +3,7 @@
 */
 
 #include <drivers/gic_400.h>
+#include <kernel/interrupts.h>
 
 volatile struct gic_distributor_registers* gicd = (volatile struct gic_distributor_registers*)GICD_PADDR;
 volatile struct gic_cpu_interface_registers* gicc = (volatile struct gic_cpu_interface_registers*)GICC_PADDR;
@@ -17,6 +18,10 @@ void gic_init() {
 
   /* Enable group 0 and group 1 interrupts. */
   gicc->ctl = 3;
+
+  /* Ensure that each interrupt has a distinct priority. */
+  gic_set_interrupt_priority(TIM01INT, 0);
+  gic_set_interrupt_priority(UART0INTR, 1);
 
   /* Set the priority mask to lowest priority. */
   gicc->pm = 0xff;

@@ -10,19 +10,34 @@
 #include <stdarg.h>
 
 #define UART_CLK 24000000
-#define BAUD_RATE 460800
+#define UART_BAUD_RATE 460800
+
 #define DR_DATA (255 << 0)
+
 #define FR_TXFE (1 << 7)
 #define FR_RXFF (1 << 6)
 #define FR_TXFF (1 << 5)
 #define FR_RXFE (1 << 4)
 #define FR_BUSY (1 << 3)
+
 #define LCR_H_WLEN (3 << 5)
 #define LCR_H_FEN (1 << 4)
 #define LCR_H_STP2 (1 << 3)
+
 #define CR_RXE (1 << 9)
 #define CR_TXE (1 << 8)
 #define CR_UARTEN (1 << 0)
+#define UART_FIFO_SIZE 256
+
+#define IMSC_TXIM (1 << 5)
+#define IMSC_RXIM (1 << 4)
+
+#define MIS_TXMIS  (1 << 5)
+#define MIS_RXMIS  (1 << 4)
+
+#define ICR_TXIC (1 << 5)
+#define ICR_RXIC (1 << 4)
+
 #define UART_FIFO_SIZE 256
 
 /*
@@ -41,7 +56,7 @@ struct uart_registers {
   uint32_t cr;
   uint32_t ifls;
   uint32_t imsc;
-  uint32_t is;
+  uint32_t ris;
   uint32_t mis;
   uint32_t icr;
   uint32_t dmacr;
@@ -59,5 +74,11 @@ int uart_write(int fd, const void* buf, size_t count);
 
 int uart_putchar(const int c);
 int uart_getchar();
+
+void uart_begin();
+void uart_end();
+
+void do_uart_irq_transmit();
+void do_uart_irq();
 
 #endif
