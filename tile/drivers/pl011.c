@@ -80,11 +80,10 @@ int uart_read(int fd, void* buf, size_t count) {
 int uart_write(int fd, const void* buf, size_t count) {
   int ret;
 
-  ret = fifo_push_n(&uart_fifo, (char*)buf + 1, count - 1) + 1;
+  ret = fifo_push_n(&uart_fifo, buf, count);
 
-  /* We need to kick off the transmit interrupt by writing to the FIFO. */
-  uart_0->dr = *(char*)buf;
   uart_begin();
+  do_uart_irq_transmit();
 
   return ret;
 }
