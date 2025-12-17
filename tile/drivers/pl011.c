@@ -15,14 +15,6 @@ struct file_operations uart_operations = {
   .write = uart_write
 };
 
-struct device uart_device = {
-  .name = "console",
-  .ops = &uart_operations,
-  .major = 5,
-  .minor = 1,
-  .type = DT_CHARACTER
-};
-
 struct fifo uart_fifo;
 
 /*

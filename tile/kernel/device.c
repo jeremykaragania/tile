@@ -1,5 +1,5 @@
 #include <kernel/device.h>
-#include <drivers/pl011.h>
+#include <drivers/terminal.h>
 
 struct device* character_device_table[DEVICE_TABLE_SIZE];
 struct device* block_device_table[DEVICE_TABLE_SIZE];
@@ -9,7 +9,7 @@ struct device* block_device_table[DEVICE_TABLE_SIZE];
   Currently the devices created are just hard-coded.
 */
 void devices_init() {
-  device_register(&uart_device);
+  device_register(&terminal_device);
 }
 
 /*

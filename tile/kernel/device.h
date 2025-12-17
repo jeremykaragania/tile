@@ -24,6 +24,7 @@ struct device {
   unsigned int major;
   unsigned int minor;
   int type;
+  void* private;
 };
 
 extern struct device* character_device_table[DEVICE_TABLE_SIZE];

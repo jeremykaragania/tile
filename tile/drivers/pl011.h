@@ -64,7 +64,6 @@ struct uart_registers {
 
 extern volatile struct uart_registers* uart_0;
 extern struct file_operations uart_operations;
-extern struct device uart_device;
 extern struct fifo uart_fifo;
 
 void uart_init();
