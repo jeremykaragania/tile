@@ -30,6 +30,9 @@ extern struct device* character_device_table[DEVICE_TABLE_SIZE];
 extern struct device* block_device_table[DEVICE_TABLE_SIZE];
 
 void devices_init();
+
+struct device* file_to_device(struct file_info_int* file);
+
 int device_register(struct device* dev);
 int device_add(const struct device* dev);
 

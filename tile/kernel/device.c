@@ -60,3 +60,23 @@ int device_add(const struct device* dev) {
 
   return 0;
 }
+
+/*
+  file_to_device tries to return the file correlating to the file "file".
+*/
+struct device* file_to_device(struct file_info_int* file) {
+  struct device** table;
+
+  if (!is_file_device(file)) {
+    return NULL;
+  }
+
+  if (file->ext.type == FT_CHARACTER) {
+    table = character_device_table;
+  }
+  else {
+    table = block_device_table;
+  }
+
+  return table[file->ext.major];
+}
