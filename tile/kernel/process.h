@@ -98,8 +98,8 @@ struct function_info {
 int process_clone(int type, struct function_info* func);
 int process_exec(const char* filename);
 void process_exit(int status);
-int getpid();
-int getuid();
+int process_getpid();
+int process_getuid();
 
 int next_process_number();
 

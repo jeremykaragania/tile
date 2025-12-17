@@ -125,16 +125,16 @@ void process_exit(int status) {
 }
 
 /*
-  getpid returns the process ID of the calling process.
+  process_getpid returns the process ID of the calling process.
 */
-int getpid() {
+int process_getpid() {
   return current->num;
 }
 
 /*
-  getuid returns the real user ID of the calling process.
+  process_getuid returns the real user ID of the calling process.
 */
-int getuid() {
+int process_getuid() {
   return current->uid;
 }
 
