@@ -224,6 +224,8 @@ int file_open(const char* name, int flags) {
   file_tab->offset = 0;
   file_tab->file_int = file;
 
+  file->ft = file_tab;
+
   /*
     Set the file operations table depending on if the file is a device or
     regular file.
@@ -263,21 +265,14 @@ int file_open(const char* name, int flags) {
 */
 int file_read(int fd, void* buf, size_t count) {
   struct file_info_int* file;
-  int (*read)(int, void*, size_t);
 
   file = fd_to_file(fd);
 
-  if (!file) {
+  if (!file || !file->ops->read) {
     return -1;
   }
 
-  read = file->ops->read;
-
-  if (!read) {
-    return -1;
-  }
-
-  return read(fd, buf, count);
+  return file->ops->read(file, buf, count);
 }
 
 /*
@@ -287,21 +282,15 @@ int file_read(int fd, void* buf, size_t count) {
 */
 int file_write(int fd, const void* buf, size_t count) {
   struct file_info_int* file;
-  int (*write)(int, const void*, size_t);
 
   file = fd_to_file(fd);
 
-  if (!file) {
+
+  if (!file || !file->ops->write) {
     return -1;
   }
 
-  write = file->ops->write;
-
-  if (!write) {
-    return -1;
-  }
-
-  return write(fd, buf, count);
+  return file->ops->write(file, buf, count);
 }
 
 /*
@@ -310,7 +299,6 @@ int file_write(int fd, const void* buf, size_t count) {
 */
 int file_close(int fd) {
   struct file_info_int* file;
-  int (*close)(int);
 
   if (fd < 0 || fd >= FILE_TABLE_SIZE) {
     return -1;
@@ -328,17 +316,11 @@ int file_close(int fd) {
     file_put(file);
   }
 
-  close = file->ops->close;
-
-  if (!close) {
-    return 0;
-  }
-
   /*
     If there's a special close handler, then try to call it. If it fails
     cleanup and return.
   */
-  if (close(fd) < 0) {
+  if (file->ops->close && file->ops->close(file) < 0) {
     current->file_tab[fd].file_int = file;
     return -1;
   }
@@ -558,17 +540,15 @@ void* file_map(int fd, int flags) {
 
 /*
   regular_read handles writing to regular files. It reads up to "count" bytes
-  into the buffer "buf" from the regular file specified by "fd".
+  into the buffer "buf" from the regular file "file".
 */
-int regular_read(int fd, void* buf, size_t count) {
+int regular_read(struct file_info_int* file, void* buf, size_t count) {
   struct file_table_entry* file_tab;
-  struct file_info_int* file;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
   int ret = 0;
 
-  file_tab = &current->file_tab[fd];
-  file = file_tab->file_int;
+  file_tab = file->ft;
 
   if (!(file_tab->status & FS_READ)) {
     return -1;
@@ -585,7 +565,7 @@ int regular_read(int fd, void* buf, size_t count) {
     Read as many blocks as we can without exceeding "count".
   */
   for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
-    addr = file_offset_to_addr(file, i * BLOCK_SIZE + current->file_tab[fd].offset);
+    addr = file_offset_to_addr(file, i * BLOCK_SIZE + file_tab->offset);
     buffer = buffer_get(addr.num);
     memcpy((char*)buf + ret, buffer->data + addr.offset, BLOCK_SIZE);
     buffer_put(buffer);
@@ -595,30 +575,28 @@ int regular_read(int fd, void* buf, size_t count) {
   /*
     Read the remaining bytes.
   */
-  addr = file_offset_to_addr(file, ret + current->file_tab[fd].offset);
+  addr = file_offset_to_addr(file, ret + file_tab->offset);
   buffer = buffer_get(addr.num);
   memcpy((char*)buf + ret, buffer->data + addr.offset, count % BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % BLOCK_SIZE;
 
-  current->file_tab[fd].offset += ret;
+  file_tab->offset += ret;
 
   return ret;
 }
 
 /*
   regular_write handles writing to regular files. It writes up to "count" bytes
-  from the buffer "buf" to the regular file specified by "fd".
+  from the buffer "buf" to the regular file "file".
 */
-int regular_write(int fd, const void* buf, size_t count) {
+int regular_write(struct file_info_int* file, const void* buf, size_t count) {
   struct file_table_entry* file_tab;
-  struct file_info_int* file;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
   int ret = 0;
 
-  file_tab = &current->file_tab[fd];
-  file = file_tab->file_int;
+  file_tab = file->ft;
 
   if (!(file_tab->status & FS_WRITE)) {
     return -1;

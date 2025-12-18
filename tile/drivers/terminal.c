@@ -39,16 +39,16 @@ struct terminal* file_to_terminal(struct file_info_int* file) {
   terminal_write writes up to "count" bytes from the buffer "buf" to the
   terminal.
 */
-int terminal_write(int fd, const void* buf, size_t count) {
+int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
   struct terminal* term;
   size_t n;
   size_t remaining;
 
   remaining = count;
-  term = file_to_terminal(fd_to_file(fd));
+  term = file_to_terminal(file);
 
   while (remaining) {
-    n = term->ops->write(fd, buf, remaining);
+    n = term->ops->write(file, buf, remaining);
     remaining -= n;
     buf = (char*)buf + n;
   }

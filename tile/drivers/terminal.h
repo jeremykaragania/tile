@@ -18,6 +18,6 @@ extern struct device terminal_device;
 
 struct terminal* file_to_terminal(struct file_info_int* file);
 
-int terminal_write(int fd, const void* buf, size_t count);
+int terminal_write(struct file_info_int* file, const void* buf, size_t count);
 
 #endif

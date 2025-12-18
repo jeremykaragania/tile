@@ -3,6 +3,7 @@
 
 #include <kernel/asm/file.h>
 #include <kernel/list.h>
+#include <kernel/process.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -181,6 +182,7 @@ struct file_info_int {
   struct file_info_ext ext;
   int status;
   unsigned int ref;
+  struct file_table_entry* ft;
   struct file_operations* ops;
   struct list_link link;
 };
@@ -210,9 +212,9 @@ struct file_table_entry {
 */
 struct file_operations {
   int (*open)(const char*, int flags);
-  int (*close)(int);
-  int (*read)(int, void*, size_t);
-  int (*write)(int, const void*, size_t);
+  int (*close)(struct file_info_int*);
+  int (*read)(struct file_info_int*, void*, size_t);
+  int (*write)(struct file_info_int*, const void*, size_t);
 };
 
 extern const char* current_directory;
@@ -250,8 +252,8 @@ void* file_map(int fd, int flags);
 
 int file_chdir(const char* pathname);
 
-int regular_read(int fd, void* buf, size_t count);
-int regular_write(int fd, const void* buf, size_t count);
+int regular_read(struct file_info_int*, void* buf, size_t count);
+int regular_write(struct file_info_int*, const void* buf, size_t count);
 
 int make_dev(uint16_t major, uint16_t minor);
 uint16_t get_major(int dev);
