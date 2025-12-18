@@ -122,7 +122,7 @@ void map_vector_table() {
 */
 void map_smc() {
   mci = create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
-  uart_0 = create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  uart.regs = create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
   timer_0 = create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
 }
 

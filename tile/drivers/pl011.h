@@ -1,6 +1,7 @@
 #ifndef UART_H
 #define UART_H
 
+#include <drivers/terminal.h>
 #include <kernel/asm/memory.h>
 #include <kernel/device.h>
 #include <kernel/fifo.h>
@@ -62,9 +63,20 @@ struct uart_registers {
   uint32_t dmacr;
 };
 
-extern volatile struct uart_registers* uart_0;
+/*
+  struct uart represents a UART. It manages the UART's registers, operations,
+  FIFO, and managing terminal.
+*/
+struct uart {
+  volatile struct uart_registers* regs;
+  struct file_operations* ops;
+  struct fifo* fifo;
+  struct terminal* term;
+};
+
 extern struct file_operations uart_operations;
 extern struct fifo uart_fifo;
+extern struct uart uart;
 
 void uart_init();
 

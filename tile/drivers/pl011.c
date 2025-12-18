@@ -4,12 +4,6 @@
 
 #include <drivers/pl011.h>
 
-/*
-  The UART is mapped to this initial address as this is where it is mapped in
-  the initial memory map before the proper memory mapping is initialized.
-*/
-volatile struct uart_registers* uart_0 = (volatile struct uart_registers*)0xffc90000;
-
 struct file_operations uart_operations = {
   .read = uart_read,
   .write = uart_write
@@ -17,34 +11,46 @@ struct file_operations uart_operations = {
 
 struct fifo uart_fifo;
 
+struct uart uart = {
+  /*
+    The UART's registters are mapped to this initial address as this is where
+    it is mapped in the initial memory map before the proper memory mapping is
+    initialized.
+  */
+  .regs = (volatile struct uart_registers*)0xffc90000,
+  .ops = &uart_operations,
+  .fifo = &uart_fifo,
+  .term = &terminal
+};
+
 /*
   uart_init initializes the UART.
 */
 void uart_init() {
   /* Disable the UART. */
-  uart_0->cr &= ~CR_UARTEN;
+  uart.regs->cr &= ~CR_UARTEN;
 
   /* Wait for the end of transmission or reception of the current character. */
-  while (uart_0->fr & FR_BUSY);
+  while (uart.regs->fr & FR_BUSY);
 
-  uart_0->lcr_h &= ~LCR_H_FEN;
+  uart.regs->lcr_h &= ~LCR_H_FEN;
 
   /*
     The baud rate divisor is represented as a 22-bit number with a 16-bit
     integer and 6-bit fractional part. The below values are for a baud rate of
     460800.
   */
-  uart_0->ibrd = 3;
-  uart_0->fbrd = 16;
+  uart.regs->ibrd = 3;
+  uart.regs->fbrd = 16;
 
-  uart_0->lcr_h |= LCR_H_FEN;
-  uart_0->lcr_h |= LCR_H_WLEN;
-  uart_0->lcr_h &= ~LCR_H_STP2;
+  uart.regs->lcr_h |= LCR_H_FEN;
+  uart.regs->lcr_h |= LCR_H_WLEN;
+  uart.regs->lcr_h &= ~LCR_H_STP2;
 
   /* Enable the UART. */
-  uart_0->cr |= CR_UARTEN;
+  uart.regs->cr |= CR_UARTEN;
 
-  fifo_alloc(&uart_fifo, UART_FIFO_SIZE, 1);
+  fifo_alloc(uart.fifo, UART_FIFO_SIZE, 1);
 }
 
 /*
@@ -72,7 +78,9 @@ int uart_read(struct file_info_int* file, void* buf, size_t count) {
 int uart_write(struct file_info_int* file, const void* buf, size_t count) {
   int ret;
 
-  ret = fifo_push_n(&uart_fifo, buf, count);
+  struct terminal* term = file_to_terminal(file);
+
+  ret = fifo_push_n(uart.fifo, buf, count);
 
   uart_begin();
   do_uart_irq_transmit();
@@ -84,8 +92,8 @@ int uart_write(struct file_info_int* file, const void* buf, size_t count) {
   uart_putchar writes a byte "c" to the UART data register.
 */
 int uart_putchar(const int c) {
-  while(uart_0->fr & FR_TXFF);
-  uart_0->dr = c;
+  while(uart.regs->fr & FR_TXFF);
+  uart.regs->dr = c;
   return c;
 }
 
@@ -94,24 +102,24 @@ int uart_putchar(const int c) {
   byte on success or -1 on failure.
 */
 int uart_getchar() {
-  if (uart_0->fr & FR_RXFE) {
+  if (uart.regs->fr & FR_RXFE) {
     return -1;
   }
-  return uart_0->dr & DR_DATA;
+  return uart.regs->dr & DR_DATA;
 }
 
 /*
   uart_begin begins UART transmission.
 */
 void uart_begin() {
-  uart_0->imsc |= IMSC_TXIM;
+  uart.regs->imsc |= IMSC_TXIM;
 }
 
 /*
   uart_end ends UART transmission.
 */
 void uart_end() {
-  uart_0->imsc &= ~IMSC_TXIM;
+  uart.regs->imsc &= ~IMSC_TXIM;
 }
 
 /*
@@ -121,18 +129,18 @@ void do_uart_irq_transmit() {
   char c;
 
   while (1) {
-    if (uart_0->fr & FR_TXFF) {
+    if (uart.regs->fr & FR_TXFF) {
       break;
     }
 
-    if (fifo_pop(&uart_fifo, &c) < 0) {
+    if (fifo_pop(uart.fifo, &c) < 0) {
       break;
     }
 
-    uart_0->dr = c;
+    uart.regs->dr = c;
   }
 
-  if (is_fifo_empty(&uart_fifo)) {
+  if (is_fifo_empty(uart.fifo)) {
     uart_end();
   }
 }
@@ -141,7 +149,7 @@ void do_uart_irq_transmit() {
   do_uart_irq handles a UART IRQ exception.
 */
 void do_uart_irq() {
-  uint32_t mis = uart_0->mis;
+  uint32_t mis = uart.regs->mis;
 
   if (mis & MIS_TXMIS) {
     do_uart_irq_transmit();
