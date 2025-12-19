@@ -3,7 +3,6 @@
 
 #include <drivers/terminal.h>
 #include <kernel/asm/memory.h>
-#include <kernel/device.h>
 #include <kernel/fifo.h>
 #include <kernel/file.h>
 #include <stddef.h>

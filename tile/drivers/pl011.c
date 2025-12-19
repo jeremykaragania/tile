@@ -3,6 +3,7 @@
 */
 
 #include <drivers/pl011.h>
+#include <kernel/device.h>
 
 struct file_operations uart_operations = {
   .read = uart_read,
@@ -48,6 +49,8 @@ void uart_init() {
   uart.regs->cr |= CR_UARTEN;
 
   fifo_alloc(&uart.fifo, UART_FIFO_SIZE, 1);
+
+  device_register(&terminal_device);
 }
 
 /*
@@ -74,8 +77,6 @@ int uart_read(struct file_info_int* file, void* buf, size_t count) {
 */
 int uart_write(struct file_info_int* file, const void* buf, size_t count) {
   int ret;
-
-  struct terminal* term = file_to_terminal(file);
 
   ret = fifo_push_n(&uart.fifo, buf, count);
 

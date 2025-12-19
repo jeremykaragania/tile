@@ -1,23 +1,33 @@
 #include <kernel/device.h>
-#include <drivers/terminal.h>
 
 struct device* character_device_table[DEVICE_TABLE_SIZE];
 struct device* block_device_table[DEVICE_TABLE_SIZE];
+struct list_link devices_head = LIST_INIT(devices_head);
 
 /*
-  devices_init initializes devices and creates their respective special files.
-  Currently the devices created are just hard-coded.
+  devices_init exposes all currently registered devices under "/dev". Can only
+  be called after the filesystem is initialized.
 */
 void devices_init() {
-  device_register(&terminal_device);
+  struct list_link* curr = devices_head.next;
+  struct device* dev;
+
+  while (curr != &devices_head) {
+    dev = list_data(curr, struct device, link);
+    device_add(dev);
+
+    curr = curr->next;
+  }
 }
 
 /*
-  device_register registers the device "dev" in either the character or block
-  device table.
+  device_register adds the device "dev" to the device list and registers it in
+  either the character or block device table.
 */
 int device_register(struct device* dev) {
   struct device** table;
+
+  list_push(&devices_head, &dev->link);
 
   if (dev->type == DT_CHARACTER) {
     table = character_device_table;
@@ -27,12 +37,6 @@ int device_register(struct device* dev) {
   }
 
   table[dev->major] = dev;
-
-  if (device_add(dev) < 0) {
-    table[dev->major] = NULL;
-
-    return -1;
-  }
 
   return 0;
 }

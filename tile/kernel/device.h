@@ -25,16 +25,18 @@ struct device {
   unsigned int minor;
   int type;
   void* private;
+  struct list_link link;
 };
 
 extern struct device* character_device_table[DEVICE_TABLE_SIZE];
 extern struct device* block_device_table[DEVICE_TABLE_SIZE];
+extern struct list_link devices_head;
 
 void devices_init();
 
-struct device* file_to_device(struct file_info_int* file);
-
 int device_register(struct device* dev);
 int device_add(const struct device* dev);
+
+struct device* file_to_device(struct file_info_int* file);
 
 #endif
