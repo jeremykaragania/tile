@@ -63,7 +63,6 @@ void start_kernel() {
   mci_init();
   gic_init();
   dual_timer_init();
-  buffer_init();
   filesystem_init();
   devices_init();
   log_printf("%s", tile_banner);

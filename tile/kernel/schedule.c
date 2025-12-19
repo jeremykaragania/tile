@@ -8,7 +8,6 @@
   schedule_init initializes the scheduler.
 */
 void schedule_init() {
-  list_init(&processes_head);
   list_push(&processes_head, &init_process.link);
 }
 

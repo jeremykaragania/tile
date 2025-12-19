@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Should only be used for compile-time initialization. */
+#define LIST_INIT(name) {&name, &name}
+
 /*
   list_data returns the data which the list link "link" links give its type
   "type" and member name "member".

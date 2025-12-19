@@ -16,8 +16,6 @@ struct buffer_info {
 */
 extern struct list_link buffers_head;
 
-void buffer_init();
-
 struct buffer_info* buffer_get(uint32_t num);
 void buffer_put(struct buffer_info* buffer_info);
 void buffer_write(struct buffer_info* buffer_info);

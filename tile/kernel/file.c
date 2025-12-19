@@ -40,7 +40,7 @@ const char* parent_directory = "..";
 
 struct filesystem_info filesystem_info;
 
-struct list_link files_head;
+struct list_link files_head = LIST_INIT(files_head);
 
 struct file_operations regular_operations = {
   .read = regular_read,
@@ -66,11 +66,6 @@ void filesystem_init() {
   */
   buffer_info = buffer_get(0);
   filesystem_info = *(struct filesystem_info*)buffer_info->data;
-
-  /*
-    Initialize the file information list.
-  */
-  list_init(&files_head);
 }
 
 /*

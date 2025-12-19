@@ -32,9 +32,9 @@ static struct initmem_group initmem_reserved_group;
 struct initmem_info initmem_info;
 
 struct page_group* page_groups;
-struct list_link page_groups_head;
+struct list_link page_groups_head = LIST_INIT(page_groups_head);
 
-struct list_link alloc_pages_head;
+struct list_link alloc_pages_head = LIST_INIT(alloc_pages_head);
 
 uint32_t high_memory;
 
@@ -109,8 +109,6 @@ void memory_alloc_init() {
   struct page_group* group;
   struct list_link* curr;
 
-  list_init(&page_groups_head);
-
   for (size_t i = 0; i < initmem_info.memory->size; ++i) {
     block = &initmem_info.memory->blocks[i];
     group = initmem_alloc(sizeof(struct page_group));
@@ -145,7 +143,6 @@ void memory_alloc_init() {
   }
 
   page_groups = list_data(page_groups_head.next, struct page_group, link);
-  list_init(&alloc_pages_head);
 }
 
 /*

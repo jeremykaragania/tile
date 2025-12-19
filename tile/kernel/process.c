@@ -6,12 +6,13 @@
 #include <kernel/memory.h>
 #include <kernel/page.h>
 
-struct list_link processes_head;
+struct list_link processes_head = LIST_INIT(processes_head);
 
 int process_num_count;
 
 struct memory_info init_memory_info = {
   .pgd = (uint32_t*)phys_to_virt(PG_DIR_PADDR),
+  .pages_head = LIST_INIT(init_memory_info.pages_head),
   .text_begin = (uint32_t)&text_begin,
   .text_end = (uint32_t)&text_end,
   .data_begin = (uint32_t)&data_begin,

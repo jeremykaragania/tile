@@ -43,7 +43,6 @@ const struct descriptor_bits pte_bits = {
   replaced with 4KB small pages where required.
 */
 void init_paging() {
-  list_init(&init_process.mem->pages_head);
   create_page_region_bounds(&init_process.mem->pages_head);
   init_pgd();
   map_kernel();

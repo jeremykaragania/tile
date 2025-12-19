@@ -3,11 +3,7 @@
 #include <kernel/asm/file.h>
 #include <kernel/memory.h>
 
-struct list_link buffers_head;
-
-void buffer_init() {
-  list_init(&buffers_head);
-}
+struct list_link buffers_head = LIST_INIT(buffers_head);
 
 /*
   buffer_get reads the filesystem for the block number "num" and returns buffer
