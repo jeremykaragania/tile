@@ -9,8 +9,6 @@ struct file_operations uart_operations = {
   .write = uart_write
 };
 
-struct fifo uart_fifo;
-
 struct uart uart = {
   /*
     The UART's registters are mapped to this initial address as this is where
@@ -19,7 +17,6 @@ struct uart uart = {
   */
   .regs = (volatile struct uart_registers*)0xffc90000,
   .ops = &uart_operations,
-  .fifo = &uart_fifo,
   .term = &terminal
 };
 
@@ -50,7 +47,7 @@ void uart_init() {
   /* Enable the UART. */
   uart.regs->cr |= CR_UARTEN;
 
-  fifo_alloc(uart.fifo, UART_FIFO_SIZE, 1);
+  fifo_alloc(&uart.fifo, UART_FIFO_SIZE, 1);
 }
 
 /*
@@ -80,7 +77,7 @@ int uart_write(struct file_info_int* file, const void* buf, size_t count) {
 
   struct terminal* term = file_to_terminal(file);
 
-  ret = fifo_push_n(uart.fifo, buf, count);
+  ret = fifo_push_n(&uart.fifo, buf, count);
 
   uart_begin();
   do_uart_irq_transmit();
@@ -133,14 +130,14 @@ void do_uart_irq_transmit() {
       break;
     }
 
-    if (fifo_pop(uart.fifo, &c) < 0) {
+    if (fifo_pop(&uart.fifo, &c) < 0) {
       break;
     }
 
     uart.regs->dr = c;
   }
 
-  if (is_fifo_empty(uart.fifo)) {
+  if (is_fifo_empty(&uart.fifo)) {
     uart_end();
   }
 }

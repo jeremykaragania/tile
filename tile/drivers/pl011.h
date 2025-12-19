@@ -70,12 +70,11 @@ struct uart_registers {
 struct uart {
   volatile struct uart_registers* regs;
   struct file_operations* ops;
-  struct fifo* fifo;
+  struct fifo fifo;
   struct terminal* term;
 };
 
 extern struct file_operations uart_operations;
-extern struct fifo uart_fifo;
 extern struct uart uart;
 
 void uart_init();
