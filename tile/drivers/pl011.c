@@ -110,14 +110,14 @@ int uart_getchar() {
   uart_begin begins UART transmission.
 */
 void uart_begin() {
-  uart.regs->imsc |= IMSC_TXIM;
+  uart.regs->imsc = IMSC_TXIM;
 }
 
 /*
   uart_end ends UART transmission.
 */
 void uart_end() {
-  uart.regs->imsc &= ~IMSC_TXIM;
+  uart.regs->imsc = ~IMSC_TXIM;
 }
 
 /*
