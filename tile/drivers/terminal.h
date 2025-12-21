@@ -10,6 +10,8 @@
 */
 struct terminal {
   struct file_operations* ops;
+  struct fifo fifo;
+  void* private;
 };
 
 extern struct file_operations terminal_operations;
