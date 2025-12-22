@@ -4,6 +4,8 @@
 
 #include <drivers/pl011.h>
 #include <kernel/device.h>
+#include <kernel/memory.h>
+#include <lib/string.h>
 
 struct file_operations uart_operations = {
   .read = uart_read,
@@ -18,13 +20,28 @@ struct uart uart = {
   */
   .regs = (volatile struct uart_registers*)0xffc90000,
   .ops = &uart_operations,
-  .term = &terminal
+};
+
+/*
+  The UART device is never exposed. Instead, it's accessed through its terminal
+  device.
+*/
+struct device uart_device = {
+  .name = "console",
+  .ops = &uart_operations,
+  .major = 5,
+  .minor = 1,
+  .type = DT_CHARACTER,
+  .private = &uart
 };
 
 /*
   uart_init initializes the UART.
 */
 void uart_init() {
+  struct terminal* term;
+  struct device* term_dev;
+
   /* Disable the UART. */
   uart.regs->cr &= ~CR_UARTEN;
 
@@ -50,7 +67,22 @@ void uart_init() {
 
   fifo_alloc(&uart.fifo, UART_FIFO_SIZE, 1);
 
-  device_register(&terminal_device);
+  /* Initialize the terminal structure. */
+  term = terminal_alloc();
+  term->ops = uart.ops;
+  uart.term = term;
+
+  /* Initialize the terminal device. */
+  term_dev = memory_alloc(sizeof(struct device));
+  strcpy(term_dev->name, uart_device.name);
+  term_dev->ops = &terminal_operations;
+  term_dev->major = uart_device.major;
+  term_dev->minor = uart_device.minor;
+  term_dev->type = uart_device.type;
+  term_dev->private = term;
+
+  /* The terminal, not the UART is exposed. */
+  device_register(term_dev);
 }
 
 /*

@@ -1,6 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <stdarg.h>
+
 /*
   enum length_modifier represents a format string's length modifiers.
 */

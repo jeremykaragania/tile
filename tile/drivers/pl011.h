@@ -7,7 +7,6 @@
 #include <kernel/file.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 #define UART_CLK 24000000
 #define UART_BAUD_RATE 460800
@@ -75,6 +74,7 @@ struct uart {
 
 extern struct file_operations uart_operations;
 extern struct uart uart;
+extern struct device uart_device;
 
 void uart_init();
 

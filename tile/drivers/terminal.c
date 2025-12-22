@@ -1,38 +1,31 @@
 #include <drivers/terminal.h>
 #include <drivers/pl011.h>
 #include <kernel/device.h>
+#include <kernel/memory.h>
 
 struct file_operations terminal_operations = {
   .write = terminal_write
 };
 
-struct terminal terminal = {
-  .ops = &uart_operations
-};
+/*
+  terminal_alloc allocates and returns a terminal structure and certain fields
+  within it.
+*/
+struct terminal* terminal_alloc() {
+  struct terminal* term;
 
-struct device terminal_device = {
-  .name = "console",
-  .ops = &terminal_operations,
-  .major = 5,
-  .minor = 1,
-  .type = DT_CHARACTER,
-  .private = &terminal
-};
+  term = memory_alloc(sizeof(struct terminal));
+  fifo_alloc(&term->fifo, TERMINAL_FIFO_SIZE, 1);
+
+  return term;
+}
 
 /*
-  file_to_terminal tries to return the private terminal information of a device
-  from the file "file".
+  terminal_free frees the terminal "term" and any allocated fields.
 */
-struct terminal* file_to_terminal(struct file_info_int* file) {
-  struct device* dev;
-
-  dev = file_to_device(file);
-
-  if (!dev) {
-    return NULL;
-  }
-
-  return (struct terminal*)dev->private;
+void terminal_free(struct terminal* term) {
+  fifo_free(&term->fifo);
+  memory_free(term);
 }
 
 /*
@@ -54,4 +47,20 @@ int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
   }
 
   return count;
+}
+
+/*
+  file_to_terminal tries to return the private terminal information of a device
+  from the file "file".
+*/
+struct terminal* file_to_terminal(struct file_info_int* file) {
+  struct device* dev;
+
+  dev = file_to_device(file);
+
+  if (!dev) {
+    return NULL;
+  }
+
+  return (struct terminal*)dev->private;
 }

@@ -2,7 +2,10 @@
 #define TERMINAL_H
 
 #include <kernel/list.h>
+#include <kernel/fifo.h>
 #include <kernel/file.h>
+
+#define TERMINAL_FIFO_SIZE 256
 
 /*
   struct terminal represents a terminal device. A terminal device manages a
@@ -18,8 +21,11 @@ extern struct file_operations terminal_operations;
 extern struct terminal terminal;
 extern struct device terminal_device;
 
-struct terminal* file_to_terminal(struct file_info_int* file);
+struct terminal* terminal_alloc();
+void terminal_free(struct terminal* term);
 
 int terminal_write(struct file_info_int* file, const void* buf, size_t count);
+
+struct terminal* file_to_terminal(struct file_info_int* file);
 
 #endif
