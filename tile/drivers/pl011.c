@@ -176,6 +176,20 @@ void do_uart_irq_transmit() {
 }
 
 /*
+  do_uart_irq_receive handles a UART receive IRQ exception.
+*/
+void do_uart_irq_receive() {
+  char c;
+
+  uart.regs->icr |= ICR_RXIC;
+
+  while (!(uart.regs->fr & FR_RXFE)) {
+    c = uart.regs->dr & DR_DATA;
+    fifo_push(&uart.term->fifo, &c);
+  }
+}
+
+/*
   do_uart_irq handles a UART IRQ exception.
 */
 void do_uart_irq() {
@@ -183,5 +197,9 @@ void do_uart_irq() {
 
   if (mis & MIS_TXMIS) {
     do_uart_irq_transmit();
+  }
+
+  if (mis & MIS_RXMIS) {
+    do_uart_irq_receive();
   }
 }

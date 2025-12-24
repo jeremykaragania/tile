@@ -88,6 +88,7 @@ void uart_begin();
 void uart_end();
 
 void do_uart_irq_transmit();
+void do_uart_irq_receive();
 void do_uart_irq();
 
 #endif
