@@ -18,8 +18,6 @@ struct terminal {
 };
 
 extern struct file_operations terminal_operations;
-extern struct terminal terminal;
-extern struct device terminal_device;
 
 struct terminal* terminal_alloc();
 void terminal_free(struct terminal* term);
