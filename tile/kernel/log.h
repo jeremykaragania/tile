@@ -19,6 +19,7 @@ void log_put_unsigned_integer(unsigned long long a, const char format);
 
 int log_putstring(const char* s);
 int log_puts(const char* s);
+int log_putchar(const char c);
 
 int log_printf(const char *format, ...);
 

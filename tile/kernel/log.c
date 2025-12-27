@@ -9,7 +9,7 @@ char log_buf[256];
 */
 void log_put_signed_integer(long long a) {
   if (a < 0) {
-    uart_putchar(&uart, '-');
+    log_putchar('-');
     a *= -1;
   }
   log_put_unsigned_integer(a, 'd');
@@ -21,7 +21,7 @@ void log_put_signed_integer(long long a) {
 */
 void log_put_unsigned_integer(unsigned long long a, const char format) {
   if (a == 0) {
-    uart_putchar(&uart, '0');
+    log_putchar('0');
   }
   else {
     unsigned int base;
@@ -63,7 +63,7 @@ void log_put_unsigned_integer(unsigned long long a, const char format) {
     }
 
     for (size_t j = 0; j < i; ++j) {
-      uart_putchar(&uart, log_buf[i-j-1]);
+      log_putchar(log_buf[i-j-1]);
     }
   }
 }
@@ -74,7 +74,7 @@ void log_put_unsigned_integer(unsigned long long a, const char format) {
 int log_putstring(const char* s) {
   size_t i = 0;
   while (s[i]) {
-    uart_putchar(&uart, s[i]);
+    log_putchar(s[i]);
     ++i;
   }
   return i;
@@ -85,8 +85,21 @@ int log_putstring(const char* s) {
 */
 int log_puts(const char* s) {
   log_putstring(s);
-  uart_putchar(&uart, '\n');
+  log_putstring("\n");
   return 0;
+}
+
+/*
+  log_putchar writes a byte "c" handling character replacement.
+*/
+int log_putchar(const char c) {
+  if (c == '\n') {
+    uart_putchar(&uart, '\r');
+  }
+
+  uart_putchar(&uart, c);
+
+  return c;
 }
 
 /*
@@ -132,7 +145,7 @@ int log_printf(const char *format, ...) {
 
       switch (format[i]) {
         case 'c': {
-          uart_putchar(&uart, va_arg(args, int));
+          log_putchar(va_arg(args, int));
           break;
         }
         case 's': {
@@ -182,13 +195,13 @@ int log_printf(const char *format, ...) {
           break;
         }
         default: {
-          uart_putchar(&uart, '%');
-          uart_putchar(&uart, format[i]);
+          log_putchar('%');
+          log_putchar(format[i]);
         }
       }
     }
     else {
-      uart_putchar(&uart, c);
+      log_putchar(c);
     }
 
     ++i;
