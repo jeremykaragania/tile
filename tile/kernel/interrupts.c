@@ -110,7 +110,7 @@ void do_irq() {
       schedule_tick();
       break;
     case UART0INTR:
-      do_uart_irq();
+      do_uart_irq(&uart);
       break;
     default:
       break;

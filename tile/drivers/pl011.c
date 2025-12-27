@@ -7,7 +7,7 @@
 #include <kernel/memory.h>
 #include <lib/string.h>
 
-struct file_operations uart_operations = {
+struct uart_operations uart_operations = {
   .read = uart_read,
   .write = uart_write
 };
@@ -28,7 +28,6 @@ struct uart uart = {
 */
 struct device uart_device = {
   .name = "console",
-  .ops = &uart_operations,
   .major = 5,
   .minor = 1,
   .type = DT_CHARACTER,
@@ -70,6 +69,7 @@ void uart_init() {
   /* Initialize the terminal structure. */
   term = terminal_alloc();
   term->ops = uart.ops;
+  term->private = &uart;
   uart.term = term;
 
   /* Initialize the terminal device. */
@@ -88,14 +88,14 @@ void uart_init() {
 /*
   uart_read reads up to "count" bytes into the buffer "buf" from the UART.
 */
-int uart_read(struct file_info_int* file, void* buf, size_t count) {
+int uart_read(struct uart* u, void* buf, size_t count) {
   int c;
 
   for (size_t i = 0; i < count; ++i) {
     c = -1;
 
     while (c < 0) {
-      c = uart_getchar();
+      c = uart_getchar(u);
     }
 
     ((char*)buf)[i] = c;
@@ -107,13 +107,13 @@ int uart_read(struct file_info_int* file, void* buf, size_t count) {
 /*
   uart_write writes up to "count" bytes from the buffer "buf" to the UART.
 */
-int uart_write(struct file_info_int* file, const void* buf, size_t count) {
+int uart_write(struct uart* u, const void* buf, size_t count) {
   int ret;
 
-  ret = fifo_push_n(&uart.fifo, buf, count);
+  ret = fifo_push_n(&u->fifo, buf, count);
 
-  uart_begin();
-  do_uart_irq_transmit();
+  uart_begin(u);
+  do_uart_irq_transmit(u);
 
   return ret;
 }
@@ -121,9 +121,9 @@ int uart_write(struct file_info_int* file, const void* buf, size_t count) {
 /*
   uart_putchar writes a byte "c" to the UART data register.
 */
-int uart_putchar(const int c) {
-  while(uart.regs->fr & FR_TXFF);
-  uart.regs->dr = c;
+int uart_putchar(struct uart* u, const int c) {
+  while(u->regs->fr & FR_TXFF);
+  u->regs->dr = c;
   return c;
 }
 
@@ -131,75 +131,75 @@ int uart_putchar(const int c) {
   uart_getchar reads a byte from the UART data register. It returns the read
   byte on success or -1 on failure.
 */
-int uart_getchar() {
-  if (uart.regs->fr & FR_RXFE) {
+int uart_getchar(struct uart* u) {
+  if (u->regs->fr & FR_RXFE) {
     return -1;
   }
-  return uart.regs->dr & DR_DATA;
+  return u->regs->dr & DR_DATA;
 }
 
 /*
   uart_begin begins UART transmission.
 */
-void uart_begin() {
-  uart.regs->imsc = IMSC_TXIM;
+void uart_begin(struct uart* u) {
+  u->regs->imsc = IMSC_TXIM;
 }
 
 /*
   uart_end ends UART transmission.
 */
-void uart_end() {
-  uart.regs->imsc = ~IMSC_TXIM;
+void uart_end(struct uart* u) {
+  u->regs->imsc = ~IMSC_TXIM;
 }
 
 /*
   do_uart_irq_transmit handles a UART transmit IRQ exception.
 */
-void do_uart_irq_transmit() {
+void do_uart_irq_transmit(struct uart* u) {
   char c;
 
   while (1) {
-    if (uart.regs->fr & FR_TXFF) {
+    if (u->regs->fr & FR_TXFF) {
       break;
     }
 
-    if (fifo_pop(&uart.fifo, &c) < 0) {
+    if (fifo_pop(&u->fifo, &c) < 0) {
       break;
     }
 
-    uart.regs->dr = c;
+    u->regs->dr = c;
   }
 
-  if (is_fifo_empty(&uart.fifo)) {
-    uart_end();
+  if (is_fifo_empty(&u->fifo)) {
+    uart_end(u);
   }
 }
 
 /*
   do_uart_irq_receive handles a UART receive IRQ exception.
 */
-void do_uart_irq_receive() {
+void do_uart_irq_receive(struct uart* u) {
   char c;
 
-  uart.regs->icr |= ICR_RXIC;
+  u->regs->icr |= ICR_RXIC;
 
-  while (!(uart.regs->fr & FR_RXFE)) {
-    c = uart.regs->dr & DR_DATA;
-    fifo_push(&uart.term->fifo, &c);
+  while (!(u->regs->fr & FR_RXFE)) {
+    c = u->regs->dr & DR_DATA;
+    fifo_push(&u->term->fifo, &c);
   }
 }
 
 /*
   do_uart_irq handles a UART IRQ exception.
 */
-void do_uart_irq() {
-  uint32_t mis = uart.regs->mis;
+void do_uart_irq(struct uart* u) {
+  uint32_t mis = u->regs->mis;
 
   if (mis & MIS_TXMIS) {
-    do_uart_irq_transmit();
+    do_uart_irq_transmit(u);
   }
 
   if (mis & MIS_RXMIS) {
-    do_uart_irq_receive();
+    do_uart_irq_receive(u);
   }
 }

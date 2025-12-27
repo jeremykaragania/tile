@@ -67,28 +67,37 @@ struct uart_registers {
 */
 struct uart {
   volatile struct uart_registers* regs;
-  struct file_operations* ops;
+  struct uart_operations* ops;
   struct fifo fifo;
   struct terminal* term;
 };
 
-extern struct file_operations uart_operations;
+/*
+  struct uart_operations represents the operations that can be performed on a
+  UART.
+*/
+struct uart_operations {
+  int (*read)(struct uart*, void*, size_t);
+  int (*write)(struct uart*, const void*, size_t);
+};
+
+extern struct uart_operations uart_operations;
 extern struct uart uart;
 extern struct device uart_device;
 
 void uart_init();
 
-int uart_read(struct file_info_int*, void* buf, size_t count);
-int uart_write(struct file_info_int* file, const void* buf, size_t count);
+int uart_read(struct uart* u, void* buf, size_t count);
+int uart_write(struct uart* u, const void* buf, size_t count);
 
-int uart_putchar(const int c);
-int uart_getchar();
+int uart_putchar(struct uart* u, const int c);
+int uart_getchar(struct uart* u);
 
-void uart_begin();
-void uart_end();
+void uart_begin(struct uart* u);
+void uart_end(struct uart* u);
 
-void do_uart_irq_transmit();
-void do_uart_irq_receive();
-void do_uart_irq();
+void do_uart_irq_transmit(struct uart* u);
+void do_uart_irq_receive(struct uart* u);
+void do_uart_irq(struct uart* u);
 
 #endif

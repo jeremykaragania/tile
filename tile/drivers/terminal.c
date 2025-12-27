@@ -34,14 +34,16 @@ void terminal_free(struct terminal* term) {
 */
 int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
   struct terminal* term;
+  struct uart* u;
   size_t n;
   size_t remaining;
 
   remaining = count;
   term = file_to_terminal(file);
+  u = term->private;
 
   while (remaining) {
-    n = term->ops->write(file, buf, remaining);
+    n = term->ops->write(u, buf, remaining);
     remaining -= n;
     buf = (char*)buf + n;
   }

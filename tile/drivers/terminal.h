@@ -12,7 +12,7 @@
   low-level serial driver's operations.
 */
 struct terminal {
-  struct file_operations* ops;
+  struct uart_operations* ops;
   struct fifo fifo;
   void* private;
 };

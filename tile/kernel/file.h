@@ -208,7 +208,7 @@ struct file_table_entry {
 
 /*
   struct file_operations represents the operations which can be performed on a
-  device.
+  file.
 */
 struct file_operations {
   int (*open)(const char*, int flags);
