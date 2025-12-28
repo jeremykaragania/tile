@@ -34,21 +34,36 @@ void terminal_free(struct terminal* term) {
 */
 int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
   struct terminal* term;
-  struct uart* u;
-  size_t n;
-  size_t remaining;
 
-  remaining = count;
   term = file_to_terminal(file);
-  u = term->private;
 
-  while (remaining) {
-    n = term->ops->write(u, buf, remaining);
-    remaining -= n;
-    buf = (char*)buf + n;
+  for (size_t i = 0; i < count; ++i) {
+    terminal_process_output_char(term, ((char*)buf)[i]);
   }
 
   return count;
+}
+
+/*
+  terminal_process_output_char processes a character "c" and writes it to the
+  underlying device.
+*/
+void terminal_process_output_char(struct terminal* term, const char c) {
+  struct uart* u;
+
+  u = term->private;
+
+  switch (c) {
+    case '\n':
+      term->ops->write(u, "\r\n", 2);
+      break;
+    case '\t':
+      term->ops->write(u, "       ", 8);
+      break;
+    default:
+      term->ops->write(u, &c, 1);
+      break;
+  }
 }
 
 /*

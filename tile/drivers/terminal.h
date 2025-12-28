@@ -24,6 +24,8 @@ void terminal_free(struct terminal* term);
 
 int terminal_write(struct file_info_int* file, const void* buf, size_t count);
 
+void terminal_process_output_char(struct terminal* term, const char c);
+
 struct terminal* file_to_terminal(struct file_info_int* file);
 
 #endif
