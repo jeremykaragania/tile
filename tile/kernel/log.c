@@ -69,6 +69,17 @@ void log_put_unsigned_integer(unsigned long long a, const char format) {
 }
 
 /*
+  log_write writes up to "count" bytes from the buffer "buf".
+*/
+int log_write(const char* buf, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    log_putchar(buf[i]);
+  }
+
+  return count;
+}
+
+/*
   log_putstring logs a string "s".
 */
 int log_putstring(const char* s) {

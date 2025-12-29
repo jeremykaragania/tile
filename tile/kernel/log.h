@@ -2,6 +2,7 @@
 #define LOG_H
 
 #include <stdarg.h>
+#include <stddef.h>
 
 /*
   enum length_modifier represents a format string's length modifiers.
@@ -17,6 +18,7 @@ enum length_modifier {
 void log_put_signed_integer(long long a);
 void log_put_unsigned_integer(unsigned long long a, const char format);
 
+int log_write(const char* buf, size_t count);
 int log_putstring(const char* s);
 int log_puts(const char* s);
 int log_putchar(const char c);
