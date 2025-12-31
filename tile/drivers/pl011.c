@@ -185,7 +185,7 @@ void do_uart_irq_receive(struct uart* u) {
 
   while (!(u->regs->fr & FR_RXFE)) {
     c = u->regs->dr & DR_DATA;
-    fifo_push(&u->term->fifo, &c);
+    fifo_push(&u->term->fifo_raw, &c);
   }
 }
 

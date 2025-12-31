@@ -15,7 +15,8 @@ struct terminal* terminal_alloc() {
   struct terminal* term;
 
   term = memory_alloc(sizeof(struct terminal));
-  fifo_alloc(&term->fifo, TERMINAL_FIFO_SIZE, 1);
+  fifo_alloc(&term->fifo_raw, TERMINAL_FIFO_SIZE, 1);
+  fifo_alloc(&term->fifo_cooked, TERMINAL_FIFO_SIZE, 1);
 
   return term;
 }
@@ -24,7 +25,8 @@ struct terminal* terminal_alloc() {
   terminal_free frees the terminal "term" and any allocated fields.
 */
 void terminal_free(struct terminal* term) {
-  fifo_free(&term->fifo);
+  fifo_free(&term->fifo_raw);
+  fifo_free(&term->fifo_cooked);
   memory_free(term);
 }
 

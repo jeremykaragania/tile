@@ -13,7 +13,8 @@
 */
 struct terminal {
   struct uart_operations* ops;
-  struct fifo fifo;
+  struct fifo fifo_raw;
+  struct fifo fifo_cooked;
   void* private;
 };
 
