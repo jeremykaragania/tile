@@ -47,6 +47,15 @@ int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
 }
 
 /*
+  terminal_process_input_char processes the input character "c".
+*/
+int terminal_process_input_char(struct terminal* term, const char c) {
+  terminal_echo_char(term, c);
+
+  return fifo_push(&term->fifo_raw, &c);
+}
+
+/*
   terminal_process_output_char processes a character "c" and writes it to the
   underlying device.
 */
@@ -61,6 +70,27 @@ void terminal_process_output_char(struct terminal* term, const char c) {
       break;
     case '\t':
       term->ops->write(u, "       ", 8);
+      break;
+    default:
+      term->ops->write(u, &c, 1);
+      break;
+  }
+}
+
+/*
+  terminal_echo_char echoes the character "c" to the terminal "term".
+*/
+void terminal_echo_char(struct terminal* term, const char c) {
+  struct uart* u;
+
+  u = term->private;
+
+  switch (c) {
+    case TERMINAL_CHAR_ERASE:
+      term->ops->write(u, "\b \b", 3);
+      break;
+    case TERMINAL_CHAR_CR:
+      term->ops->write(u, "\r\n", 2);
       break;
     default:
       term->ops->write(u, &c, 1);

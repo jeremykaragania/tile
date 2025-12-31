@@ -5,6 +5,10 @@
 #include <kernel/fifo.h>
 #include <kernel/file.h>
 
+#define TERMINAL_CHAR_ERASE  0x7f
+#define TERMINAL_CHAR_NL 0x0a
+#define TERMINAL_CHAR_CR 0x0d
+
 #define TERMINAL_FIFO_SIZE 256
 
 /*
@@ -25,7 +29,10 @@ void terminal_free(struct terminal* term);
 
 int terminal_write(struct file_info_int* file, const void* buf, size_t count);
 
+int terminal_process_input_char(struct terminal* term, const char c);
 void terminal_process_output_char(struct terminal* term, const char c);
+
+void terminal_echo_char(struct terminal* term, const char c);
 
 struct terminal* file_to_terminal(struct file_info_int* file);
 

@@ -61,6 +61,9 @@ void uart_init() {
   uart.regs->lcr_h |= LCR_H_WLEN;
   uart.regs->lcr_h &= ~LCR_H_STP2;
 
+  /* Enable receive interrupts. */
+  uart.regs->imsc = IMSC_RXIM;
+
   /* Enable the UART. */
   uart.regs->cr |= CR_UARTEN;
 
@@ -185,7 +188,10 @@ void do_uart_irq_receive(struct uart* u) {
 
   while (!(u->regs->fr & FR_RXFE)) {
     c = u->regs->dr & DR_DATA;
-    fifo_push(&u->term->fifo_raw, &c);
+
+    if (terminal_process_input_char(u->term, c) < 0) {
+      break;
+    }
   }
 }
 
