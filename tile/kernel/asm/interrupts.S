@@ -36,7 +36,10 @@ vector_table:
   /* Switch to supervisor mode */
   cps #PM_SVC
 
-  /* Preserve the remaining registers. */
+  /*
+    Even though some registers may be banked, we preserve them all here since
+    we don't know which mode we came from.
+  */
   push {r0 - lr}
 
   ldr r0, =disable_interrupts
@@ -75,6 +78,10 @@ vector_table:
   process information structure.
 */
 .macro interrupt_stub_user name
+  // Store the banked userspace stack pointer and link register on the stack.
+  add r0, sp, #PR_SP_OFFSET
+  stm r0, {sp, lr}^
+
   ldr r0, =current_registers
   blx r0
   ldr r1, =preserve_registers
