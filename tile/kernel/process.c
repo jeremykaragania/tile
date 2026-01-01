@@ -83,6 +83,8 @@ int process_exec(const char* name) {
   struct file_info_int* file;
   uint32_t file_size;
   void* buf;
+  uint32_t stack_paddr;
+  uint32_t stack_vaddr;
 
   fd = file_open(name, O_RDWR);
 
@@ -100,8 +102,13 @@ int process_exec(const char* name) {
     return -1;
   }
 
+  // Initialize the process's stack.
+  stack_paddr = virt_to_phys((uint32_t)memory_alloc(THREAD_SIZE));
+  stack_vaddr = (uint32_t)find_unmapped_region(THREAD_SIZE);
+  create_mapping(stack_vaddr, stack_paddr, THREAD_SIZE, PAGE_RW);
+
   current->reg.cpsr = PM_USR;
-  current->reg.sp = stack_end(current);
+  current->reg.sp = stack_end(stack_vaddr);
 
   return 0;
 }
