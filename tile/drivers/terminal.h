@@ -37,6 +37,7 @@ extern struct file_operations terminal_operations;
 struct terminal* terminal_alloc();
 void terminal_free(struct terminal* term);
 
+int terminal_read(struct file_info_int* file, void* buf, size_t count);
 int terminal_write(struct file_info_int* file, const void* buf, size_t count);
 
 int terminal_process_input_char(struct terminal* term, char c);

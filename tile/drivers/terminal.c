@@ -2,8 +2,11 @@
 #include <drivers/pl011.h>
 #include <kernel/device.h>
 #include <kernel/memory.h>
+#include <lib/string.h>
+#include <stdbool.h>
 
 struct file_operations terminal_operations = {
+  .read = terminal_read,
   .write = terminal_write
 };
 
@@ -27,6 +30,51 @@ struct terminal* terminal_alloc() {
 void terminal_free(struct terminal* term) {
   fifo_free(&term->raw);
   memory_free(term);
+}
+
+/*
+  terminal_read reads up to "count" bytes into the buffer "buf".
+*/
+int terminal_read(struct file_info_int* file, void* buf, size_t count) {
+  struct terminal* term;
+  struct line_buffer* lb;
+  char c;
+  bool is_done;
+  size_t insert_count;
+
+  term = file_to_terminal(file);
+  lb = &term->cooked;
+  is_done = false;
+  insert_count = 0;
+
+  while (1) {
+    while (fifo_pop(&term->raw, &c) < 0);
+
+    switch (c) {
+      case TERMINAL_CHAR_ERASE:
+        line_buffer_remove_char(lb);
+        break;
+      case TERMINAL_CHAR_CR:
+        insert_count = line_buffer_insert_char(lb, '\n');
+        is_done = true;
+        break;
+      default:
+        insert_count = line_buffer_insert_char(lb, c);
+        break;
+    }
+
+    if (is_done || insert_count == 0) {
+      break;
+    }
+  }
+
+  if (lb->cursor < count) {
+    count = lb->cursor - 1;
+  }
+
+  memcpy(buf, lb->buf, count);
+
+  return count;
 }
 
 /*
