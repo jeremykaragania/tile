@@ -257,15 +257,6 @@ void set_process_stack_end_token(const struct process_info* proc) {
 }
 
 /*
-  current_process returns the current struct process in use. A struct
-  process_info is always to a THREAD_SIZE boundary. From the current stack
-  pointer, we can find the related struct process.
-*/
-struct process_info* current_process() {
-  return (struct process_info*) (current_stack_pointer() & ~(THREAD_SIZE - 1));
-}
-
-/*
   current_registers returns the current process' register information. It
   exists as a helper to make it easier to access the field from assembly.
 */

@@ -1,4 +1,19 @@
+#include <kernel/asm/memory.h>
+
 .section .text
+
+/*
+  current_process returns the current struct process in use. A struct
+  process_info is always to a THREAD_SIZE boundary. From the current stack
+  pointer, we can find the related struct process.
+*/
+.global current_process
+current_process:
+  mov r0, sp
+  mov r1, #THREAD_SIZE - 1
+  bic r0, r0, r1
+  bx lr
+
 /*
   ret_from_clone calls the function stored in r1 with the argument stored in
   r0. This is what eventually happens after a process is cloned.
