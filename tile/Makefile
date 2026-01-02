@@ -24,7 +24,7 @@ TOOLS_BUILD_DIR = $(BUILD_DIR)/$(TOOLS_DIR)
 
 KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o asm/processor.o asm/schedule.o asm/syscall.o buffer.o device.o fifo.o file.o helpers.o interrupts.o list.o log.o main.o memory.o page.o process.o processor.o schedule.o syscall.o)
 DRIVERS_OBJS = $(addprefix $(DRIVERS_DIR)/, gic_400.o pl011.o pl180.o sp804.o terminal.o)
-LIB_OBJS = $(addprefix $(LIB_DIR)/, elf.o stdlib.o string.o)
+LIB_OBJS = $(addprefix $(LIB_DIR)/, asm/syscall.o elf.o stdlib.o string.o)
 TOOLS_OBJS = $(addprefix $(TOOLS_BUILD_DIR)/, mkfs)
 
 .PHONY: all
