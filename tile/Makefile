@@ -13,7 +13,7 @@ tile lib: ASFLAGS := $(ASFLAGS) -mcpu=cortex-a15
 tile lib: LD := $(HOST)-$(LD)
 tile lib: LDFLAGS := $(LDFLAGS) -Ttile.ld
 
-%: CFLAGS := $(CFLAGS)
+tools: CFLAGS := $(CFLAGS)
 
 KERNEL_DIR = kernel
 DRIVERS_DIR = drivers
@@ -21,7 +21,7 @@ LIB_DIR = lib
 TOOLS_DIR = tools
 KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/main.o asm/page.o asm/process.o asm/processor.o asm/schedule.o asm/syscall.o buffer.o device.o fifo.o file.o helpers.o interrupts.o list.o log.o main.o memory.o page.o process.o processor.o schedule.o syscall.o)
 DRIVERS_OBJS = $(addprefix $(DRIVERS_DIR)/, gic_400.o pl011.o pl180.o sp804.o terminal.o)
-LIB_OBJS = $(addprefix $(LIB_DIR)/, elf.o string.o)
+LIB_OBJS = $(addprefix $(LIB_DIR)/, elf.o stdlib.o string.o)
 TOOLS_OBJS = mkfs
 
 .PHONY: all

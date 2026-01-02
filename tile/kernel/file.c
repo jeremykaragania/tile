@@ -32,8 +32,8 @@
 #include <kernel/memory.h>
 #include <kernel/page.h>
 #include <kernel/process.h>
+#include <lib/stdlib.h>
 #include <lib/string.h>
-#include <stdlib.h>
 
 const char* current_directory = ".";
 const char* parent_directory = "..";
