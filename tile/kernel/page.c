@@ -431,32 +431,54 @@ uint32_t create_pte(uint32_t p_addr, int flags) {
 }
 
 /*
-  set_descriptor_protection sets the memory protection of the descriptor
-  "descriptor". The descriptor bit indexes are specified by "bits" and the
-  memory protection by "flags".
+  get_descriptor_protection returns the memory protection of the descriptor
+  "d". The descriptor bit indexes are specified by "bits"
 */
-uint32_t set_descriptor_protection(uint32_t descriptor, const struct descriptor_bits* bits, int flags) {
+int get_descriptor_protection(uint32_t d, const struct descriptor_bits* bits) {
+  int flags = PAGE_READ;
+
+  if ((d & (1 << bits->ap[0])) > 0) {
+    flags |= PAGE_KERNEL;
+  }
+
+  if ((d & (1 << bits->ap[2])) == 0) {
+    flags |= PAGE_WRITE;
+  }
+
+  if ((d & (1 << bits->xn)) == 0) {
+    flags |= PAGE_EXECUTE;
+  }
+
+  return flags;
+}
+
+/*
+  set_descriptor_protection sets the memory protection of the descriptor "d".
+  The descriptor bit indexes are specified by "bits" and the memory protection
+  by "flags".
+*/
+uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bits, int flags) {
   if (!flags) {
-    return descriptor;
+    return d;
   }
 
   if (flags & PAGE_KERNEL) {
-    descriptor |= 1 << bits->ap[0];
+    d |= 1 << bits->ap[0];
   }
   else {
-    descriptor |= 1 << bits->ap[0];
-    descriptor |= 1 << bits->ap[1];
+    d |= 1 << bits->ap[0];
+    d |= 1 << bits->ap[1];
   }
 
   if (!(flags & PAGE_WRITE)) {
-    descriptor |= 1 << bits->ap[2];
+    d |= 1 << bits->ap[2];
   }
 
   if (!(flags & PAGE_EXECUTE)) {
-    descriptor |= 1 << bits->xn;
+    d |= 1 << bits->xn;
   }
 
-  return descriptor;
+  return d;
 }
 
 /*
