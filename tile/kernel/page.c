@@ -133,7 +133,7 @@ void map_smc() {
 void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   const uint32_t ret = v_addr;
   const uint32_t count = page_count(size);
-  const uint32_t end = v_addr + size;
+  const uint32_t end = v_addr + size - 1;
   size_t i = 0;
   uint32_t step;
 
@@ -190,57 +190,62 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
   uint32_t* pmd;
   uint32_t pmd_begin;
   uint32_t pmd_end;
-  uint32_t* page_table;
-  uint32_t* insert_pmd;
-  bool is_page_table;
-  uint32_t pmd_page_table;
   uint32_t end = v_addr + size;
+  uint32_t* page_table;
+  uint32_t pmd_page_table;
 
   for (size_t i = 0; i < pmd_count(size); ++i) {
     pmd = addr_to_pmd(pgd, v_addr);
     pmd_begin = pmd_to_addr(pgd, pmd);
     pmd_end = pmd_begin + PMD_SIZE - 1;
-    is_page_table = is_pmd_page_table(pmd);
 
     /*
-      This pmd isn't a page table, so we will allocate and replace it with
-      a new one.
+      This pmd isn't a page table, so we will allocate and remap what was there
+      before.
     */
-    if (!is_page_table) {
+    if (!is_pmd_page_table(pmd)) {
       page_table = memory_alloc(PAGE_TABLE_SIZE);
       pmd_page_table = create_pmd_page_table(page_table);
-      insert_pmd = &pmd_page_table;
-    }
-    else {
-      insert_pmd = pmd;
+
+      if (is_pmd_section(pmd)) {
+        remap_section(pmd, pmd_page_table);
+      }
+
+      *pmd = pmd_page_table;
     }
 
-    /*
-      If the new page table should map itself, then we make sure that it
-      does.
-    */
-    if ((uint32_t)page_table < pmd_end && (uint32_t)page_table > pmd_begin) {
-      pmd_insert(insert_pmd, (uint32_t)page_table, virt_to_phys((uint32_t)page_table), PAGE_RW | PAGE_KERNEL);
-    }
-
-    /* We either insert into the new page table or the existing one. */
     while (v_addr < pmd_end && v_addr < end) {
-      pmd_insert(insert_pmd, v_addr, p_addr, flags);
+      pmd_insert(pmd, v_addr, p_addr, flags);
 
       v_addr += PAGE_SIZE;
       p_addr += PAGE_SIZE;
     }
-
-    /*
-      This is last as we have to populate the new page table before replacing
-      the pmd.
-    */
-    if (!is_page_table) {
-      *pmd = pmd_page_table;
-    }
   }
 
   return (void*)v_addr;
+}
+
+/*
+  remap_section remaps the existing section specified by "pmd" as pages in the
+  page table specified by "pmd_page_table"
+*/
+void remap_section(uint32_t* pmd, uint32_t pmd_page_table) {
+  uint32_t* pgd;
+  uint32_t d;
+  uint32_t v_addr;
+  uint32_t p_addr;
+  int flags;
+
+  pgd = current->mem->pgd;
+  d = *pmd;
+  v_addr = pmd_to_addr(pgd, pmd);
+  p_addr = d & 0xfff00000;
+  flags = get_descriptor_protection(d, &pmd_section_bits);
+
+  for (size_t i = 0; i < PMD_SIZE; i += PAGE_SIZE) {
+    pmd_insert(&pmd_page_table, v_addr + i, p_addr + i, flags);
+  }
+
 }
 
 /*
@@ -352,11 +357,18 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
 }
 
 /*
-  is_pmd_page_table returns a positive integer if the page middle directory
-  "pmd" is a page table.
+  is_pmd_page_table returns checks if the page middle directory "pmd" is a page
+  table.
 */
 bool is_pmd_page_table(uint32_t* pmd) {
   return *pmd & 1;
+}
+
+/*
+  is_pmd_section checks iif the page middle directory "pmd" is a section.
+*/
+bool is_pmd_section(uint32_t* pmd) {
+  return *pmd & (1 << 1);
 }
 
 /*
@@ -370,7 +382,6 @@ uint32_t* pmd_to_page_table(uint32_t* pmd) {
 
   return NULL;
 }
-
 
 /*
   create_pgd creates a new page global directory and copies the kernel mappings

@@ -63,6 +63,7 @@ void map_smc();
 void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
 void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
 void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void remap_section(uint32_t* pmd, uint32_t pmd_page_table);
 void* find_unmapped_region(uint32_t size);
 
 uint32_t* addr_to_pmd(uint32_t* pgd, uint32_t addr);
@@ -76,6 +77,7 @@ void pte_clear(uint32_t* pmd, uint32_t addr);
 void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags);
 
 bool is_pmd_page_table(uint32_t* pmd);
+bool is_pmd_section(uint32_t* pmd);
 uint32_t* pmd_to_page_table(uint32_t* pmd);
 
 uint32_t* create_pgd();
