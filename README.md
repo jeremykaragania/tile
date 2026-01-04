@@ -9,7 +9,8 @@ make
 ```
 ## Usage
 ```bash
-./mkfs -i init.S device
+cd build
+tools/mkfs -i user/init device
 qemu-system-arm \
     -machine vexpress-a15 \
     -cpu cortex-a15 \
