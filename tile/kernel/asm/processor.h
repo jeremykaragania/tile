@@ -31,4 +31,15 @@
 #define PR_PC_OFFSET 60
 #define PR_CPSR_OFFSET 64
 
+/* Context register offsets */
+#define CR_R4_OFFSET 0
+#define CR_R5_OFFSET 4
+#define CR_R6_OFFSET 8
+#define CR_R7_OFFSET 12
+#define CR_R8_OFFSET 16
+#define CR_R10_OFFSET 20
+#define CR_R11_OFFSET 24
+#define CR_SP_OFFSET 28
+#define CR_PC_OFFSET 32
+
 #endif

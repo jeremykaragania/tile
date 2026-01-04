@@ -19,6 +19,6 @@ void schedule();
 void enable_preemption();
 void disable_preemption();
 
-extern void context_switch(struct processor_registers* from, struct processor_registers *to);
+extern void context_switch(struct context_registers* from, const struct context_registers* to);
 
 #endif

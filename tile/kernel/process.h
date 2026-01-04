@@ -61,7 +61,7 @@ struct process_info {
   struct file_table_entry* file_tab;
   struct memory_info* mem;
   struct processor_registers reg;
-  struct processor_registers context_reg;
+  struct context_registers context_reg;
   struct schedule_info sched;
   void* stack;
   struct list_link link;
@@ -110,7 +110,7 @@ int elf_segment_to_page_flags(uint32_t flags);
 void set_process_stack_end_token(const struct process_info* proc);
 struct process_info* current_process();
 struct processor_registers* current_registers();
-struct processor_registers* current_context_registers();
+struct context_registers* current_context_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
 struct memory_info* create_memory_info();

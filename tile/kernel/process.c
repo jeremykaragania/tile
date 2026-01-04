@@ -68,7 +68,6 @@ int process_clone(int type, struct function_info* func) {
 
   proc->stack = stack_begin(proc);
   proc->context_reg.sp = stack_end(proc);
-  proc->context_reg.cpsr = PM_SVC;
   set_process_stack_end_token(proc);
 
   return num;
@@ -269,7 +268,7 @@ struct processor_registers* current_registers() {
   information. It exists as a helper to make it easier to access the field from
   assembly.
 */
-struct processor_registers* current_context_registers() {
+struct context_registers* current_context_registers() {
   return &current->context_reg;
 }
 
@@ -278,10 +277,9 @@ struct processor_registers* current_context_registers() {
   "func". It initializes the processor context of "proc" using "func".
 */
 void function_to_process(struct process_info* proc, struct function_info* func) {
-  proc->context_reg.r0 = (uint32_t)func->arg;
-  proc->context_reg.r1 = (uint32_t)func->ptr;
+  proc->context_reg.r4 = (uint32_t)func->arg;
+  proc->context_reg.r5 = (uint32_t)func->ptr;
   proc->context_reg.pc = (uint32_t)ret_from_clone;
-  proc->context_reg.cpsr = PM_SVC;
 }
 
 /*

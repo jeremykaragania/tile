@@ -7,24 +7,15 @@
 .global context_switch
 context_switch:
   // Preserve registers.
-  push {r0}
-
-  stmia r0, {r0 - lr}
-  str lr, [r0, #PR_PC_OFFSET]
-
-  // Adjust stack pointer to account for push.
-  ldr r2, [r0, #PR_SP_OFFSET]
-  add r2, #4
-  str r2, [r0, #PR_SP_OFFSET]
-
-  mrs r2, cpsr
-  str r2, [r0, #PR_CPSR_OFFSET]
-
-  pop {r0}
+  stmia r0, {r4 - r8}
+  str r10, [r0, #CR_R10_OFFSET]
+  str r11, [r0, #CR_R11_OFFSET]
+  str sp, [r0, #CR_SP_OFFSET]
+  str lr, [r0, #CR_PC_OFFSET]
 
   // Restore registers.
-  ldr r0, [r1, #PR_CPSR_OFFSET]
-  msr cpsr, r0
-  isb
-  bl disable_interrupts
-  ldmia r1, {r0 - pc}
+  ldmia r1, {r4 - r8}
+  ldr r10, [r1, #CR_R10_OFFSET]
+  ldr r11, [r1, #CR_R11_OFFSET]
+  ldr sp, [r1, #CR_SP_OFFSET]
+  ldr pc, [r1, #CR_PC_OFFSET]

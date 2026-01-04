@@ -21,7 +21,8 @@ current_process:
 .global ret_from_clone
 ret_from_clone:
   bl enable_interrupts
-  blx r1
+  mov r0, r4
+  blx r5
   b ret_from_interrupt_user
 
 /*

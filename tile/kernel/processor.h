@@ -26,6 +26,23 @@ struct processor_registers {
   uint32_t cpsr;
 };
 
+/*
+  struct context_registers represents the registers which are preserved across
+  context switches. These include all the registers that a subroutine must
+  preserve.
+*/
+struct context_registers {
+  uint32_t r4;
+  uint32_t r5;
+  uint32_t r6;
+  uint32_t r7;
+  uint32_t r8;
+  uint32_t r10;
+  uint32_t r11;
+  uint32_t sp;
+  uint32_t pc;
+};
+
 extern void enable_interrupts();
 extern void disable_interrupts();
 extern void set_processor_mode(uint32_t mode);
