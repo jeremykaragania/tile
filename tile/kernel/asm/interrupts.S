@@ -39,12 +39,18 @@ vector_table:
 
   /*
     Even though some registers may be banked, we preserve them all here since
-    we don't know which mode we came from.
+    we don't know which mode we came from yet.
   */
-  push {r0 - lr}
+  sub sp, #60
+  stmia sp, {r0 - lr}
 
-  ldr r0, =disable_interrupts
-  blx r0
+  /*
+    We need to adjust the preserved stack pointer to account for the
+    subtraction.
+  */
+  ldr r0, [sp, #PR_SP_OFFSET]
+  add r0, #60
+  str r0, [sp, #PR_SP_OFFSET]
 
   ldr r1, [sp, #PR_CPSR_OFFSET]
   and r0, r1, #0x1f
