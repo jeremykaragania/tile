@@ -1,4 +1,4 @@
-#include <kernel/asm/processor.h>
+#include <kernel/asm/offsets.h>
 
 .text
 /*

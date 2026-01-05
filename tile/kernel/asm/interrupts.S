@@ -1,3 +1,4 @@
+#include <kernel/asm/offsets.h>
 #include <kernel/asm/processor.h>
 
 .section .vector_table, "ax"

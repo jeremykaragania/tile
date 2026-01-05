@@ -6,8 +6,9 @@ ASFLAGS = -I.
 LD = ld
 
 tile.ld: CFLAGS := $(CFLAGS) -E -x c -P
-kernel drivers lib user: CC := $(HOST)-$(CC)
-kernel drivers lib: CFLAGS := $(CFLAGS) -ffreestanding
+tile.ld kernel/asm/offsets.h kernel drivers lib user: CC := $(HOST)-$(CC)
+kernel/asm/offsets.h kernel drivers lib: CFLAGS := $(CFLAGS) -ffreestanding
+kernel/asm/offsets.h: CFLAGS := $(CFLAGS) -S
 kernel drivers lib: AS := $(HOST)-$(AS)
 kernel drivers lib: ASFLAGS := $(ASFLAGS) -mcpu=cortex-a15
 tile kernel drivers lib: LD := $(HOST)-$(LD)
@@ -34,11 +35,18 @@ USER_OBJS = $(addprefix $(USER_BUILD_DIR)/, init)
 .PHONY: all
 all: tile tools user
 
-tile: tile.ld kernel drivers lib | $(BUILD_DIR)
+tile: tile.ld kernel/asm/offsets.h kernel drivers lib | $(BUILD_DIR)
 	$(LD) $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) -o$(BUILD_DIR)/tile $(LDFLAGS)
 
 tile.ld:
 	$(CC) $(CFLAGS) tile.ld.S -o$@
+
+kernel/asm/offsets.h: kernel/asm/offsets.S
+	awk 'match($$0, /\.ascii\s+"(.*)\s+#(.*)"/, a) { print "#define " a[1] " " a[2] }' $< > $@
+
+.INTERMEDIATE: kernel/asm/offsets.S
+kernel/asm/offsets.S: kernel/offsets.c
+	$(CC) $(CFLAGS) $< -o$@
 
 .PHONY: kernel
 kernel: $(KERNEL_OBJS)
@@ -75,4 +83,4 @@ $(USER_BUILD_DIR): | $(BUILD_DIR)
 
 .PHONY: clean
 clean:
-	rm -r tile.ld $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) $(BUILD_DIR)
+	rm -r tile.ld kernel/asm/offsets.h $(KERNEL_OBJS) $(DRIVERS_OBJS) $(LIB_OBJS) $(BUILD_DIR)

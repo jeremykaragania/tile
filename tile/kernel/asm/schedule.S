@@ -1,4 +1,4 @@
-#include <kernel/asm/processor.h>
+#include <kernel/asm/offsets.h>
 
 /*
   context_switch preserves the registers in r0 and restores the registers in
