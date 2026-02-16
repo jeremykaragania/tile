@@ -69,6 +69,7 @@ void do_supervisor_call() {
   uint32_t number = get_syscall_number();
   int ret;
 
+  enable_interrupts();
   ret = do_syscall(number);
   current->reg.r0 = ret;
 }
