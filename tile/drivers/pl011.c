@@ -115,7 +115,6 @@ int uart_write(struct uart* u, const void* buf, size_t count) {
 
   ret = fifo_push_n(&u->fifo, buf, count);
 
-  uart_begin(u);
   do_uart_irq_transmit(u);
 
   return ret;
