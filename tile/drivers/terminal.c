@@ -82,13 +82,28 @@ int terminal_read(struct file_info_int* file, void* buf, size_t count) {
   terminal.
 */
 int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
+  const char* b;
+  size_t c;
   struct terminal* term;
 
+  b = buf;
   term = file_to_terminal(file);
 
-  for (size_t i = 0; i < count; ++i) {
-    terminal_process_output_char(term, ((char*)buf)[i]);
+  while (count > 0) {
+    c = terminal_process_output_block(term, b, count);
+    b += c;
+    count -= c;
+
+    if (count == 0) {
+      break;
+    }
+
+    terminal_process_output_char(term, *b);
+    ++b;
+    --count;
   }
+
+  uart_begin(term->private);
 
   return count;
 }
@@ -100,6 +115,38 @@ int terminal_process_input_char(struct terminal* term, char c) {
   terminal_echo_char(term, c);
 
   return fifo_push(&term->raw, &c);
+}
+
+/*
+  terminal_process_output_block will try to output as many non-special
+  characters from the buffer "buf" and return the number of characters written.
+*/
+size_t terminal_process_output_block(struct terminal* term, const void* buf, size_t count) {
+  bool do_break;
+  size_t i;
+  struct uart* u;
+
+  do_break = false;
+  u = term->private;
+
+  for (i = 0; i < count; ++i) {
+    char c = ((char*)buf)[i];
+
+    switch (c) {
+      case '\n':
+      case '\t':
+        do_break = true;
+        break;
+      default:
+        break;
+    }
+
+    if (do_break) {
+      break;
+    }
+  }
+
+  return term->ops->write(u, buf, i);
 }
 
 /*

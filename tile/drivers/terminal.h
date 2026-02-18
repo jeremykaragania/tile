@@ -41,6 +41,7 @@ int terminal_read(struct file_info_int* file, void* buf, size_t count);
 int terminal_write(struct file_info_int* file, const void* buf, size_t count);
 
 int terminal_process_input_char(struct terminal* term, char c);
+size_t terminal_process_output_block(struct terminal* term, const void* buf, size_t count);
 void terminal_process_output_char(struct terminal* term, char c);
 
 void terminal_echo_char(struct terminal* term, char c);
