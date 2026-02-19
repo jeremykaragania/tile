@@ -12,16 +12,22 @@ volatile struct mci_registers* mci = (volatile struct mci_registers*)MCI_PADDR;
 void mci_init() {
   /* GO_IDLE_STATE */
   mci_send_command(0, MCI_COMMAND_ENABLE, 0);
+
   /* APP_CMD */
   mci_send_command(55, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
+
   /* SD_SEND_OP_COND */
   mci_send_command(41, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0x7fffff);
+
   /* ALL_SEND_CID */
   mci_send_command(2, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE | MCI_COMMAND_LONG_RSP, 0);
+
   /* SEND_RELATIVE_ADDR */
   mci_send_command(3, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, 0);
+
   /* SELECT/DESELECT_CARD */
   mci_send_command(7, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, mci->response[0]);
+
   /* SET_BLOCKLEN */
   mci_send_command(16, MCI_COMMAND_ENABLE | MCI_COMMAND_RESPONSE, MCI_BLOCK_SIZE);
 }
