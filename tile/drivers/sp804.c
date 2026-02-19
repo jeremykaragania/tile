@@ -10,7 +10,7 @@ volatile struct dual_timer_registers* timer_0 = (struct dual_timer_registers*)TI
   dual_timer_init initializes one of the dual timers.
 */
 void dual_timer_init() {
-  timer_0->timer1_load = 0xfffe;
+  timer_0->timer1_load = 0x3e8;
 
   timer_0->timer1_control = 0;
 
