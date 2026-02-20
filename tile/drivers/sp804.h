@@ -5,6 +5,12 @@
 #include <stdint.h>
 
 /*
+  Despite the Technical Reference Manual stating that the clock frequency
+  should be 32.768kHz, in QEMU it's really 1MHz.
+*/
+#define TIMCLK_FREQ 1000000
+
+/*
   struct timer_registers represents the registers of the ARM Dual-Timer Module
   (SP804).
 */
