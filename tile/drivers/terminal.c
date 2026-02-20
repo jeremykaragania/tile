@@ -69,10 +69,12 @@ int terminal_read(struct file_info_int* file, void* buf, size_t count) {
   }
 
   if (lb->cursor < count) {
-    count = lb->cursor - 1;
+    count = lb->cursor;
   }
 
   memcpy(buf, lb->buf, count);
+
+  lb->cursor = 0;
 
   return count;
 }
