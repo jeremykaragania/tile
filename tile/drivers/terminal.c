@@ -165,7 +165,7 @@ void terminal_process_output_char(struct terminal* term, char c) {
       term->ops->write(u, "\r\n", 2);
       break;
     case '\t':
-      term->ops->write(u, "       ", 8);
+      term->ops->write(u, "        ", 8);
       break;
     default:
       term->ops->write(u, &c, 1);
