@@ -49,7 +49,8 @@ struct descriptor_bits {
 const extern uint32_t* vector_table_begin;
 const extern uint32_t* vector_table_end;
 
-extern void invalidate_entire_tlb();
+extern void flush_pgd();
+extern void flush_pte(uint32_t v_addr);
 extern void set_pgd(uint32_t pgd);
 
 void init_paging();

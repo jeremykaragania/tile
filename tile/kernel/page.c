@@ -49,7 +49,7 @@ void init_paging() {
   map_peripherals();
   map_smc();
   map_vector_table();
-  invalidate_entire_tlb();
+  flush_pgd();
 }
 
 /*
