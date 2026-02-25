@@ -537,7 +537,7 @@ void* file_map(int fd, int flags) {
   regular_read handles writing to regular files. It reads up to "count" bytes
   into the buffer "buf" from the regular file "file".
 */
-int regular_read(struct file_info_int* file, void* buf, size_t count) {
+int regular_read(struct file_info_int* file, char* buf, size_t count) {
   struct file_table_entry* file_tab;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
@@ -562,7 +562,7 @@ int regular_read(struct file_info_int* file, void* buf, size_t count) {
   for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
     addr = file_offset_to_addr(file, i * BLOCK_SIZE + file_tab->offset);
     buffer = buffer_get(addr.num);
-    memcpy((char*)buf + ret, buffer->data + addr.offset, BLOCK_SIZE);
+    memcpy(buf + ret, buffer->data + addr.offset, BLOCK_SIZE);
     buffer_put(buffer);
     ret += BLOCK_SIZE;
   }
@@ -572,7 +572,7 @@ int regular_read(struct file_info_int* file, void* buf, size_t count) {
   */
   addr = file_offset_to_addr(file, ret + file_tab->offset);
   buffer = buffer_get(addr.num);
-  memcpy((char*)buf + ret, buffer->data + addr.offset, count % BLOCK_SIZE);
+  memcpy(buf + ret, buffer->data + addr.offset, count % BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % BLOCK_SIZE;
 
@@ -585,7 +585,7 @@ int regular_read(struct file_info_int* file, void* buf, size_t count) {
   regular_write handles writing to regular files. It writes up to "count" bytes
   from the buffer "buf" to the regular file "file".
 */
-int regular_write(struct file_info_int* file, const void* buf, size_t count) {
+int regular_write(struct file_info_int* file, const char* buf, size_t count) {
   struct file_table_entry* file_tab;
   struct filesystem_addr addr;
   struct buffer_info* buffer;
@@ -605,7 +605,7 @@ int regular_write(struct file_info_int* file, const void* buf, size_t count) {
   for (size_t i = 0; i < count / BLOCK_SIZE; ++i) {
     addr = file_offset_to_addr(file, i * BLOCK_SIZE + file_tab->offset);
     buffer = buffer_get(addr.num);
-    memcpy(buffer->data + addr.offset, (char*)buf + ret, BLOCK_SIZE);
+    memcpy(buffer->data + addr.offset, buf + ret, BLOCK_SIZE);
     buffer_put(buffer);
     ret += BLOCK_SIZE;
   }
@@ -615,7 +615,7 @@ int regular_write(struct file_info_int* file, const void* buf, size_t count) {
   */
   addr = file_offset_to_addr(file, ret + file_tab->offset);
   buffer = buffer_get(addr.num);
-  memcpy(buffer->data + addr.offset, (char*)buf + ret, count % BLOCK_SIZE);
+  memcpy(buffer->data + addr.offset, buf + ret, count % BLOCK_SIZE);
   buffer_put(buffer);
   ret += count % BLOCK_SIZE;
 

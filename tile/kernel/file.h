@@ -213,8 +213,8 @@ struct file_table_entry {
 struct file_operations {
   int (*open)(const char*, int flags);
   int (*close)(struct file_info_int*);
-  int (*read)(struct file_info_int*, void*, size_t);
-  int (*write)(struct file_info_int*, const void*, size_t);
+  int (*read)(struct file_info_int*, char*, size_t);
+  int (*write)(struct file_info_int*, const char*, size_t);
 };
 
 extern const char* current_directory;
@@ -252,8 +252,8 @@ void* file_map(int fd, int flags);
 
 int file_chdir(const char* pathname);
 
-int regular_read(struct file_info_int*, void* buf, size_t count);
-int regular_write(struct file_info_int*, const void* buf, size_t count);
+int regular_read(struct file_info_int*, char* buf, size_t count);
+int regular_write(struct file_info_int*, const char* buf, size_t count);
 
 int make_dev(uint16_t major, uint16_t minor);
 uint16_t get_major(int dev);

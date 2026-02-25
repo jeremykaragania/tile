@@ -35,7 +35,7 @@ void terminal_free(struct terminal* term) {
 /*
   terminal_read reads up to "count" bytes into the buffer "buf".
 */
-int terminal_read(struct file_info_int* file, void* buf, size_t count) {
+int terminal_read(struct file_info_int* file, char* buf, size_t count) {
   struct terminal* term;
   struct line_buffer* lb;
   char c;
@@ -83,7 +83,7 @@ int terminal_read(struct file_info_int* file, void* buf, size_t count) {
   terminal_write writes up to "count" bytes from the buffer "buf" to the
   terminal.
 */
-int terminal_write(struct file_info_int* file, const void* buf, size_t count) {
+int terminal_write(struct file_info_int* file, const char* buf, size_t count) {
   const char* b;
   size_t c;
   struct terminal* term;
