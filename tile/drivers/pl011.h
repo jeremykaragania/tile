@@ -77,8 +77,8 @@ struct uart {
   UART.
 */
 struct uart_operations {
-  int (*read)(struct uart*, void*, size_t);
-  int (*write)(struct uart*, const void*, size_t);
+  int (*read)(struct uart*, char*, size_t);
+  int (*write)(struct uart*, const char*, size_t);
 };
 
 extern struct uart_operations uart_operations;
@@ -87,8 +87,8 @@ extern struct device uart_device;
 
 void uart_init();
 
-int uart_read(struct uart* u, void* buf, size_t count);
-int uart_write(struct uart* u, const void* buf, size_t count);
+int uart_read(struct uart* u, char* buf, size_t count);
+int uart_write(struct uart* u, const char* buf, size_t count);
 
 int uart_putchar(struct uart* u, const int c);
 int uart_getchar(struct uart* u);

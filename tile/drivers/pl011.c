@@ -91,7 +91,7 @@ void uart_init() {
 /*
   uart_read reads up to "count" bytes into the buffer "buf" from the UART.
 */
-int uart_read(struct uart* u, void* buf, size_t count) {
+int uart_read(struct uart* u, char* buf, size_t count) {
   int c;
 
   for (size_t i = 0; i < count; ++i) {
@@ -101,7 +101,7 @@ int uart_read(struct uart* u, void* buf, size_t count) {
       c = uart_getchar(u);
     }
 
-    ((char*)buf)[i] = c;
+    buf[i] = c;
   }
 
   return count;
@@ -110,7 +110,7 @@ int uart_read(struct uart* u, void* buf, size_t count) {
 /*
   uart_write writes up to "count" bytes from the buffer "buf" to the UART.
 */
-int uart_write(struct uart* u, const void* buf, size_t count) {
+int uart_write(struct uart* u, const char* buf, size_t count) {
   int ret;
 
   ret = fifo_push_n(&u->fifo, buf, count);
