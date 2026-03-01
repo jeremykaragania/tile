@@ -123,7 +123,7 @@ int terminal_process_input_char(struct terminal* term, char c) {
   terminal_process_output_block will try to output as many non-special
   characters from the buffer "buf" and return the number of characters written.
 */
-size_t terminal_process_output_block(struct terminal* term, const void* buf, size_t count) {
+size_t terminal_process_output_block(struct terminal* term, const char* buf, size_t count) {
   bool do_break;
   size_t i;
   struct uart* u;
@@ -132,7 +132,7 @@ size_t terminal_process_output_block(struct terminal* term, const void* buf, siz
   u = term->private;
 
   for (i = 0; i < count; ++i) {
-    char c = ((char*)buf)[i];
+    char c = buf[i];
 
     switch (c) {
       case '\n':

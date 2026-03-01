@@ -258,7 +258,7 @@ int file_open(const char* name, int flags) {
   file descriptor "fd" into the buffer "buf". It returns the number of bytes
   read.
 */
-int file_read(int fd, void* buf, size_t count) {
+int file_read(int fd, char* buf, size_t count) {
   struct file_info_int* file;
 
   file = fd_to_file(fd);
@@ -275,7 +275,7 @@ int file_read(int fd, void* buf, size_t count) {
   file specified by the file descriptor "fd". It returns the number of bytes
   written.
 */
-int file_write(int fd, const void* buf, size_t count) {
+int file_write(int fd, const char* buf, size_t count) {
   struct file_info_int* file;
 
   file = fd_to_file(fd);

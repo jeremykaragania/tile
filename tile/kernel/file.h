@@ -237,8 +237,8 @@ bool is_file_operation_allowed(int user, int operation, struct file_info_int* fi
 bool is_file_device(struct file_info_int* file);
 
 int file_open(const char* name, int flags);
-int file_read(int fd, void* buf, size_t count);
-int file_write(int fd, const void* buf, size_t count);
+int file_read(int fd, char* buf, size_t count);
+int file_write(int fd, const char* buf, size_t count);
 int file_close(int fd);
 int file_mknod(const char* pathname, int mode, int dev);
 int file_creat(const char* pathname, int flags);

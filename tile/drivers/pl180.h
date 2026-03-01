@@ -46,8 +46,8 @@ struct mci_registers {
 
 void mci_init();
 
-size_t mci_read(uint32_t addr, void* buf);
-size_t mci_write(uint32_t addr, const void* buf);
+size_t mci_read(uint32_t addr, char* buf);
+size_t mci_write(uint32_t addr, const char* buf);
 
 int mci_send_command(uint32_t cmd_index, uint32_t cmd_type, uint32_t cmd_arg);
 
