@@ -85,6 +85,8 @@ extern int process_num_count;
 extern struct memory_info init_memory_info;
 extern struct process_info init_process;
 extern uint32_t current_stack_pointer();
+
+extern struct process_info* current_process();
 extern void ret_from_clone(int (*ptr)(void*), void* arg);
 
 /*
@@ -108,9 +110,7 @@ bool is_elf_header_valid(const struct elf_hdr* hdr);
 int elf_segment_to_page_flags(uint32_t flags);
 
 void set_process_stack_end_token(const struct process_info* proc);
-struct process_info* current_process();
 struct processor_registers* current_registers();
-struct context_registers* current_context_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
 struct memory_info* create_memory_info();
