@@ -55,19 +55,25 @@ void init_processes() {
 void start_kernel() {
   disable_interrupts();
   set_process_stack_end_token(&init_process);
+
   initmem_init();
   memory_alloc_init();
   update_memory_map();
   init_paging();
+
   uart_init();
   mci_init();
   gic_init();
   dual_timer_init();
+
   filesystem_init();
   devices_init();
+
   log_printf("%s", tile_banner);
+
   schedule_init();
   init_processes();
   enable_interrupts();
+
   while(1);
 }
