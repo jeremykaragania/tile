@@ -98,7 +98,7 @@ struct function_info {
 };
 
 int process_clone(int type, struct function_info* func);
-int process_exec(const char* filename);
+int process_exec(const char* filename, const char** argv, const char** envp);
 void process_exit(int status);
 int process_getpid();
 int process_getuid();

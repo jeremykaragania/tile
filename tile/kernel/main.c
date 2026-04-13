@@ -17,7 +17,7 @@
 const char tile_banner[] = "Tile\n";
 
 int user_init() {
-  if (process_exec("/sbin/init") < 0) {
+  if (process_exec("/sbin/init", NULL, NULL) < 0) {
     panic("");
   }
 

@@ -74,10 +74,10 @@ int process_clone(int type, struct function_info* func) {
 }
 
 /*
-  process_exec executes the file specified by its name "name". Currently there
-  isn't an executable file format and this function supports instruction blobs.
+  process_exec executes the program file specified by its name "filename". It
+  overlays the address space of the executing process.
 */
-int process_exec(const char* name) {
+int process_exec(const char* filename, const char** argv, const char** envp) {
   int fd;
   struct file_info_int* file;
   uint32_t file_size;
@@ -85,7 +85,7 @@ int process_exec(const char* name) {
   uint32_t stack_paddr;
   uint32_t stack_vaddr;
 
-  fd = file_open(name, O_RDWR);
+  fd = file_open(filename, O_RDWR);
 
   if (fd < 0) {
     return -1;
