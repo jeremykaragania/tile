@@ -30,7 +30,7 @@ KERNEL_OBJS = $(addprefix $(KERNEL_DIR)/, asm/helpers.o asm/interrupts.o asm/mai
 DRIVERS_OBJS = $(addprefix $(DRIVERS_DIR)/, gic_400.o pl011.o pl180.o sp804.o terminal.o)
 LIB_OBJS = $(addprefix $(LIB_DIR)/, asm/syscall.o elf.o stdlib.o string.o)
 TOOLS_OBJS = $(addprefix $(TOOLS_BUILD_DIR)/, mkfs)
-USER_OBJS = $(addprefix $(USER_BUILD_DIR)/, init)
+USER_OBJS = $(addprefix $(USER_BUILD_DIR)/, init cat)
 
 .PHONY: all
 all: tile tools user
