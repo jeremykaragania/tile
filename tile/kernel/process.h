@@ -2,6 +2,7 @@
 #define PROCESS_H
 
 #include <kernel/list.h>
+#include <kernel/file.h>
 #include <kernel/processor.h>
 #include <kernel/schedule.h>
 #include <lib/elf.h>
@@ -38,6 +39,9 @@ enum process_type {
   struct memory_info represents the virtual memory information of a process.
 */
 struct memory_info {
+  struct file_info_int* file;
+  void* file_buf;
+  void* stack_buf;
   uint32_t* pgd;
   struct list_link pages_head;
   uint32_t text_begin;

@@ -2,7 +2,6 @@
 #include <kernel/interrupts.h>
 #include <kernel/asm/memory.h>
 #include <kernel/asm/processor.h>
-#include <kernel/file.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
 
@@ -11,6 +10,9 @@ struct list_link processes_head = LIST_INIT(processes_head);
 int process_num_count;
 
 struct memory_info init_memory_info = {
+  .file = NULL,
+  .file_buf = NULL,
+  .stack_buf = NULL,
   .pgd = (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   .pages_head = LIST_INIT(init_memory_info.pages_head),
   .text_begin = (uint32_t)&text_begin,
@@ -81,11 +83,19 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   int fd;
   struct file_info_int* file;
   uint32_t file_size;
-  void* buf;
+  struct file_info_int* curr_file;
+  void* curr_file_buf;
+  void* file_buf;
+  void* curr_stack_buf;
+  void* stack_buf;
   uint32_t stack_paddr;
   uint32_t stack_vaddr;
 
   fd = file_open(filename, O_RDWR);
+
+  curr_file = current->mem->file;
+  curr_file_buf = current->mem->file_buf;
+  curr_stack_buf = current->mem->stack_buf;
 
   if (fd < 0) {
     return -1;
@@ -94,20 +104,46 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   file = (&current->file_tab[fd])->file_int;
   file_size = file->ext.size;
 
-  buf = memory_alloc(ALIGN(file_size, PAGE_SIZE));
-  file_read(fd, buf, file_size);
+  file_buf = memory_alloc(ALIGN(file_size, PAGE_SIZE));
 
-  if (load_elf(buf) < 0) {
+  if (!file_buf) {
+    file_close(fd);
+    return -1;
+  }
+
+  file_read(fd, file_buf, file_size);
+
+  if (load_elf(file_buf) < 0) {
+    file_close(fd);
+    memory_free(file_buf);
     return -1;
   }
 
   // Initialize the process's stack.
-  stack_paddr = virt_to_phys((uint32_t)memory_alloc(THREAD_SIZE));
+  stack_buf = memory_alloc(THREAD_SIZE);
+
+  if (!stack_buf) {
+    file_close(fd);
+    memory_free(file_buf);
+    return -1;
+  }
+
+  stack_paddr = virt_to_phys((uint32_t)stack_buf);
   stack_vaddr = (uint32_t)find_unmapped_region(THREAD_SIZE);
   create_mapping(stack_vaddr, stack_paddr, THREAD_SIZE, PAGE_RW);
 
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(stack_vaddr);
+
+  current->mem->file = file;
+  current->mem->file_buf = file_buf;
+  current->mem->stack_buf = stack_buf;
+
+  if (curr_file) {
+    memory_free(curr_file);
+    memory_free(curr_file_buf);
+    memory_free(curr_stack_buf);
+  }
 
   return 0;
 }
@@ -280,6 +316,9 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
 struct memory_info* create_memory_info() {
   struct memory_info* mem = memory_alloc(sizeof(struct memory_info));
 
+  mem->file = NULL;
+  mem->file_buf = NULL;
+  mem->stack_buf = NULL;
   mem->pgd = create_pgd();
 
   list_init(&mem->pages_head);
