@@ -299,17 +299,15 @@ int file_close(int fd) {
     return -1;
   }
 
-  current->file_tab[fd].file_int = NULL;
-
   file = fd_to_file(fd);
 
   if (!file) {
     return -1;
   }
 
-  if (--file->ref == 0) {
-    file_put(file);
-  }
+  current->file_tab[fd].file_int = NULL;
+
+  file_put(file);
 
   /*
     If there's a special close handler, then try to call it. If it fails
