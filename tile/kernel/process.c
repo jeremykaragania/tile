@@ -140,7 +140,7 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   current->mem->stack_buf = stack_buf;
 
   if (curr_file) {
-    memory_free(curr_file);
+    file_put(curr_file);
     memory_free(curr_file_buf);
     memory_free(curr_stack_buf);
   }
