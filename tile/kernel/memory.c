@@ -626,7 +626,8 @@ void memory_free(void* ptr) {
   if (block->prev) {
     block->prev->next = block->next;
   }
-  else if (block->next) {
+
+  if (block->next) {
     block->next->prev = block->prev;
   }
 
