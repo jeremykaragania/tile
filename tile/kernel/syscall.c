@@ -29,6 +29,7 @@ uint32_t syscall_table[] = {
   (uint32_t)file_chdir,
   (uint32_t)process_getpid,
   (uint32_t)process_getuid,
+  (uint32_t)process_exec,
   (uint32_t)process_exit
 };
 
