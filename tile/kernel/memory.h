@@ -25,7 +25,9 @@
 #define page_index(x) ((x) >> PAGE_SHIFT)
 #define page_addr(x) ((x) << PAGE_SHIFT)
 
-#define ALIGN(a, b) ((a + b - 1) & ~(b - 1))
+#define ALIGN_UP(a, b) ((a + b - 1) & ~(b - 1))
+#define ALIGN_DOWN(a, b) ((a) & ~((b) - 1))
+#define ALIGN(a, b) ALIGN_UP(a, b)
 #define IS_ALIGNED(a, b) (ALIGN(a, b) == a)
 
 #define is_power_of_two(num) (num != 0 && (num & (num - 1)) == 0)
