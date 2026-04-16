@@ -406,6 +406,20 @@ uint32_t* create_pgd() {
 }
 
 /*
+  reset_pgd resets the page global directory "pgd" by removing the userspace
+  mappings leaving the kernelspace ones. It assumes that the page global
+  directory already contains kernel mappings.
+*/
+void reset_pgd(uint32_t* pgd) {
+  uint32_t pgd_virt_offset;
+
+  pgd_virt_offset = (uint32_t)addr_to_pmd(pgd, VIRT_OFFSET) - (uint32_t)pgd;
+
+  /* Zero out the userspace entries in the new PGD. */
+  memset(pgd, 0, pgd_virt_offset);
+}
+
+/*
   create_pmd_section creates and returns a page middle directory entry for a
   section entry. The entry is specified by which physical address "p_addr" it
   maps to, and with which flags "flags".
