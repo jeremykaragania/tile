@@ -609,6 +609,8 @@ struct page_region* split_page_region(struct page_region* region, size_t index) 
 
   insert_region->begin = page_region_end(region);
   insert_region->count = region_count - index;
+  insert_region->flags = region->flags;
+  insert_region->file_int = region->file_int;
 
   list_push(&region->link, &insert_region->link);
 
