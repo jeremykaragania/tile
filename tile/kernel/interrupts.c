@@ -47,7 +47,7 @@ int handle_fault(uint32_t addr) {
     return -1;
   }
 
-  create_mapping(addr, (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+  create_mapping(ALIGN_DOWN(addr, PAGE_SIZE), (uint32_t)phys_addr, PAGE_SIZE, region->flags);
 
   return 0;
 }
