@@ -4,14 +4,13 @@
 #include <kernel/asm/processor.h>
 #include <kernel/memory.h>
 #include <kernel/page.h>
+#include <lib/string.h>
 
 struct list_link processes_head = LIST_INIT(processes_head);
 
 int process_num_count;
 
 struct memory_info init_memory_info = {
-  .file = NULL,
-  .file_buf = NULL,
   .stack_buf = NULL,
   .pgd = (uint32_t*)phys_to_virt(PG_DIR_PADDR),
   .pages_head = LIST_INIT(init_memory_info.pages_head),
@@ -81,10 +80,9 @@ int process_clone(int type, struct function_info* func) {
 */
 int process_exec(const char* filename, const char** argv, const char** envp) {
   int fd;
+  int retval;
   struct file_info_int* file;
   uint32_t file_size;
-  struct file_info_int* curr_file;
-  void* curr_file_buf;
   void* file_buf;
   void* curr_stack_buf;
   void* stack_buf;
@@ -93,8 +91,6 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
 
   fd = file_open(filename, O_RDWR);
 
-  curr_file = current->mem->file;
-  curr_file_buf = current->mem->file_buf;
   curr_stack_buf = current->mem->stack_buf;
 
   if (fd < 0) {
@@ -112,10 +108,12 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   }
 
   file_read(fd, file_buf, file_size);
+  file_close(fd);
 
-  if (load_elf(file_buf) < 0) {
-    file_close(fd);
-    memory_free(file_buf);
+  retval = load_elf(file_buf);
+  memory_free(file_buf);
+
+  if (retval < 0) {
     return -1;
   }
 
@@ -123,8 +121,6 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   stack_buf = memory_alloc(THREAD_SIZE);
 
   if (!stack_buf) {
-    file_close(fd);
-    memory_free(file_buf);
     return -1;
   }
 
@@ -135,13 +131,9 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(stack_vaddr);
 
-  current->mem->file = file;
-  current->mem->file_buf = file_buf;
   current->mem->stack_buf = stack_buf;
 
-  if (curr_file) {
-    file_put(curr_file);
-    memory_free(curr_file_buf);
+  if (curr_stack_buf) {
     memory_free(curr_stack_buf);
   }
 
@@ -198,6 +190,10 @@ int load_elf(const void* elf) {
   const struct elf_hdr* hdr;
   const struct elf_phdr* phdr;
   int flags;
+  uint32_t segment_size;
+  uint32_t segment_vaddr;
+  uint32_t segment_offset;
+  void* segment;
 
   hdr = (struct elf_hdr*)elf;
 
@@ -215,8 +211,23 @@ int load_elf(const void* elf) {
       continue;
     }
 
+    /*
+      Align the segment to a PAGE_SIZE, allocate our own segment, copy into it,
+      and map it.
+    */
+    segment_size = ALIGN(phdr->p_memsz, PAGE_SIZE);
+    segment = memory_alloc(segment_size);
+
+    if (!segment) {
+      return -1;
+    }
+
+    segment_vaddr = ALIGN_DOWN(phdr->p_vaddr, PAGE_SIZE);
+    segment_offset = phdr->p_vaddr - segment_vaddr;
     flags = elf_segment_to_page_flags(phdr->p_flags);
-    create_mapping(phdr->p_vaddr, virt_to_phys((uint32_t)elf + phdr->p_offset), phdr->p_memsz, flags);
+
+    memcpy((char*)segment + segment_offset, (char*)elf + phdr->p_offset, phdr->p_memsz);
+    create_mapping(segment_vaddr, virt_to_phys((uint32_t)segment), segment_size, flags);
   }
 
   current->reg.pc = hdr->e_entry;
@@ -316,8 +327,6 @@ void function_to_process(struct process_info* proc, struct function_info* func) 
 struct memory_info* create_memory_info() {
   struct memory_info* mem = memory_alloc(sizeof(struct memory_info));
 
-  mem->file = NULL;
-  mem->file_buf = NULL;
   mem->stack_buf = NULL;
   mem->pgd = create_pgd();
 
