@@ -340,7 +340,7 @@ void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, s
   for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
     addr = page_group_addr(group, i);
 
-    if (!page_group_is_free(group, addr, 1) || addr % (align << PAGE_SHIFT) != 0) {
+    if (!page_group_is_free(group, addr, count) || addr % (align << PAGE_SHIFT) != 0) {
       continue;
     }
 
