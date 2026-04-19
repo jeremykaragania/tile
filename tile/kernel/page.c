@@ -531,6 +531,7 @@ struct page_region* create_page_region(struct list_link* head, uint32_t begin, s
   region->count = count;
   region->flags = flags;
   region->file_int = NULL;
+  region->file_offset = 0;
   insert_page_region(head, region);
 
   return region;
