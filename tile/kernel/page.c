@@ -140,7 +140,7 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
   size = ALIGN(size, PAGE_SIZE);
 
   while (i < count) {
-    if (IS_ALIGNED(v_addr, PMD_SIZE) && v_addr + PMD_SIZE < end) {
+    if (IS_ALIGNED(v_addr, PMD_SIZE) && IS_ALIGNED(p_addr, PMD_SIZE) && v_addr + PMD_SIZE - 1 <= end) {
       step = PMD_SIZE;
       create_section_mapping(v_addr, p_addr, step, flags);
     }
