@@ -329,6 +329,11 @@ void pmd_clear(uint32_t* pgd, uint32_t addr) {
   uint32_t* pmd;
 
   pmd = addr_to_pmd(pgd, addr);
+
+  if (is_pmd_page_table(pmd)) {
+    memory_free(pmd_to_page_table(pmd));
+  }
+
   *pmd = 0x0;
 }
 
@@ -411,12 +416,10 @@ uint32_t* create_pgd() {
   directory already contains kernel mappings.
 */
 void reset_pgd(uint32_t* pgd) {
-  uint32_t pgd_virt_offset;
-
-  pgd_virt_offset = (uint32_t)addr_to_pmd(pgd, VIRT_OFFSET) - (uint32_t)pgd;
-
-  /* Zero out the userspace entries in the new PGD. */
-  memset(pgd, 0, pgd_virt_offset);
+  /* Clear page table entries below the kernel. */
+  for (uint32_t i = 0; i < VIRT_OFFSET; i += PMD_SIZE) {
+    pmd_clear(pgd, i);
+  }
 }
 
 /*
