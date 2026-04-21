@@ -282,7 +282,7 @@ void* find_unmapped_region(uint32_t size) {
   returns the address of a page table first-level descriptor from a virtual
   address "addr", and a translation table base, "pgd".
 */
-uint32_t* addr_to_pmd(uint32_t* pgd, uint32_t addr) {
+uint32_t* addr_to_pmd(const uint32_t* pgd, uint32_t addr) {
   return (uint32_t*)((uint32_t)pgd + pgd_index(addr));
 }
 
@@ -292,7 +292,7 @@ uint32_t* addr_to_pmd(uint32_t* pgd, uint32_t addr) {
   address of a small page second-level descriptor from a virtual address,
   "addr" and a page table base address, "pmd".
 */
-uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr) {
+uint32_t* addr_to_pte(const uint32_t* pmd, uint32_t addr) {
   pmd = pmd_to_page_table(pmd);
   return (uint32_t*)((uint32_t)pmd + pmd_index(addr));
 }
@@ -301,7 +301,7 @@ uint32_t* addr_to_pte(uint32_t* pmd, uint32_t addr) {
   pmd_to_addr returns the virtual address which the page middle directory "pmd"
   maps to in the page global directory "pgd".
 */
-uint32_t pmd_to_addr(uint32_t* pgd, uint32_t* pmd) {
+uint32_t pmd_to_addr(const uint32_t* pgd, const uint32_t* pmd) {
   return (((uint32_t)pmd - (uint32_t)pgd) >> 2) * PMD_SIZE;
 }
 
@@ -365,14 +365,14 @@ void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
   is_pmd_page_table returns checks if the page middle directory "pmd" is a page
   table.
 */
-bool is_pmd_page_table(uint32_t* pmd) {
+bool is_pmd_page_table(const uint32_t* pmd) {
   return *pmd & 1;
 }
 
 /*
   is_pmd_section checks iif the page middle directory "pmd" is a section.
 */
-bool is_pmd_section(uint32_t* pmd) {
+bool is_pmd_section(const uint32_t* pmd) {
   return *pmd & (1 << 1);
 }
 
@@ -380,7 +380,7 @@ bool is_pmd_section(uint32_t* pmd) {
   pmd_to_page_table returns the page table address of a page middle directory
   "pmd" if there's one.
 */
-uint32_t* pmd_to_page_table(uint32_t* pmd) {
+uint32_t* pmd_to_page_table(const uint32_t* pmd) {
   if (is_pmd_page_table(pmd)) {
     return (uint32_t*)phys_to_virt(*pmd & 0xfffffc00);
   }
