@@ -423,6 +423,66 @@ void reset_pgd(uint32_t* pgd) {
 }
 
 /*
+  copy_pgd creates and returns a copy of the global directory "pgd". However,
+  it only copies the userspace entries from "pgd" since the kernelspace
+  mappings are always fixed.
+*/
+uint32_t* copy_pgd(const uint32_t* pgd) {
+  void* ret;
+  uint32_t* src_pmd;
+  uint32_t* dest_pmd;
+  uint32_t* page_table;
+  uint32_t descriptor;
+
+  ret = create_pgd();
+
+  if (!ret) {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < VIRT_OFFSET; i += PMD_SIZE) {
+    src_pmd = addr_to_pmd(pgd, i);
+    dest_pmd = addr_to_pmd(ret, i);
+
+    if (is_pmd_page_table(src_pmd)) {
+      page_table = copy_page_table(src_pmd);
+
+      if (!page_table) {
+        return NULL;
+      }
+
+      descriptor = create_pmd_page_table(page_table);
+    }
+    else {
+      descriptor = *src_pmd;
+    }
+
+    *dest_pmd = descriptor;
+  }
+
+  return ret;
+}
+
+/*
+  copy_page table creates and returns a copy of the page table "page_table".
+*/
+uint32_t* copy_page_table(const uint32_t* page_table) {
+  uint32_t* ret;
+
+  ret = memory_alloc(PAGE_TABLE_SIZE);
+
+  if (!ret) {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < PMD_SIZE ; i += PAGE_SIZE) {
+    *addr_to_pte(ret, i) = *addr_to_pte(page_table, i);
+  }
+
+  return ret;
+}
+
+/*
   create_pmd_section creates and returns a page middle directory entry for a
   section entry. The entry is specified by which physical address "p_addr" it
   maps to, and with which flags "flags".
