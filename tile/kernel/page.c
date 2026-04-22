@@ -707,6 +707,33 @@ struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
 }
 
 /*
+  copy_page_region copies the page regions from "src" into "dest". It returns
+  the number of page regions copied.
+*/
+size_t copy_page_regions(struct list_link* dest, const struct list_link* src) {
+  size_t ret;
+  struct page_region* src_region;
+  struct page_region* dest_region;
+  struct list_link* curr;
+
+  curr = src->next;
+
+  while (curr != src) {
+    src_region = list_data(curr, struct page_region, link);
+
+    dest_region = memory_alloc(sizeof(struct page_region));
+    *dest_region = *src_region;
+
+    insert_page_region(dest, dest_region);
+
+    curr = curr->next;
+    ++ret;
+  }
+
+  return ret;
+}
+
+/*
   free_page_regions frees all the page regions and backing memory in the
   current process.
 */

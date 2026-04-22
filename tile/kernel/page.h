@@ -98,6 +98,7 @@ void insert_page_region(struct list_link* head, struct page_region* region);
 void remove_page_region(struct list_link* head, struct page_region* region);
 struct page_region* split_page_region(struct page_region* region, size_t index);
 struct page_region* find_page_region(struct list_link* head, uint32_t addr);
+size_t copy_page_regions(struct list_link* dest, const struct list_link* src);
 void free_page_regions();
 
 #endif
