@@ -115,6 +115,6 @@ void set_process_stack_end_token(const struct process_info* proc);
 struct processor_registers* current_registers();
 void function_to_process(struct process_info* proc, struct function_info* func);
 
-struct memory_info* create_memory_info();
+struct memory_info* copy_memory_info(const struct memory_info* mem);
 
 #endif
