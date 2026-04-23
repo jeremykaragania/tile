@@ -110,6 +110,8 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   file_read(fd, file_buf, file_size);
   file_close(fd);
 
+  reset_pgd(current->mem->pgd);
+
   retval = load_elf(file_buf);
   memory_free(file_buf);
 
