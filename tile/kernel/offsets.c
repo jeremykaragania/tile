@@ -1,3 +1,4 @@
+#include <kernel/process.h>
 #include <kernel/processor.h>
 #include <stddef.h>
 
@@ -23,7 +24,7 @@ int main() {
   DEFINE(PR_PC_OFFSET, offsetof(struct processor_registers, pc));
   DEFINE(PR_CPSR_OFFSET, offsetof(struct processor_registers, cpsr));
 
-  /* Context register offsets */
+  /* Context register offsets. */
   DEFINE(CR_R4_OFFSET, offsetof(struct context_registers, r4));
   DEFINE(CR_R5_OFFSET, offsetof(struct context_registers, r5));
   DEFINE(CR_R6_OFFSET, offsetof(struct context_registers, r6));
@@ -33,4 +34,7 @@ int main() {
   DEFINE(CR_R11_OFFSET, offsetof(struct context_registers, r11));
   DEFINE(CR_SP_OFFSET, offsetof(struct context_registers, sp));
   DEFINE(CR_PC_OFFSET, offsetof(struct context_registers, pc));
+
+  /* Process information offsets. */
+  DEFINE(PI_REG_OFFSET, offsetof(struct process_info, reg));
 }
