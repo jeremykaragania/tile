@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
   enum length_modifier represents a format string's length modifiers.
@@ -14,6 +15,11 @@ enum length_modifier {
   LM_LONG,
   LM_LONG_LONG
 };
+
+extern bool is_logging_enabled;
+
+void enable_logging();
+void disable_logging();
 
 void log_put_signed_integer(long long a);
 void log_put_unsigned_integer(unsigned long long a, const char format);

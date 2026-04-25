@@ -2,12 +2,25 @@
 #include <kernel/log.h>
 
 char log_buf[256];
+bool is_logging_enabled = true;
+
+void enable_logging() {
+  is_logging_enabled = true;
+}
+
+void disable_logging() {
+  is_logging_enabled = false;
+}
 
 /*
   log_put_signed_integer converts a signed integer "a" into a string and logs
   it.
 */
 void log_put_signed_integer(long long a) {
+  if (!is_logging_enabled) {
+    return;
+  }
+
   if (a < 0) {
     log_putchar('-');
     a *= -1;
@@ -20,6 +33,10 @@ void log_put_signed_integer(long long a) {
   depending on a format "format" and logs it.
 */
 void log_put_unsigned_integer(unsigned long long a, const char format) {
+  if (!is_logging_enabled) {
+    return;
+  }
+
   if (a == 0) {
     log_putchar('0');
   }
@@ -72,6 +89,10 @@ void log_put_unsigned_integer(unsigned long long a, const char format) {
   log_write writes up to "count" bytes from the buffer "buf".
 */
 int log_write(const char* buf, size_t count) {
+  if (!is_logging_enabled) {
+    return -1;
+  }
+
   for (size_t i = 0; i < count; ++i) {
     log_putchar(buf[i]);
   }
@@ -84,6 +105,11 @@ int log_write(const char* buf, size_t count) {
 */
 int log_putstring(const char* s) {
   size_t i = 0;
+
+  if (!is_logging_enabled) {
+    return -1;
+  }
+
   while (s[i]) {
     log_putchar(s[i]);
     ++i;
@@ -95,6 +121,10 @@ int log_putstring(const char* s) {
   log_puts logs a string "s" followed by a newline character.
 */
 int log_puts(const char* s) {
+  if (!is_logging_enabled) {
+    return -1;
+  }
+
   log_putstring(s);
   log_putstring("\n");
   return 0;
@@ -104,6 +134,10 @@ int log_puts(const char* s) {
   log_putchar writes a byte "c" handling character replacement.
 */
 int log_putchar(const char c) {
+  if (!is_logging_enabled) {
+    return -1;
+  }
+
   if (c == '\n') {
     uart_putchar(&uart, '\r');
   }
@@ -120,6 +154,10 @@ int log_printf(const char *format, ...) {
   va_list args;
   size_t i = 0;
   int length = LM_NONE;
+
+  if (!is_logging_enabled) {
+    return -1;
+  }
 
   va_start(args, format);
 
