@@ -16,13 +16,14 @@
   mapped, then the containing page is demand paged in.
 */
 int handle_fault(uint32_t addr) {
-  struct list_link* pages_head = &current->mem->pages_head;
+  struct memory_info* mem;
   struct page_region* region;
   struct file_info_int* file_int;
   struct buffer_info* buffer;
   void* phys_addr;
 
-  region = find_page_region(pages_head, addr);
+  mem = current->mem;
+  region = find_page_region(mem, addr);
 
   if (!region) {
     return -1;
@@ -47,7 +48,7 @@ int handle_fault(uint32_t addr) {
     return -1;
   }
 
-  create_mapping(ALIGN_DOWN(addr, PAGE_SIZE), (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+  create_mapping(mem, ALIGN_DOWN(addr, PAGE_SIZE), (uint32_t)phys_addr, PAGE_SIZE, region->flags);
 
   return 0;
 }

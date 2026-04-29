@@ -79,6 +79,7 @@ int process_clone(int type, struct function_info* func) {
   overlays the address space of the executing process.
 */
 int process_exec(const char* filename, const char** argv, const char** envp) {
+  struct memory_info* mem;
   int fd;
   int retval;
   struct file_info_int* file;
@@ -89,9 +90,10 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   uint32_t stack_paddr;
   uint32_t stack_vaddr;
 
+  mem = current->mem;
   fd = file_open(filename, O_RDWR);
 
-  curr_stack_buf = current->mem->stack_buf;
+  curr_stack_buf = mem->stack_buf;
 
   if (fd < 0) {
     return -1;
@@ -110,7 +112,7 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   file_read(fd, file_buf, file_size);
   file_close(fd);
 
-  reset_pgd(current->mem->pgd);
+  reset_pgd(mem->pgd);
 
   retval = load_elf(file_buf);
   memory_free(file_buf);
@@ -127,13 +129,13 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   }
 
   stack_paddr = virt_to_phys((uint32_t)stack_buf);
-  stack_vaddr = (uint32_t)find_unmapped_region(THREAD_SIZE);
-  create_mapping(stack_vaddr, stack_paddr, THREAD_SIZE, PAGE_RW);
+  stack_vaddr = (uint32_t)find_unmapped_region(mem, THREAD_SIZE);
+  create_mapping(mem, stack_vaddr, stack_paddr, THREAD_SIZE, PAGE_RW);
 
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(stack_vaddr);
 
-  current->mem->stack_buf = stack_buf;
+  mem->stack_buf = stack_buf;
 
   if (curr_stack_buf) {
     memory_free(curr_stack_buf);
@@ -147,17 +149,18 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
 */
 void process_exit(int status) {
   struct process_info* proc = current;
+  struct memory_info* mem = current->mem;
 
   /* Stop the process from being scheduled and force rescheduling. */
   list_remove(&processes_head, &proc->link);
   proc->sched.reschedule = true;
 
   /* Clean up held resources. */
-  free_page_regions();
+  free_page_regions(mem);
 
   close_open_files();
 
-  memory_free(proc->mem);
+  memory_free(mem);
   memory_free(proc);
 }
 
@@ -189,6 +192,7 @@ int next_process_number() {
   entry point.
 */
 int load_elf(const void* elf) {
+  struct memory_info* mem;
   const struct elf_hdr* hdr;
   const struct elf_phdr* phdr;
   int flags;
@@ -196,6 +200,8 @@ int load_elf(const void* elf) {
   uint32_t segment_vaddr;
   uint32_t segment_offset;
   void* segment;
+
+  mem = current->mem;
 
   hdr = (struct elf_hdr*)elf;
 
@@ -229,7 +235,7 @@ int load_elf(const void* elf) {
     flags = elf_segment_to_page_flags(phdr->p_flags);
 
     memcpy((char*)segment + segment_offset, (char*)elf + phdr->p_offset, phdr->p_memsz);
-    create_mapping(segment_vaddr, virt_to_phys((uint32_t)segment), segment_size, flags);
+    create_mapping(mem, segment_vaddr, virt_to_phys((uint32_t)segment), segment_size, flags);
   }
 
   current->reg.pc = hdr->e_entry;
@@ -334,8 +340,8 @@ struct memory_info* copy_memory_info(const struct memory_info* mem) {
 
   list_init(&dest_mem->pages_head);
 
-  create_page_region_bounds(&dest_mem->pages_head);
-  copy_page_regions(&dest_mem->pages_head, &mem->pages_head);
+  create_page_region_bounds(dest_mem);
+  copy_page_regions(dest_mem, mem);
 
   return dest_mem;
 }

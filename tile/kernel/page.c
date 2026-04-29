@@ -43,7 +43,7 @@ const struct descriptor_bits pte_bits = {
   replaced with 4KB small pages where required.
 */
 void init_paging() {
-  create_page_region_bounds(&init_process.mem->pages_head);
+  create_page_region_bounds(current->mem);
   init_pgd();
   map_kernel();
   map_peripherals();
@@ -84,16 +84,16 @@ void map_kernel() {
   uint32_t text_end = pmd_to_addr(mem->pgd, addr_to_pmd(mem->pgd, mem->text_end)) + PMD_SIZE;
 
   /* Map the memory in the ".text" section. */
-  create_mapping(mem->text_begin, virt_to_phys(mem->text_begin), mem->text_end - mem->text_begin, PAGE_RWX | PAGE_KERNEL);
+  create_mapping(mem, mem->text_begin, virt_to_phys(mem->text_begin), mem->text_end - mem->text_begin, PAGE_RWX | PAGE_KERNEL);
 
   /* Map the section memory before the ".text" section. */
-  create_mapping(text_begin, virt_to_phys(text_begin), mem->text_begin - text_begin, PAGE_RW | PAGE_KERNEL);
+  create_mapping(mem, text_begin, virt_to_phys(text_begin), mem->text_begin - text_begin, PAGE_RW | PAGE_KERNEL);
 
   /* Map the section memory after the ".text" section. */
-  create_mapping(ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, PAGE_RW | PAGE_KERNEL);
+  create_mapping(mem, ALIGN(mem->text_end, PAGE_SIZE), virt_to_phys(ALIGN(mem->text_end, PAGE_SIZE)), text_end - mem->text_end, PAGE_RW | PAGE_KERNEL);
 
   /* Map the kernel memory after the ".text" section. */
-  create_mapping(text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), PAGE_RW | PAGE_KERNEL);
+  create_mapping(mem, text_end + PMD_SIZE, virt_to_phys(text_end + PMD_SIZE), ALIGN(high_memory - (text_end + PMD_SIZE), PMD_SIZE), PAGE_RW | PAGE_KERNEL);
 }
 
 /*
@@ -101,8 +101,12 @@ void map_kernel() {
   controller.
 */
 void map_peripherals() {
-  create_mapping(GICD_VADDR, (uint32_t)gicd, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
-  create_mapping(GICC_VADDR, (uint32_t)gicc, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  struct memory_info* mem;
+
+  mem = current->mem;
+
+  create_mapping(mem, GICD_VADDR, (uint32_t)gicd, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  create_mapping(mem, GICC_VADDR, (uint32_t)gicc, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
   gicd = (volatile struct gic_distributor_registers*)GICD_VADDR;
   gicc = (volatile struct gic_cpu_interface_registers*)GICC_VADDR;
 }
@@ -112,7 +116,11 @@ void map_peripherals() {
   the memory executable.
 */
 void map_vector_table() {
-  create_mapping(VECTOR_TABLE_VADDR, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, PAGE_RWX | PAGE_KERNEL);
+  struct memory_info* mem;
+
+  mem = current->mem;
+
+  create_mapping(mem, VECTOR_TABLE_VADDR, virt_to_phys((uint32_t)&vector_table_begin), &interrupts_end - &vector_table_begin, PAGE_RWX | PAGE_KERNEL);
 }
 
 /*
@@ -120,17 +128,21 @@ void map_vector_table() {
   directory and maps the MCI and the UART.
 */
 void map_smc() {
-  mci = create_mapping(MCI_VADDR, (uint32_t)mci, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
-  uart.regs = create_mapping(UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
-  timer_0 = create_mapping(TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  struct memory_info* mem;
+
+  mem = current->mem;
+
+  mci = create_mapping(mem, MCI_VADDR, (uint32_t)mci, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  uart.regs = create_mapping(mem, UART_0_VADDR, UART_0_PADDR, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
+  timer_0 = create_mapping(mem, TIMER_1_VADDR, (uint32_t)timer_0, PAGE_SIZE, PAGE_RW | PAGE_KERNEL);
 }
 
 /*
-  create_mapping creates a linear mapping from the virtual address "v_addr" to
-  the physical address "p_addr" spanning "size" bytes with the memory flags
-  "flags". It returns a pointer to the mapped area.
+  create_mapping creates a linear mapping in the memory context "mem" from the
+  virtual address "v_addr" to the physical address "p_addr" spanning "size"
+  bytes with the memory flags "flags". It returns a pointer to the mapped area.
 */
-void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
   const uint32_t ret = v_addr;
   const uint32_t count = page_count(size);
   const uint32_t end = v_addr + size - 1;
@@ -142,11 +154,11 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
   while (i < count) {
     if (IS_ALIGNED(v_addr, PMD_SIZE) && IS_ALIGNED(p_addr, PMD_SIZE) && v_addr + PMD_SIZE - 1 <= end) {
       step = PMD_SIZE;
-      create_section_mapping(v_addr, p_addr, step, flags);
+      create_section_mapping(mem, v_addr, p_addr, step, flags);
     }
     else {
       step = PAGE_SIZE;
-      create_page_mapping(v_addr, p_addr, step, flags);
+      create_page_mapping(mem, v_addr, p_addr, step, flags);
     }
 
     v_addr += step;
@@ -154,21 +166,23 @@ void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags)
     i += page_count(step);
   }
 
-  create_page_region(&current->mem->pages_head, ret, count, flags);
+  create_page_region(mem, ret, count, flags);
 
   return (void*)ret;
 }
 
 /*
-  create_section_mapping creates a linear mapping from the virtual address
-  "v_addr" to the physical address "p_addr" spanning "size" bytes with the
-  memory flags "flags" and returns a pointer to the mapped area. It uses
-  sections for the mapping. This function shouldn't be called directly. Use
-  create_mapping instead.
+  create_section_mapping creates a linear mapping in the memory context "mem"
+  from the virtual address "v_addr" to the physical address "p_addr" spanning
+  "size" bytes with the memory flags "flags" and returns a pointer to the
+  mapped area. It uses sections for the mapping. This function shouldn't be
+  called directly. Use create_mapping instead.
 */
-void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
-  uint32_t* pgd = current->mem->pgd;
+void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+  uint32_t* pgd;
   uint32_t* pmd;
+
+  pgd = mem->pgd;
 
   for (size_t i = 0; i < pmd_count(size); ++i, v_addr += PMD_SIZE, p_addr += PMD_SIZE) {
     pmd = addr_to_pmd(pgd, v_addr);
@@ -179,20 +193,22 @@ void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, in
 }
 
 /*
-  create_section_mapping creates a linear mapping from the virtual address
-  "v_addr" to the physical address "p_addr" spanning "size" bytes with the
-  memory flags "flags" and returns a pointer to the mapped area. It uses pages
-  for the mapping. This function shouldn't be called directly. Use
-  create_mapping instead.
+  create_page_mapping creates a linear mapping in the the memory context "mem"
+  from the virtual address "v_addr" to the physical address "p_addr" spanning
+  "size" bytes with the memory flags "flags" and returns a pointer to the
+  mapped area. It uses pages for the mapping. This function shouldn't be called
+  directly. Use create_mapping instead.
 */
-void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
-  uint32_t* pgd = current->mem->pgd;
+void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+  uint32_t* pgd;
   uint32_t* pmd;
   uint32_t pmd_begin;
   uint32_t pmd_end;
   uint32_t end = v_addr + size;
   uint32_t* page_table;
   uint32_t pmd_page_table;
+
+  pgd = mem->pgd;
 
   for (size_t i = 0; i < pmd_count(size); ++i) {
     pmd = addr_to_pmd(pgd, v_addr);
@@ -208,7 +224,7 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
       pmd_page_table = create_pmd_page_table(page_table);
 
       if (is_pmd_section(pmd)) {
-        remap_section(pmd, pmd_page_table);
+        remap_section(mem, pmd, pmd_page_table);
       }
 
       *pmd = pmd_page_table;
@@ -226,17 +242,17 @@ void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int f
 }
 
 /*
-  remap_section remaps the existing section specified by "pmd" as pages in the
-  page table specified by "pmd_page_table"
+  remap_section remaps the existing section in the memory context "mem"
+  specified by "pmd" as pages in the page table specified by "pmd_page_table"
 */
-void remap_section(uint32_t* pmd, uint32_t pmd_page_table) {
+void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_table) {
   uint32_t* pgd;
   uint32_t d;
   uint32_t v_addr;
   uint32_t p_addr;
   int flags;
 
-  pgd = current->mem->pgd;
+  pgd = mem->pgd;
   d = *pmd;
   v_addr = pmd_to_addr(pgd, pmd);
   p_addr = d & 0xfff00000;
@@ -249,11 +265,11 @@ void remap_section(uint32_t* pmd, uint32_t pmd_page_table) {
 }
 
 /*
-  find_unmapped_region finds a region of size "size" in the current process's
-  virtual memory. On success, It returns a pointer to the region.
+  find_unmapped_region finds a region in the memory context "mem" of size
+  "size". On success, It returns a pointer to the region.
 */
-void* find_unmapped_region(uint32_t size) {
-  const struct list_link* pages_head = &(current->mem->pages_head);
+void* find_unmapped_region(struct memory_info* mem, uint32_t size) {
+  const struct list_link* pages_head = &mem->pages_head;
   struct list_link* curr = pages_head->next;
   struct page_region* curr_data;
   struct page_region* next_data;
@@ -570,20 +586,20 @@ uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bit
 }
 
 /*
-  create_page_region_bounds initializes the bounds of a page region list with
-  head "head". It creates dummy lower and upper bound page regions in the
-  virtual address space.
+  create_page_region_bounds initializes the bounds of the page region list in
+  the memory context "mem". It creates dummy lower and upper bound page regions
+  in the virtual address space.
 */
-void create_page_region_bounds(struct list_link* head) {
-  create_page_region(head, 0, 1, 0);
-  create_page_region(head, VADDR_SPACE_END, 0, 0);
+void create_page_region_bounds(struct memory_info* mem) {
+  create_page_region(mem, 0, 1, 0);
+  create_page_region(mem, VADDR_SPACE_END, 0, 0);
 }
 
 /*
   create_page region allocates a page region and inserts it into the page
   region list.
 */
-struct page_region* create_page_region(struct list_link* head, uint32_t begin, size_t count, int flags) {
+struct page_region* create_page_region(struct memory_info* mem, uint32_t begin, size_t count, int flags) {
   struct page_region* region = memory_alloc(sizeof(struct page_region));
 
   if (!region) {
@@ -595,7 +611,7 @@ struct page_region* create_page_region(struct list_link* head, uint32_t begin, s
   region->flags = flags;
   region->file_int = NULL;
   region->file_offset = 0;
-  insert_page_region(head, region);
+  insert_page_region(mem, region);
 
   return region;
 }
@@ -605,7 +621,8 @@ struct page_region* create_page_region(struct list_link* head, uint32_t begin, s
   insert_page_region inserts a page region in the page region list with head
   "head" while preserving a page region address ordering.
 */
-void insert_page_region(struct list_link* head, struct page_region* region) {
+void insert_page_region(struct memory_info* mem, struct page_region* region) {
+  struct list_link* head = &mem->pages_head;
   struct list_link* curr = head->next;
   uint32_t region_end = page_region_end(region);
   struct page_region* curr_region;
@@ -642,9 +659,12 @@ void insert_page_region(struct list_link* head, struct page_region* region) {
 
 /*
   remove_page_region removes the page region "region" from the page region list
-  with head "head".
+  in the memory context "mem".
 */
-void remove_page_region(struct list_link* head, struct page_region* region) {
+void remove_page_region(struct memory_info* mem, struct page_region* region) {
+  struct list_link* head;
+
+  head = &mem->pages_head;
   list_remove(head, &region->link);
   memory_free(region);
 }
@@ -686,8 +706,8 @@ struct page_region* split_page_region(struct page_region* region, size_t index) 
   find_page region returns the page region which the virtual address "addr" is
   inside. If "addr" is inside no page region, then NULL is returned.
 */
-struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
-  struct list_link* pages_head = &current->mem->pages_head;
+struct page_region* find_page_region(struct memory_info* mem, uint32_t addr) {
+  struct list_link* pages_head = &mem->pages_head;
   struct list_link* curr = pages_head->next;
   struct page_region* region;
   uint32_t region_end;
@@ -710,15 +730,17 @@ struct page_region* find_page_region(struct list_link* head, uint32_t addr) {
   copy_page_region copies the page regions from "src" into "dest". It returns
   the number of page regions copied.
 */
-size_t copy_page_regions(struct list_link* dest, const struct list_link* src) {
+size_t copy_page_regions(struct memory_info* dest, const struct memory_info* src) {
   size_t ret;
+  const struct list_link* src_head;
   struct page_region* src_region;
   struct page_region* dest_region;
   struct list_link* curr;
 
-  curr = src->next;
+  src_head = &src->pages_head;
+  curr = src_head->next;
 
-  while (curr != src) {
+  while (curr != src_head) {
     src_region = list_data(curr, struct page_region, link);
 
     dest_region = memory_alloc(sizeof(struct page_region));
@@ -734,11 +756,11 @@ size_t copy_page_regions(struct list_link* dest, const struct list_link* src) {
 }
 
 /*
-  free_page_regions frees all the page regions and backing memory in the
-  current process.
+  free_page_regions frees all the page regions and backing memory in the memory
+  context "mem".
 */
-void free_page_regions() {
-  struct list_link* pages_head = &current->mem->pages_head;
+void free_page_regions(struct memory_info* mem) {
+  struct list_link* pages_head = &mem->pages_head;
   struct list_link* curr = pages_head->next;
   struct page_region* region;
 

@@ -2,6 +2,7 @@
 #define PAGE_H
 
 #include <kernel/list.h>
+#include <kernel/process.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -62,11 +63,11 @@ void map_peripherals();
 void map_vector_table();
 void map_smc();
 
-void* create_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
-void* create_section_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
-void* create_page_mapping(uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
-void remap_section(uint32_t* pmd, uint32_t pmd_page_table);
-void* find_unmapped_region(uint32_t size);
+void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_table);
+void* find_unmapped_region(struct memory_info* mem, uint32_t size);
 
 uint32_t* addr_to_pmd(const uint32_t* pgd, uint32_t addr);
 uint32_t* addr_to_pte(const uint32_t* pmd, uint32_t addr);
@@ -92,13 +93,13 @@ uint32_t create_pte(uint32_t p_addr, int flags);
 int get_descriptor_protection(uint32_t d, const struct descriptor_bits* bits);
 uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bits, int flags);
 
-void create_page_region_bounds(struct list_link* head);
-struct page_region* create_page_region(struct list_link* head, uint32_t begin, size_t count, int flags);
-void insert_page_region(struct list_link* head, struct page_region* region);
-void remove_page_region(struct list_link* head, struct page_region* region);
+void create_page_region_bounds(struct memory_info* mem);
+struct page_region* create_page_region(struct memory_info* mem, uint32_t begin, size_t count, int flags);
+void insert_page_region(struct memory_info* mem, struct page_region* region);
+void remove_page_region(struct memory_info* mem, struct page_region* region);
 struct page_region* split_page_region(struct page_region* region, size_t index);
-struct page_region* find_page_region(struct list_link* head, uint32_t addr);
-size_t copy_page_regions(struct list_link* dest, const struct list_link* src);
-void free_page_regions();
+struct page_region* find_page_region(struct memory_info* mem, uint32_t addr);
+size_t copy_page_regions(struct memory_info* dest, const struct memory_info* src);
+void free_page_regions(struct memory_info* mem);
 
 #endif

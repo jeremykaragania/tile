@@ -509,18 +509,18 @@ int file_chown(char* pathname, int owner, int group) {
   "flags". On success it returns a pointer to the mapped area.
 */
 void* file_map(int fd, int flags) {
-  struct list_link* pages_head = &(current->mem->pages_head);
+  struct memory_info* mem = current->mem;
   struct file_info_int* file = current->file_tab[fd].file_int;
   struct page_region* region;
   void* addr;
 
-  addr = find_unmapped_region(file->ext.size);
+  addr = find_unmapped_region(mem, file->ext.size);
 
   if (!addr) {
     return NULL;
   }
 
-  region = create_page_region(pages_head, (uint32_t)addr, page_count(file->ext.size), flags);
+  region = create_page_region(mem, (uint32_t)addr, page_count(file->ext.size), flags);
 
   if (!region) {
     return NULL;
