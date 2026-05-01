@@ -369,3 +369,11 @@ struct memory_info* copy_memory_info(const struct memory_info* mem) {
 
   return dest_mem;
 }
+
+void free_memory_info(struct memory_info* mem) {
+  memory_free(mem->stack_buf);
+  free_pgd(mem->pgd);
+  free_page_regions(mem);
+
+  memory_free(mem);
+}
