@@ -439,6 +439,15 @@ void reset_pgd(uint32_t* pgd) {
 }
 
 /*
+  free_pgd frees the page global directory "pgd". It removes the userspace
+  mappings and frees the page global directory itself.
+*/
+void free_pgd(uint32_t* pgd) {
+  reset_pgd(pgd);
+  memory_free(pgd);
+}
+
+/*
   copy_pgd creates and returns a copy of the global directory "pgd". However,
   it only copies the userspace entries from "pgd" since the kernelspace
   mappings are always fixed.

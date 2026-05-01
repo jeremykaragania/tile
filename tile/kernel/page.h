@@ -85,6 +85,7 @@ uint32_t* pmd_to_page_table(const uint32_t* pmd);
 
 uint32_t* create_pgd();
 void reset_pgd(uint32_t* pgd);
+void free_pgd(uint32_t* pgd);
 uint32_t* copy_pgd(const uint32_t* pgd);
 uint32_t* copy_page_table(const uint32_t* page_table);
 uint32_t create_pmd_section(uint32_t p_addr, int flags);
