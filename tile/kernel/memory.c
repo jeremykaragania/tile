@@ -623,6 +623,10 @@ void memory_free(void* ptr) {
 
   block = ptr_to_block(ptr);
 
+  if (!ptr) {
+    return;
+  }
+
   if (block->prev) {
     block->prev->next = block->next;
   }

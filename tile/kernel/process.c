@@ -137,9 +137,7 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
 
   mem->stack_buf = stack_buf;
 
-  if (curr_stack_buf) {
-    memory_free(curr_stack_buf);
-  }
+  memory_free(curr_stack_buf);
 
   return 0;
 }
