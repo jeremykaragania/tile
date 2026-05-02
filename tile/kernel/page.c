@@ -149,6 +149,13 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, 
   size_t i = 0;
   uint32_t step;
 
+  /*
+    The first page is reserved.
+  */
+  if (v_addr <= PAGE_SIZE - 1) {
+    return NULL;
+  }
+
   size = ALIGN(size, PAGE_SIZE);
 
   while (i < count) {
