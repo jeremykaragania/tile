@@ -79,21 +79,25 @@ int process_clone(int type, struct function_info* func) {
   overlays the address space of the executing process.
 */
 int process_exec(const char* filename, const char** argv, const char** envp) {
+  struct memory_info* curr_mem;
   struct memory_info* mem;
   int fd;
-  int retval;
   struct file_info_int* file;
   uint32_t file_size;
   void* file_buf;
-  void* curr_stack_buf;
+  int retval;
   void* stack_buf;
   uint32_t stack_paddr;
   uint32_t stack_vaddr;
 
-  mem = current->mem;
-  fd = file_open(filename, O_RDWR);
+  curr_mem = current->mem;
+  mem = create_memory_info();
 
-  curr_stack_buf = mem->stack_buf;
+  if (!mem) {
+    return -1;
+  }
+
+  fd = file_open(filename, O_RDWR);
 
   if (fd < 0) {
     return -1;
@@ -112,9 +116,7 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
   file_read(fd, file_buf, file_size);
   file_close(fd);
 
-  reset_pgd(mem->pgd);
-
-  retval = load_elf(file_buf);
+  retval = load_elf(mem, file_buf);
   memory_free(file_buf);
 
   if (retval < 0) {
@@ -134,10 +136,11 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
 
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(stack_vaddr);
-
   mem->stack_buf = stack_buf;
+  current->mem = mem;
+  set_pgd(virt_to_phys((uint32_t)(mem->pgd)));
 
-  memory_free(curr_stack_buf);
+  free_memory_info(curr_mem);
 
   return 0;
 }
@@ -189,8 +192,7 @@ int next_process_number() {
   It loads all of the loadable segments and sets the program counter to the
   entry point.
 */
-int load_elf(const void* elf) {
-  struct memory_info* mem;
+int load_elf(struct memory_info* mem, const void* elf) {
   const struct elf_hdr* hdr;
   const struct elf_phdr* phdr;
   int flags;
@@ -198,8 +200,6 @@ int load_elf(const void* elf) {
   uint32_t segment_vaddr;
   uint32_t segment_offset;
   void* segment;
-
-  mem = current->mem;
 
   hdr = (struct elf_hdr*)elf;
 
