@@ -148,6 +148,7 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, 
   const uint32_t end = v_addr + size - 1;
   size_t i = 0;
   uint32_t step;
+  void* retval;
 
   /*
     The first page is reserved.
@@ -165,7 +166,11 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, 
     }
     else {
       step = PAGE_SIZE;
-      create_page_mapping(mem, v_addr, p_addr, step, flags);
+      retval = create_page_mapping(mem, v_addr, p_addr, step, flags);
+
+      if (!retval) {
+        return NULL;
+      }
     }
 
     v_addr += step;
@@ -228,6 +233,11 @@ void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_a
     */
     if (!is_pmd_page_table(pmd)) {
       page_table = memory_alloc(PAGE_TABLE_SIZE);
+
+      if (!page_table) {
+        return NULL;
+      }
+
       pmd_page_table = create_pmd_page_table(page_table);
 
       if (is_pmd_section(pmd)) {
