@@ -209,11 +209,9 @@ int load_elf(struct memory_info* mem, const void* elf) {
 
   phdr = (struct elf_phdr*)((uint32_t)elf + hdr->e_phoff);
 
-  for (uint32_t i = 0; i < hdr->e_phnum; ++i) {
-    phdr = &phdr[i];
-
+  for (const struct elf_phdr* p = phdr; p < phdr + hdr->e_phnum; ++p) {
     /* We only care about PT_LOAD segments. */
-    if (phdr->p_type != PT_LOAD) {
+    if (p->p_type != PT_LOAD) {
       continue;
     }
 
@@ -221,18 +219,18 @@ int load_elf(struct memory_info* mem, const void* elf) {
       Align the segment to a PAGE_SIZE, allocate our own segment, copy into it,
       and map it.
     */
-    segment_size = ALIGN(phdr->p_memsz, PAGE_SIZE);
+    segment_size = ALIGN(p->p_memsz, PAGE_SIZE);
     segment = memory_alloc(segment_size);
 
     if (!segment) {
       return -1;
     }
 
-    segment_vaddr = ALIGN_DOWN(phdr->p_vaddr, PAGE_SIZE);
-    segment_offset = phdr->p_vaddr - segment_vaddr;
-    flags = elf_segment_to_page_flags(phdr->p_flags);
+    segment_vaddr = ALIGN_DOWN(p->p_vaddr, PAGE_SIZE);
+    segment_offset = p->p_vaddr - segment_vaddr;
+    flags = elf_segment_to_page_flags(p->p_flags);
 
-    memcpy((char*)segment + segment_offset, (char*)elf + phdr->p_offset, phdr->p_memsz);
+    memcpy((char*)segment + segment_offset, (char*)elf + p->p_offset, p->p_memsz);
     create_mapping(mem, segment_vaddr, virt_to_phys((uint32_t)segment), segment_size, flags);
   }
 
