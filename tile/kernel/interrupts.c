@@ -21,6 +21,7 @@ int handle_fault(uint32_t addr) {
   struct file_info_int* file_int;
   struct buffer_info* buffer;
   void* phys_addr;
+  void* retval;
 
   mem = current->mem;
   region = find_page_region(mem, addr);
@@ -48,7 +49,11 @@ int handle_fault(uint32_t addr) {
     return -1;
   }
 
-  create_mapping(mem, ALIGN_DOWN(addr, PAGE_SIZE), (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+  retval = create_mapping(mem, ALIGN_DOWN(addr, PAGE_SIZE), (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+
+  if (!retval) {
+    return -1;
+  }
 
   return 0;
 }

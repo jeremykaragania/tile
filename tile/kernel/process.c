@@ -132,7 +132,9 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
 
   stack_paddr = virt_to_phys((uint32_t)stack_buf);
   stack_vaddr = (uint32_t)find_unmapped_region(mem, THREAD_SIZE);
-  create_mapping(mem, stack_vaddr, stack_paddr, THREAD_SIZE, PAGE_RW);
+  if (!create_mapping(mem, stack_vaddr, stack_paddr, THREAD_SIZE, PAGE_RW)) {
+    return -1;
+  }
 
   current->reg.cpsr = PM_USR;
   current->reg.sp = stack_end(stack_vaddr);
@@ -200,6 +202,7 @@ int load_elf(struct memory_info* mem, const void* elf) {
   uint32_t segment_vaddr;
   uint32_t segment_offset;
   void* segment;
+  void *retval;
 
   hdr = (struct elf_hdr*)elf;
 
@@ -231,7 +234,12 @@ int load_elf(struct memory_info* mem, const void* elf) {
     flags = elf_segment_to_page_flags(p->p_flags);
 
     memcpy((char*)segment + segment_offset, (char*)elf + p->p_offset, p->p_memsz);
-    create_mapping(mem, segment_vaddr, virt_to_phys((uint32_t)segment), segment_size, flags);
+
+    retval = create_mapping(mem, segment_vaddr, virt_to_phys((uint32_t)segment), segment_size, flags);
+
+    if (!retval) {
+      return -1;
+    }
   }
 
   current->reg.pc = hdr->e_entry;
