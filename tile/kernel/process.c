@@ -103,7 +103,7 @@ int process_exec(const char* filename, const char** argv, const char** envp) {
     return -1;
   }
 
-  file = (&current->file_tab[fd])->file_int;
+  file = (&current->file_tab[fd])->file;
   file_size = file->ext.size;
 
   file_buf = memory_alloc(ALIGN(file_size, PAGE_SIZE));

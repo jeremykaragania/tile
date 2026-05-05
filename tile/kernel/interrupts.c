@@ -18,7 +18,7 @@
 int handle_fault(uint32_t addr) {
   struct memory_info* mem;
   struct page_region* region;
-  struct file_info_int* file_int;
+  struct file_info_int* file;
   struct buffer_info* buffer;
   void* phys_addr;
   void* retval;
@@ -30,16 +30,16 @@ int handle_fault(uint32_t addr) {
     return -1;
   }
 
-  file_int = region->file_int;
+  file = region->file;
 
-  if (!file_int) {
+  if (!file) {
     return -1;
   }
 
   /* The page region is backed by a file. */
-  if (file_int) {
+  if (file) {
     uint32_t offset = region->file_offset;
-    struct filesystem_addr addr = file_offset_to_addr(file_int, offset);
+    struct filesystem_addr addr = file_offset_to_addr(file, offset);
 
     buffer = buffer_get(addr.num);
     phys_addr = virt_to_phys(buffer->data);

@@ -23,7 +23,7 @@ struct page_region {
   uint32_t begin;
   size_t count;
   int flags;
-  struct file_info_int* file_int;
+  struct file_info_int* file;
   uint32_t file_offset;
   struct list_link link;
 };

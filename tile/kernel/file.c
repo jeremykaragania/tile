@@ -217,7 +217,7 @@ int file_open(const char* name, int flags) {
   file_tab = &current->file_tab[ret];
   file_tab->status = status;
   file_tab->offset = 0;
-  file_tab->file_int = file;
+  file_tab->file = file;
 
   file->ft = file_tab;
 
@@ -246,7 +246,7 @@ int file_open(const char* name, int flags) {
     and return.
   */
   if (open(name, flags) < 0) {
-    file_tab->file_int = NULL;
+    file_tab->file = NULL;
     return -1;
   }
 
@@ -305,7 +305,7 @@ int file_close(int fd) {
     return -1;
   }
 
-  current->file_tab[fd].file_int = NULL;
+  current->file_tab[fd].file = NULL;
 
   file_put(file);
 
@@ -314,7 +314,7 @@ int file_close(int fd) {
     cleanup and return.
   */
   if (file->ops->close && file->ops->close(file) < 0) {
-    current->file_tab[fd].file_int = file;
+    current->file_tab[fd].file = file;
     return -1;
   }
 
@@ -406,7 +406,7 @@ int file_creat(const char* pathname, int flags) {
   file_tab = &current->file_tab[ret];
   file_tab->status = flags;
   file_tab->offset = 0;
-  file_tab->file_int = file;
+  file_tab->file = file;
 
   return ret;
 }
@@ -421,7 +421,7 @@ int file_dup(int fd) {
 
   file_tab = current->file_tab;
 
-  if (!file_tab[fd].file_int) {
+  if (!file_tab[fd].file) {
     return -1;
   }
 
@@ -440,7 +440,7 @@ int file_dup(int fd) {
   file_seek sets the offset of a file descriptor "fd" to "offset".
 */
 int file_seek(int fd, size_t offset) {
-  size_t size = current->file_tab[fd].file_int->ext.size;
+  size_t size = current->file_tab[fd].file->ext.size;
 
   if (offset > size) {
     return size;
@@ -510,7 +510,7 @@ int file_chown(char* pathname, int owner, int group) {
 */
 void* file_map(int fd, int flags) {
   struct memory_info* mem = current->mem;
-  struct file_info_int* file = current->file_tab[fd].file_int;
+  struct file_info_int* file = current->file_tab[fd].file;
   struct page_region* region;
   void* addr;
 
@@ -526,7 +526,7 @@ void* file_map(int fd, int flags) {
     return NULL;
   }
 
-  region->file_int = file;
+  region->file = file;
 
   return addr;
 }
@@ -671,7 +671,7 @@ int file_chdir(const char* pathname) {
 */
 int get_file_descriptor(const struct file_table_entry* file_tab) {
   for (size_t i = 0; i < FILE_TABLE_SIZE; ++i) {
-    if (!file_tab[i].file_int) {
+    if (!file_tab[i].file) {
       return i;
     }
   }
@@ -689,10 +689,10 @@ int close_open_files() {
   file_tab = current->file_tab;
 
   for (size_t i = 0; i < FILE_TABLE_SIZE; ++i) {
-    file = file_tab[i].file_int;
+    file = file_tab[i].file;
 
     if (file) {
-      file_tab[i].file_int = NULL;
+      file_tab[i].file = NULL;
     }
 
     file_close(i);

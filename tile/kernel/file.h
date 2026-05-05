@@ -44,7 +44,7 @@
 #define file_num_to_block_offset(num) (sizeof(struct file_info_ext) * ((num - 1) % FILE_INFO_PER_BLOCK))
 #define blocks_in_file(size) ((size + BLOCK_SIZE - 1) / BLOCK_SIZE)
 
-#define fd_to_file(fd) (current->file_tab[(fd)].file_int)
+#define fd_to_file(fd) (current->file_tab[(fd)].file)
 
 /*
   enum file_status represents the status of an operation on an open file.
@@ -203,7 +203,7 @@ struct directory_info {
 struct file_table_entry {
   int status;
   uint32_t offset;
-  struct file_info_int* file_int;
+  struct file_info_int* file;
 };
 
 /*

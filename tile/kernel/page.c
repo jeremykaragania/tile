@@ -635,7 +635,7 @@ struct page_region* create_page_region(struct memory_info* mem, uint32_t begin, 
   region->begin = begin;
   region->count = count;
   region->flags = flags;
-  region->file_int = NULL;
+  region->file = NULL;
   region->file_offset = 0;
   insert_page_region(mem, region);
 
@@ -720,7 +720,7 @@ struct page_region* split_page_region(struct page_region* region, size_t index) 
   insert_region->begin = page_region_end(region);
   insert_region->count = region_count - index;
   insert_region->flags = region->flags;
-  insert_region->file_int = region->file_int;
+  insert_region->file = region->file;
   insert_region->file_offset = region->file_offset + (index << PAGE_SHIFT);
 
   list_push(&region->link, &insert_region->link);
@@ -793,8 +793,8 @@ void free_page_regions(struct memory_info* mem) {
   while (curr != pages_head) {
     region = list_data(curr, struct page_region, link);
 
-    if (region->file_int) {
-      file_put(region->file_int);
+    if (region->file) {
+      file_put(region->file);
     }
 
     list_remove(pages_head, curr);
