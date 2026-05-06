@@ -105,7 +105,6 @@ void update_memory_map() {
 */
 void memory_alloc_init() {
   struct initmem_block* block;
-  struct phys_page* page;
   struct page_group* group;
   struct list_link* curr;
 
@@ -136,10 +135,7 @@ void memory_alloc_init() {
       group = list_data(curr, struct page_group, link);
     }
 
-    for (size_t j = page_group_index(group, block->begin); j < page_group_index(group, ALIGN(block->begin + block->size, PAGE_SIZE)); ++j) {
-      page = &group->pages[j];
-      page->flags = PAGE_RESERVED;
-    }
+    page_group_insert(group, block->begin, page_count(block->size));
   }
 
   page_groups = list_data(page_groups_head.next, struct page_group, link);
