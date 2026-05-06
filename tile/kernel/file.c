@@ -510,7 +510,7 @@ int file_chown(char* pathname, int owner, int group) {
 */
 void* file_map(int fd, int flags) {
   struct memory_info* mem = current->mem;
-  struct file_info_int* file = current->file_tab[fd].file;
+  struct file_info_int* file = fd_to_file(fd);
   struct page_region* region;
   void* addr;
 
@@ -527,6 +527,7 @@ void* file_map(int fd, int flags) {
   }
 
   region->file = file;
+  region->file_offset = 0;
 
   return addr;
 }
