@@ -14,12 +14,12 @@
 /*
   virt_to_phys returns a physical address from a virtual address "x".
 */
-#define virt_to_phys(x) ((x) - (VIRT_OFFSET - PHYS_OFFSET))
+#define virt_to_phys(x) (uint64_t)(((x) - (VIRT_OFFSET - PHYS_OFFSET)))
 
 /*
   phys_to_virt returns a virtual address from a physical address "x".
 */
-#define phys_to_virt(x) ((x) + (VIRT_OFFSET - PHYS_OFFSET))
+#define phys_to_virt(x) ((uint32_t)((x) + (VIRT_OFFSET - PHYS_OFFSET)))
 
 #define page_count(x) (((x) + PAGE_SIZE - 1) >> PAGE_SHIFT)
 #define page_index(x) ((x) >> PAGE_SHIFT)
@@ -90,8 +90,8 @@ struct phys_page {
 */
 struct page_group {
   struct phys_page* pages;
-  uint32_t size;
-  uint32_t offset;
+  uint64_t size;
+  uint64_t offset;
   struct list_link link;
 };
 
@@ -113,14 +113,14 @@ void initmem_insert_block(struct initmem_group* group, int pos, uint32_t begin, 
 void initmem_add_block(struct initmem_group* group, uint32_t begin, uint32_t size);
 int initmem_split_block(struct initmem_group* group, uint32_t begin);
 
-size_t page_group_index(const struct page_group* group, uint32_t addr);
-uint32_t page_group_addr(const struct page_group* group, uint32_t index);
-uint32_t page_group_end(const struct page_group* group);
-struct phys_page* page_group_get(const struct page_group* group, uint32_t addr);
-bool page_group_is_free(const struct page_group* group, uint32_t addr, size_t count);
-void page_group_insert(struct page_group* group, uint32_t addr, size_t count);
-void page_group_clear(struct page_group* group, uint32_t addr, size_t count);
-void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, size_t align, size_t gap);
+size_t page_group_index(const struct page_group* group, uint64_t addr);
+uint64_t page_group_addr(const struct page_group* group, size_t index);
+uint64_t page_group_end(const struct page_group* group);
+struct phys_page* page_group_get(const struct page_group* group, uint64_t addr);
+bool page_group_is_free(const struct page_group* group, uint64_t addr, size_t count);
+void page_group_insert(struct page_group* group, uint64_t addr, size_t count);
+void page_group_clear(struct page_group* group, uint64_t addr, size_t count);
+uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count, size_t align, size_t gap);
 
 void* initmem_phys_alloc(size_t size);
 void* initmem_alloc(size_t size);

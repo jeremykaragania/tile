@@ -142,7 +142,7 @@ void map_smc() {
   virtual address "v_addr" to the physical address "p_addr" spanning "size"
   bytes with the memory flags "flags". It returns a pointer to the mapped area.
 */
-void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   const uint32_t ret = v_addr;
   const uint32_t count = page_count(size);
   const uint32_t end = v_addr + size - 1;
@@ -190,7 +190,7 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, 
   mapped area. It uses sections for the mapping. This function shouldn't be
   called directly. Use create_mapping instead.
 */
-void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   uint32_t* pgd;
   uint32_t* pmd;
 
@@ -211,7 +211,7 @@ void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t 
   mapped area. It uses pages for the mapping. This function shouldn't be called
   directly. Use create_mapping instead.
 */
-void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags) {
+void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags) {
   uint32_t* pgd;
   uint32_t* pmd;
   uint32_t pmd_begin;
@@ -387,7 +387,7 @@ void pte_clear(uint32_t* pmd, uint32_t addr) {
   which virtual address "v_addr" and its memory flags "flags". If a page table
   entry already exists it is replaced.
 */
-void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags) {
+void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags) {
   uint32_t* pte;
 
   pte = addr_to_pte(pmd, v_addr);
@@ -529,7 +529,7 @@ uint32_t* copy_page_table(const uint32_t* page_table) {
   section entry. The entry is specified by which physical address "p_addr" it
   maps to, and with which flags "flags".
 */
-uint32_t create_pmd_section(uint32_t p_addr, int flags) {
+uint32_t create_pmd_section(uint64_t p_addr, int flags) {
   uint32_t pmd = (p_addr & 0xfffffc00) | 1 << 1;
 
   pmd = set_descriptor_protection(pmd, &pmd_section_bits, flags);
@@ -552,7 +552,7 @@ uint32_t create_pmd_page_table(uint32_t* page_table) {
   flags "flags". If a page is executable or writable, then it is at least
   readable.
 */
-uint32_t create_pte(uint32_t p_addr, int flags) {
+uint32_t create_pte(uint64_t p_addr, int flags) {
   uint32_t pte = (p_addr & 0xfffff000) | 1 << 1;
 
   pte = set_descriptor_protection(pte, &pte_bits, flags);

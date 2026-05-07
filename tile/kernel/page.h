@@ -63,9 +63,9 @@ void map_peripherals();
 void map_vector_table();
 void map_smc();
 
-void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
-void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
-void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t p_addr, uint32_t size, int flags);
+void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
+void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
+void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_table);
 void* find_unmapped_region(struct memory_info* mem, uint32_t size);
 
@@ -77,7 +77,7 @@ uint32_t pte_to_addr(uint32_t pte);
 
 void pmd_clear(uint32_t* pgd, uint32_t addr);
 void pte_clear(uint32_t* pmd, uint32_t addr);
-void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint32_t p_addr, int flags);
+void pmd_insert(uint32_t* pmd, uint32_t v_addr, uint64_t p_addr, int flags);
 
 bool is_pmd_page_table(const uint32_t* pmd);
 bool is_pmd_section(const uint32_t* pmd);
@@ -88,9 +88,9 @@ void reset_pgd(uint32_t* pgd);
 void free_pgd(uint32_t* pgd);
 uint32_t* copy_pgd(const uint32_t* pgd);
 uint32_t* copy_page_table(const uint32_t* page_table);
-uint32_t create_pmd_section(uint32_t p_addr, int flags);
+uint32_t create_pmd_section(uint64_t p_addr, int flags);
 uint32_t create_pmd_page_table(uint32_t* page_table);
-uint32_t create_pte(uint32_t p_addr, int flags);
+uint32_t create_pte(uint64_t p_addr, int flags);
 int get_descriptor_protection(uint32_t d, const struct descriptor_bits* bits);
 uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bits, int flags);
 

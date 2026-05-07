@@ -255,7 +255,7 @@ int initmem_split_block(struct initmem_group* group, uint32_t begin) {
   page_group_index returns the page group entry index for the address "addr" in
   the page group "group".
 */
-size_t page_group_index(const struct page_group* group, uint32_t addr) {
+size_t page_group_index(const struct page_group* group, uint64_t addr) {
   return page_index(addr - group->offset);
 }
 
@@ -263,7 +263,7 @@ size_t page_group_index(const struct page_group* group, uint32_t addr) {
   page_group_to_addr returns the page address from a page group entry index
   "index" in the page group "group".
 */
-uint32_t page_group_addr(const struct page_group* group, uint32_t index) {
+uint64_t page_group_addr(const struct page_group* group, size_t index) {
   return page_addr(page_index(group->offset) + index);
 }
 
@@ -271,7 +271,7 @@ uint32_t page_group_addr(const struct page_group* group, uint32_t index) {
   page_group_end_addr returns the upper address bound which the page group
   "group" contains.
 */
-uint32_t page_group_end(const struct page_group* group) {
+uint64_t page_group_end(const struct page_group* group) {
   return group->offset + group->size - 1;
 }
 
@@ -279,7 +279,7 @@ uint32_t page_group_end(const struct page_group* group) {
   page_group_get returns the page information from a page group "group" and a
   page address "addr".
 */
-struct phys_page* page_group_get(const struct page_group* group, uint32_t addr) {
+struct phys_page* page_group_get(const struct page_group* group, uint64_t addr) {
   return &group->pages[page_group_index(group, addr)];
 }
 
@@ -287,7 +287,7 @@ struct phys_page* page_group_get(const struct page_group* group, uint32_t addr) 
   page_group_addr_is_free returns true if "count" contiguous pages are free
   from the address "addr" in the page group "group".
 */
-bool page_group_is_free(const struct page_group* group, uint32_t addr, size_t count) {
+bool page_group_is_free(const struct page_group* group, uint64_t addr, size_t count) {
   if (addr >= group->offset && addr + count * PAGE_SIZE <= page_group_end(group)) {
     int is_free = 1;
 
@@ -308,7 +308,7 @@ bool page_group_is_free(const struct page_group* group, uint32_t addr, size_t co
   page_group_insert inserts "count" contiguous pages from the address "addr" in the
   page group "page_group".
 */
-void page_group_insert(struct page_group* group, uint32_t addr, size_t count) {
+void page_group_insert(struct page_group* group, uint64_t addr, size_t count) {
   for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
     page_group_get(group, addr)->flags |= PAGE_RESERVED;
   }
@@ -318,7 +318,7 @@ void page_group_insert(struct page_group* group, uint32_t addr, size_t count) {
   page_group_clear unreserves "count" contiguous pages from the address "addr"
   in the page group "page_group".
 */
-void page_group_clear(struct page_group* group, uint32_t addr, size_t count) {
+void page_group_clear(struct page_group* group, uint64_t addr, size_t count) {
   for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
     page_group_get(group, addr)->flags &= ~PAGE_RESERVED;
   }
@@ -327,10 +327,10 @@ void page_group_clear(struct page_group* group, uint32_t addr, size_t count) {
 /*
   page_group_alloc allocates "count" contiguous pages aligned to "align" pages
   with "gap" free pages before it in the page group "group" above "begin" and
-  returns a pointer to it.
+  returns its physical address.
 */
-void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, size_t align, size_t gap) {
-  uint32_t addr;
+uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count, size_t align, size_t gap) {
+  uint64_t addr;
   uint32_t gap_size = gap << PAGE_SHIFT;
 
   for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
@@ -342,11 +342,11 @@ void* page_group_alloc(struct page_group* group, uint32_t begin, size_t count, s
 
     if (page_group_is_free(group, addr - gap_size, count)) {
       page_group_insert(group, addr, count);
-      return (void*)addr;
+      return addr;
     }
   }
 
-  return NULL;
+  return 0;
 }
 
 /*
@@ -448,7 +448,7 @@ void* memory_page_alloc(size_t count) {
     Make sure that the page has a free page before it to store page information
     inside.
   */
-  data = (void*)phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, count, count, 1));
+  data = (void*)phys_to_virt(page_group_alloc(page_groups, PHYS_OFFSET, count, count, 1));
 
   if (!data) {
     return NULL;
@@ -508,7 +508,7 @@ void* memory_block_alloc(size_t size) {
     We couldn't allocate in one of the existing pages, so create a new
     allocation page.
   */
-  data = (void*)(phys_to_virt((uint32_t)page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
+  data = (void*)(phys_to_virt(page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
 
   if (!data) {
     return NULL;

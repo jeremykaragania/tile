@@ -20,7 +20,7 @@ int handle_fault(uint32_t addr) {
   struct page_region* region;
   struct file_info_int* file;
   struct buffer_info* buffer;
-  void* phys_addr;
+  uint64_t phys_addr;
   void* retval;
 
   mem = current->mem;
@@ -42,14 +42,14 @@ int handle_fault(uint32_t addr) {
     struct filesystem_addr addr = file_offset_to_addr(file, offset);
 
     buffer = buffer_get(addr.num);
-    phys_addr = virt_to_phys(buffer->data);
+    phys_addr = virt_to_phys((uint32_t)buffer->data);
   }
 
   if (!phys_addr) {
     return -1;
   }
 
-  retval = create_mapping(mem, ALIGN_DOWN(addr, PAGE_SIZE), (uint32_t)phys_addr, PAGE_SIZE, region->flags);
+  retval = create_mapping(mem, ALIGN_DOWN(addr, PAGE_SIZE), phys_addr, PAGE_SIZE, region->flags);
 
   if (!retval) {
     return -1;
