@@ -135,7 +135,7 @@ void memory_alloc_init() {
       group = list_data(curr, struct page_group, link);
     }
 
-    page_group_insert(group, block->begin, page_count(block->size));
+    page_group_reserve(group, block->begin, page_count(block->size));
   }
 
   page_groups = list_data(page_groups_head.next, struct page_group, link);
@@ -305,10 +305,10 @@ bool page_group_is_free(const struct page_group* group, uint64_t addr, size_t co
 }
 
 /*
-  page_group_insert inserts "count" contiguous pages from the address "addr" in the
-  page group "page_group".
+  page_group_reserve reserves "count" contiguous pages from the address "addr"
+  in the page group "page_group".
 */
-void page_group_insert(struct page_group* group, uint64_t addr, size_t count) {
+void page_group_reserve(struct page_group* group, uint64_t addr, size_t count) {
   for (size_t i = 0; i < count; ++i, addr += PAGE_SIZE) {
     page_group_get(group, addr)->flags |= PAGE_RESERVED;
   }
@@ -341,7 +341,7 @@ uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count
     }
 
     if (page_group_is_free(group, addr - gap_size, count)) {
-      page_group_insert(group, addr, count);
+      page_group_reserve(group, addr, count);
       return addr;
     }
   }
@@ -454,7 +454,7 @@ void* memory_page_alloc(size_t count) {
     return NULL;
   }
 
-  page_group_insert(page_groups, virt_to_phys((uint32_t)data) - PAGE_SIZE, 1);
+  page_group_reserve(page_groups, virt_to_phys((uint32_t)data) - PAGE_SIZE, 1);
 
   head = (void*)((uint32_t)data - PAGE_SIZE);
   block = (void*)((uint32_t)data - sizeof(struct initmem_block));

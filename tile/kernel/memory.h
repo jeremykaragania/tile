@@ -118,7 +118,7 @@ uint64_t page_group_addr(const struct page_group* group, size_t index);
 uint64_t page_group_end(const struct page_group* group);
 struct phys_page* page_group_get(const struct page_group* group, uint64_t addr);
 bool page_group_is_free(const struct page_group* group, uint64_t addr, size_t count);
-void page_group_insert(struct page_group* group, uint64_t addr, size_t count);
+void page_group_reserve(struct page_group* group, uint64_t addr, size_t count);
 void page_group_clear(struct page_group* group, uint64_t addr, size_t count);
 uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count, size_t align, size_t gap);
 
