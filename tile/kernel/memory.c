@@ -116,7 +116,7 @@ void memory_alloc_init() {
     group->size = block->size;
     group->offset = block->begin;
 
-    list_push(&page_groups_head, &group->link);
+    page_group_insert(&page_groups_head, group);
   }
 
   curr = page_groups_head.next;
@@ -347,6 +347,56 @@ uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count
   }
 
   return 0;
+}
+
+/*
+  page_group_insert inserts the page group "group" into the page group list
+  specified by "head". It inserts the page such that the page group list
+  remains sorted.
+*/
+int page_group_insert(struct list_link* head, struct page_group* group) {
+  uint64_t group_begin;
+  uint64_t group_end;
+  uint64_t curr_group_begin;
+  uint64_t curr_group_end;
+  uint64_t next_group_begin;
+  struct list_link* curr;
+  struct page_group* curr_group;
+  struct page_group* next_group;
+
+  group_begin = group->offset;
+  group_end = group->offset + group->size - 1;
+
+  curr = head->next;
+
+  do {
+    curr_group = list_data(curr, struct page_group, link);
+    next_group = list_data(curr->next, struct page_group, link);
+
+    curr_group_begin = curr_group->offset;
+    curr_group_end = curr_group_begin + curr_group->size - 1;
+    next_group_begin = next_group->offset;
+
+    /*
+      Insert before current group.
+    */
+    if (group_end < curr_group_begin) {
+      list_push(curr->prev, &group->link);
+      return 0;
+    }
+
+    /*
+      Insert after current group.
+    */
+    if (group_begin > curr_group_end && group_end < next_group_begin) {
+      list_push(curr, &group->link);
+      return 0;
+    }
+
+    curr = curr->next;
+  } while (curr != head);
+
+  return -1;
 }
 
 /*

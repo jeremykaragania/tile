@@ -121,6 +121,7 @@ bool page_group_is_free(const struct page_group* group, uint64_t addr, size_t co
 void page_group_reserve(struct page_group* group, uint64_t addr, size_t count);
 void page_group_clear(struct page_group* group, uint64_t addr, size_t count);
 uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count, size_t align, size_t gap);
+int page_group_insert(struct list_link* head, struct page_group* group);
 
 void* initmem_phys_alloc(size_t size);
 void* initmem_alloc(size_t size);
