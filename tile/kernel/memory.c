@@ -421,6 +421,25 @@ struct page_group* page_to_group(struct list_link* head, const struct phys_page*
 }
 
 /*
+  page_to_addr returns the physical address of the physical page "page" given
+  the page group list specified by "head".
+*/
+uint64_t page_to_addr(struct list_link* head, const struct phys_page* page) {
+  struct page_group* group;
+  uint64_t ret;
+
+  group = page_to_group(head, page);
+
+  if (!group) {
+    return 0;
+  }
+
+  ret = group->offset + (page - group->pages) * PAGE_SIZE;
+
+  return ret;
+}
+
+/*
   initmem_phys_alloc allocates a block of "size" bytes and returns a pointer
   to its physical address. Memory is allocated adjacent to reserved memory.
 */

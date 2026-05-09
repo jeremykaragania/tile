@@ -123,6 +123,7 @@ void page_group_clear(struct page_group* group, uint64_t addr, size_t count);
 uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count, size_t align, size_t gap);
 int page_group_insert(struct list_link* head, struct page_group* group);
 struct page_group* page_to_group(struct list_link* head, const struct phys_page* page);
+uint64_t page_to_addr(struct list_link* head, const struct phys_page* page);
 
 void* initmem_phys_alloc(size_t size);
 void* initmem_alloc(size_t size);
