@@ -400,6 +400,27 @@ int page_group_insert(struct list_link* head, struct page_group* group) {
 }
 
 /*
+  page_to_group finds and returns the page group in the page group list
+  specified by head" containing the physical page "page".
+*/
+struct page_group* page_to_group(struct list_link* head, const struct phys_page* page) {
+  struct page_group* group;
+  struct list_link* curr = head->next;
+
+  do {
+    group = list_data(curr, struct page_group, link);
+
+    if (page >= group->pages && page < group->pages + (group->size >> PAGE_SHIFT)) {
+      return group;
+    }
+
+    curr = curr->next;
+  } while (curr != head);
+
+  return NULL;
+}
+
+/*
   initmem_phys_alloc allocates a block of "size" bytes and returns a pointer
   to its physical address. Memory is allocated adjacent to reserved memory.
 */
