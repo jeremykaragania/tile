@@ -350,6 +350,15 @@ uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count
 }
 
 /*
+  page_group_alloc_virt allocates "count" contiguous pages aligned to "align"
+  pages with "gap" free pages before it in the page group "group" and returns a
+  pointer to its virtual address.
+*/
+void* page_group_alloc_virt(struct page_group* group, size_t count, size_t align, size_t gap) {
+  return (void*)phys_to_virt(page_group_alloc(group, PHYS_OFFSET, count, align, gap));
+}
+
+/*
   page_group_insert inserts the page group "group" into the page group list
   specified by "head". It inserts the page such that the page group list
   remains sorted.
@@ -538,7 +547,7 @@ void* memory_page_alloc(size_t count) {
     Make sure that the page has a free page before it to store page information
     inside.
   */
-  data = (void*)phys_to_virt(page_group_alloc(page_groups, PHYS_OFFSET, count, count, 1));
+  data = page_group_alloc_virt(page_groups, count, count, 1);
 
   if (!data) {
     return NULL;
@@ -598,7 +607,7 @@ void* memory_block_alloc(size_t size) {
     We couldn't allocate in one of the existing pages, so create a new
     allocation page.
   */
-  data = (void*)(phys_to_virt(page_group_alloc(page_groups, PHYS_OFFSET, 1, 1, 0)));
+  data = page_group_alloc_virt(page_groups, 1, 1, 0);
 
   if (!data) {
     return NULL;
