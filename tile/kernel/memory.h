@@ -78,7 +78,6 @@ enum memory_page_flags {
 */
 struct phys_page {
   int flags;
-  void* data;
   struct list_link link;
 };
 

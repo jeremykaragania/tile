@@ -611,7 +611,7 @@ void* memory_block_alloc(size_t size) {
     return ret;
   }
 
-  page_group_clear(page_groups, virt_to_phys((uint32_t)page->data), 1);
+  page_group_clear(page_groups, virt_to_phys((uint32_t)data), 1);
   list_remove(&alloc_pages_head, &page->link);
   return NULL;
 }
@@ -626,9 +626,8 @@ struct phys_page* alloc_page_init(void* data) {
 
   page = page_group_get(page_groups, virt_to_phys((uint32_t)data));
 
-  page->data = data;
-  block = page->data;
-  block->begin = (uint32_t)page->data + sizeof(struct initmem_block);
+  block = data;
+  block->begin = (uint32_t)data + sizeof(struct initmem_block);
   block->size = 0;
   block->next = NULL;
   block->prev = NULL;
@@ -641,7 +640,8 @@ struct phys_page* alloc_page_init(void* data) {
   bytes from the page information "page" and returns a pointer to it.
 */
 void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align) {
-  struct initmem_block* curr = (struct initmem_block*)page->data;
+  void* page_data = (void*)phys_to_virt(page_to_addr(&page_groups_head, page));
+  struct initmem_block* curr = (struct initmem_block*)page_data;
   struct initmem_block next;
 
   if (!size || size > MAX_BLOCK_SIZE) {
@@ -658,7 +658,7 @@ void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align)
 
     /* We allocate after the current block. */
     if (!curr->next) {
-      if (next.begin + size >= (uint32_t)page->data + PAGE_SIZE) {
+      if (next.begin + size >= (uint32_t)page_data + PAGE_SIZE) {
         return NULL;
       }
 
