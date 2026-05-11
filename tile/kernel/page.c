@@ -282,6 +282,31 @@ void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_tab
 }
 
 /*
+  is_region_mapped returns if the virtual address region beginning at "begin"
+  of size "size" is mapped in the memory context "mem". This function really
+  only makes sense to be called on userspace addresses since the kernelspace is
+  always mapped.
+*/
+bool is_region_mapped(struct memory_info* mem, uint32_t begin, uint32_t size) {
+  const struct list_link* pages_head = &mem->pages_head;
+  struct list_link* curr = pages_head->next;
+  struct page_region* region;
+  uint32_t end;
+
+  while (curr != pages_head) {
+    region = list_data(curr, struct page_region, link);
+
+    if (begin >= region->begin && begin + size <= page_region_end(region)) {
+      return true;
+    }
+
+    curr = curr->next;
+  }
+
+  return false;
+}
+
+/*
   find_unmapped_region finds a region in the memory context "mem" of size
   "size". On success, It returns a pointer to the region.
 */

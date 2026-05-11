@@ -67,6 +67,7 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, 
 void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_table);
+bool is_region_mapped(struct memory_info* mem, uint32_t begin, uint32_t size);
 void* find_unmapped_region(struct memory_info* mem, uint32_t size);
 
 uint32_t* addr_to_pmd(const uint32_t* pgd, uint32_t addr);
