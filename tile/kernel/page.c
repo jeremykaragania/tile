@@ -290,17 +290,18 @@ void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_tab
 bool is_region_mapped(struct memory_info* mem, uint32_t begin, uint32_t size) {
   const struct list_link* pages_head = &mem->pages_head;
   struct list_link* curr = pages_head->next;
-  struct page_region* region;
-  uint32_t end;
+  struct page_region* begin_region;
+  struct page_region* end_region;
 
   while (curr != pages_head) {
-    region = list_data(curr, struct page_region, link);
+    begin_region = list_data(curr, struct page_region, link);
+    end_region = find_end_contig_page_region(mem, begin_region);
 
-    if (begin >= region->begin && begin + size <= page_region_end(region)) {
+    if (begin >= begin_region->begin && begin + size <= page_region_end(end_region)) {
       return true;
     }
 
-    curr = curr->next;
+    curr = end_region->link.next;
   }
 
   return false;
@@ -775,6 +776,30 @@ struct page_region* find_page_region(struct memory_info* mem, uint32_t addr) {
   }
 
   return NULL;
+}
+
+/*
+  find_end_contig_page_region returns the last contiguous page region relative
+  to the starting page region "begin" in the memory context specified by "mem".
+*/
+struct page_region* find_end_contig_page_region(struct memory_info* mem, struct page_region* begin) {
+  struct list_link* pages_head = &mem->pages_head;
+  struct list_link* curr = &begin->link;
+  struct page_region* region;
+  struct page_region* next_region;
+
+  while (curr != pages_head) {
+    region = list_data(curr, struct page_region, link);
+    next_region = list_data(curr->next, struct page_region, link);
+
+    if (next_region->begin != page_region_end(region)) {
+      break;
+    }
+
+    curr = curr->next;
+  }
+
+  return region;
 }
 
 /*

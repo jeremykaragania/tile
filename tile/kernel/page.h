@@ -101,6 +101,7 @@ void insert_page_region(struct memory_info* mem, struct page_region* region);
 void remove_page_region(struct memory_info* mem, struct page_region* region);
 struct page_region* split_page_region(struct page_region* region, size_t index);
 struct page_region* find_page_region(struct memory_info* mem, uint32_t addr);
+struct page_region* find_end_contig_page_region(struct memory_info* mem, struct page_region* begin);
 size_t copy_page_regions(struct memory_info* dest, const struct memory_info* src);
 void free_page_regions(struct memory_info* mem);
 
