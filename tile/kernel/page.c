@@ -184,6 +184,123 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, 
 }
 
 /*
+  remove_mapping removes mapping from the virtual address "v_addr" of "size"
+  bytes from the memory context "mem" if it exists.
+*/
+int remove_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t size) {
+  uint32_t curr_addr = v_addr;
+  uint32_t* pgd = mem->pgd;
+  size_t i = 0;
+  const uint32_t count = page_count(size);
+  const struct list_link* pages_head = &mem->pages_head;
+  struct list_link* curr = pages_head->next;
+  uint32_t end = v_addr + size;
+  uint32_t* pmd;
+  uint32_t pmd_page_table;
+  uint32_t* page_table;
+  uint32_t step;
+  struct page_region* region;
+  struct page_region* region_split;
+  size_t index;
+
+  size = ALIGN(size, PAGE_SIZE);
+
+  if (!is_region_mapped(mem, v_addr, size)) {
+    return -1;
+  }
+
+  /* Remove the mapping from the translation tables. */
+  while (i < count) {
+    pmd = addr_to_pmd(pgd, curr_addr);
+
+    /*
+      If the pmd is a section, then remap the section using pages and continue.
+      Otherwise, remove the page from the page table.
+    */
+    if (is_pmd_section(pmd)) {
+      page_table = memory_alloc(PAGE_TABLE_SIZE);
+
+      if (!page_table) {
+        return -1;
+      }
+
+      pmd_page_table = create_pmd_page_table(page_table);
+      remap_section(mem, pmd, pmd_page_table);
+
+      *pmd = pmd_page_table;
+      continue;
+    }
+    else {
+      step = PAGE_SIZE;
+      pte_clear(pmd, curr_addr);
+    }
+
+    curr_addr += step;
+    i += page_count(step);
+  }
+
+  curr_addr = v_addr;
+  step = 0;
+
+  /* Update the page regions to reflect the removal. */
+  while (curr != pages_head) {
+    region = list_data(curr, struct page_region, link);
+
+    if (curr_addr == end) {
+      break;
+    }
+
+    /*
+      If the page region to be removed isn't contained in the current page
+      region, then skip it.
+    */
+    if (curr_addr >= page_region_end(region) || curr_addr + size < region->begin) {
+      curr = curr->next;
+      continue;
+    }
+
+    /*
+      If the page region to be removed spans the current page region region,
+      then remove the entire current page region. Otherwise, handle carving the
+      page region to be removed out of the current page region.
+    */
+    if (curr_addr == region->begin && end >= page_region_end(region)) {
+      remove_page_region(mem, region);
+      step = page_region_size(region);
+    }
+    else {
+      /* Remove region's left side. */
+      if (curr_addr == region->begin) {
+        step = end - curr_addr;
+
+        region->begin = end;
+        region->count -= page_count(step);
+      }
+      /* Remove region's right side. */
+      else if (end >= page_region_end(region)) {
+        step = page_region_end(region) - curr_addr;
+
+        region->count -= page_count(step);
+      }
+      /* Remove region's center. */
+      else {
+        step = size;
+        index = page_index(curr_addr) - page_index(region->begin);
+
+        region_split = split_page_region(region, index);
+        region_split->begin += step;
+        region_split->count -= page_count(step);
+      }
+    }
+
+    curr_addr += step;
+    curr = curr->next;
+  }
+
+  return 0;
+}
+
+/*
   create_section_mapping creates a linear mapping in the memory context "mem"
   from the virtual address "v_addr" to the physical address "p_addr" spanning
   "size" bytes with the memory flags "flags" and returns a pointer to the

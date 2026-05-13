@@ -13,6 +13,7 @@
 #define pgd_index(addr) (4 * pgd_index_abs(addr))
 #define pmd_index(addr) (4 * pmd_index_abs(addr))
 #define page_region_end(region) (region->begin + PAGE_SIZE * region->count)
+#define page_region_size(region) (region->count * PAGE_SIZE)
 
 /*
   struct page_region represents a region of virtual pages. It differs from a
@@ -64,6 +65,7 @@ void map_vector_table();
 void map_smc();
 
 void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
+int remove_mapping(struct memory_info* mem, uint32_t v_addr, uint32_t size);
 void* create_section_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 void* create_page_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, uint32_t size, int flags);
 void remap_section(struct memory_info* mem, uint32_t* pmd, uint32_t pmd_page_table);
