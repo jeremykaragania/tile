@@ -59,8 +59,8 @@ void initmem_init() {
   initmem_info.memory = &initmem_memory_group;
   initmem_info.reserved = &initmem_reserved_group;
 
-  initmem_add_block(initmem_info.memory, KERNEL_SPACE_PADDR, 0x80000000);
-  initmem_add_block(initmem_info.reserved, 0x80000000, 0x8000);
+  initmem_add_block(initmem_info.memory, PHYS_OFFSET, PHYS_SIZE);
+  initmem_add_block(initmem_info.reserved, PHYS_OFFSET, TEXT_OFFSET);
   initmem_add_block(initmem_info.reserved, PG_DIR_PADDR, PG_DIR_SIZE);
   initmem_add_block(initmem_info.reserved, virt_to_phys(mem->text_begin), mem->bss_end - mem->text_begin);
 }
