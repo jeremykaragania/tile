@@ -57,8 +57,8 @@ void start_kernel() {
   set_process_stack_end_token(&init_process);
 
   initmem_init();
-  memory_alloc_init();
   update_memory_map();
+  memory_alloc_init();
   init_paging();
 
   uart_init();
