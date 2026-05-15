@@ -326,14 +326,14 @@ void page_group_clear(struct page_group* group, uint64_t addr, size_t count) {
 
 /*
   page_group_alloc allocates "count" contiguous pages aligned to "align" pages
-  with "gap" free pages before it in the page group "group" above "begin" and
-  returns its physical address.
+  with "gap" free pages before it in the page group "group" between "begin" and
+  "end". It returns its physical address.
 */
-uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count, size_t align, size_t gap) {
+uint64_t page_group_alloc(struct page_group* group, uint64_t begin, uint64_t end, size_t count, size_t align, size_t gap) {
   uint64_t addr;
   uint32_t gap_size = gap << PAGE_SHIFT;
 
-  for (size_t i = page_group_index(group, begin + gap_size); i < group->size >> PAGE_SHIFT; ++i) {
+  for (size_t i = page_group_index(group, begin + gap_size); i < page_group_index(group, end); ++i) {
     addr = page_group_addr(group, i);
 
     if (!page_group_is_free(group, addr, count) || addr % (align << PAGE_SHIFT) != 0) {
@@ -355,7 +355,7 @@ uint64_t page_group_alloc(struct page_group* group, uint64_t begin, size_t count
   pointer to its virtual address.
 */
 void* page_group_alloc_virt(struct page_group* group, size_t count, size_t align, size_t gap) {
-  return (void*)phys_to_virt(page_group_alloc(group, PHYS_OFFSET, count, align, gap));
+  return (void*)phys_to_virt(page_group_alloc(group, PHYS_OFFSET, high_memory, count, align, gap));
 }
 
 /*
