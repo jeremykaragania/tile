@@ -7,6 +7,7 @@
 #define THREAD_SIZE 0x00002000
 
 #define PHYS_SIZE 0x80000000
+#define PHYS_END 0xffffffff
 
 #define KERNEL_SPACE_PADDR 0x80000000
 
