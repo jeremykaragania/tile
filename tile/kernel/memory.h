@@ -94,6 +94,19 @@ struct page_group {
   struct list_link link;
 };
 
+/*
+  enum page_zone represents the a physical memory zone. There are two primary
+  zones. Lowmem is the area of physical memory used by the kernel's linear
+  mapping and highmem is any memory outside of that linear mapping. Any address
+  inside of lowmem can be translated to a virtual address by adding some
+  offset.
+*/
+enum page_zone {
+  ZONE_ANY = 0,
+  ZONE_LOWMEM = 1,
+  ZONE_HIGHMEM = 2
+};
+
 extern struct initmem_info initmem_info;
 extern struct list_link alloc_pages_head;
 
@@ -134,6 +147,9 @@ void* memory_block_alloc(size_t size);
 
 struct phys_page* alloc_page_init(void* data);
 void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align);
+
+uint64_t pages_alloc(size_t count, int zone);
+void pages_free(uint64_t addr, size_t count);
 
 void* memory_alloc(size_t size);
 void memory_free(void* ptr);

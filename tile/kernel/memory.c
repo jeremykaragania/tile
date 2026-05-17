@@ -694,6 +694,76 @@ void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align)
 }
 
 /*
+  pages_alloc allocates "count" pages in the page zone "zone" and returns the
+  first physical address.
+*/
+uint64_t pages_alloc(size_t count, int zone) {
+  uint64_t ret;
+  struct list_link* curr;
+  struct page_group* group;
+  uint64_t begin;
+  uint64_t end;
+
+  switch (zone) {
+    case ZONE_LOWMEM:
+      begin = PHYS_OFFSET;
+      end = virt_to_phys(high_memory);
+      break;
+    case ZONE_HIGHMEM:
+      begin = virt_to_phys(high_memory);
+      end = PHYS_END;
+      break;
+    case ZONE_ANY:
+      begin = PHYS_OFFSET;
+      end = PHYS_END;
+    default:
+      break;
+  }
+
+  curr = page_groups_head.next;
+
+  do {
+    group = list_data(curr, struct page_group, link);
+
+    if (group->offset < begin || page_group_end(group) > end) {
+      curr = curr->next;
+      continue;
+    }
+
+    ret = page_group_alloc(group, begin, end, count, count, 0);
+
+    if (ret) {
+      return ret;
+    }
+
+    curr = curr->next;
+  } while(curr != &page_groups_head);
+
+  return 0;
+}
+
+/*
+  pages_free frees "count" pages from the physical address "addr".
+*/
+void pages_free(uint64_t addr, size_t count) {
+  struct list_link* curr;
+  struct page_group* group;
+
+  curr = page_groups_head.next;
+
+  do {
+    group = list_data(curr, struct page_group, link);
+
+    if (addr >= group->offset && addr < page_group_end(group)) {
+      page_group_clear(group, addr, count);
+      return;
+    }
+
+    curr = curr->next;
+  } while(curr != &page_groups_head);
+}
+
+/*
   memory_alloc allocates a naturally aligned block of size "size" bytes and
   returns a pointer to it.
 */
