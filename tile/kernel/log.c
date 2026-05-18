@@ -152,17 +152,20 @@ int log_putchar(const char c) {
 */
 int log_printf(const char *format, ...) {
   va_list args;
-  size_t i = 0;
-  int length = LM_NONE;
+  size_t i;
+  char c;
+  int length;
 
   if (!is_logging_enabled) {
     return -1;
   }
 
+  i = 0;
   va_start(args, format);
 
   while (format[i]) {
-    char c = format[i];
+    c = format[i];
+    length = LM_NONE;
 
     if (c == '%') {
       ++i;
