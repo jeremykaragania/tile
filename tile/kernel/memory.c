@@ -255,7 +255,7 @@ int initmem_split_block(struct initmem_group* group, uint32_t begin) {
   page_group_index returns the page group entry index for the address "addr" in
   the page group "group".
 */
-size_t page_group_index(const struct page_group* group, uint64_t addr) {
+inline size_t page_group_index(const struct page_group* group, uint64_t addr) {
   return page_index(addr - group->offset);
 }
 
@@ -263,7 +263,7 @@ size_t page_group_index(const struct page_group* group, uint64_t addr) {
   page_group_to_addr returns the page address from a page group entry index
   "index" in the page group "group".
 */
-uint64_t page_group_addr(const struct page_group* group, size_t index) {
+inline uint64_t page_group_addr(const struct page_group* group, size_t index) {
   return page_addr(page_index(group->offset) + index);
 }
 
@@ -271,7 +271,7 @@ uint64_t page_group_addr(const struct page_group* group, size_t index) {
   page_group_end_addr returns the upper address bound which the page group
   "group" contains.
 */
-uint64_t page_group_end(const struct page_group* group) {
+inline uint64_t page_group_end(const struct page_group* group) {
   return group->offset + group->size - 1;
 }
 
@@ -279,7 +279,7 @@ uint64_t page_group_end(const struct page_group* group) {
   page_group_get returns the page information from a page group "group" and a
   page address "addr".
 */
-struct phys_page* page_group_get(const struct page_group* group, uint64_t addr) {
+inline struct phys_page* page_group_get(const struct page_group* group, uint64_t addr) {
   return &group->pages[page_group_index(group, addr)];
 }
 
