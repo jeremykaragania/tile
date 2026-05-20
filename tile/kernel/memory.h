@@ -148,8 +148,8 @@ void* memory_block_alloc(size_t size);
 struct phys_page* alloc_page_init(void* data);
 void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align);
 
-uint64_t pages_alloc(size_t count, int zone);
-void pages_free(uint64_t addr, size_t count);
+struct phys_page* pages_alloc(size_t count, int zone);
+void pages_free(struct phys_page* page, size_t count);
 
 void* memory_alloc(size_t size);
 void memory_free(void* ptr);

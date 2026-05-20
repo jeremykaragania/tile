@@ -697,8 +697,8 @@ void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align)
   pages_alloc allocates "count" pages in the page zone "zone" and returns the
   first physical address.
 */
-uint64_t pages_alloc(size_t count, int zone) {
-  uint64_t ret;
+struct phys_page* pages_alloc(size_t count, int zone) {
+  uint64_t addr;
   struct list_link* curr;
   struct page_group* group;
   uint64_t begin;
@@ -730,25 +730,27 @@ uint64_t pages_alloc(size_t count, int zone) {
       continue;
     }
 
-    ret = page_group_alloc(group, begin, end, count, count, 0);
+    addr = page_group_alloc(group, begin, end, count, count, 0);
 
-    if (ret) {
-      return ret;
+    if (addr) {
+      return page_group_get(group, addr);
     }
 
     curr = curr->next;
   } while(curr != &page_groups_head);
 
-  return 0;
+  return NULL;
 }
 
 /*
   pages_free frees "count" pages from the physical address "addr".
 */
-void pages_free(uint64_t addr, size_t count) {
+void pages_free(struct phys_page* page, size_t count) {
+  uint64_t addr;
   struct list_link* curr;
   struct page_group* group;
 
+  addr = page_to_addr(&page_groups_head, page);
   curr = page_groups_head.next;
 
   do {
