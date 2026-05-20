@@ -116,7 +116,7 @@ void memory_alloc_init() {
     group->size = block->size;
     group->offset = block->begin;
 
-    page_group_insert(&page_groups_head, group);
+    page_group_insert(group);
   }
 
   curr = page_groups_head.next;
@@ -359,11 +359,11 @@ void* page_group_alloc_virt(struct page_group* group, size_t count, size_t align
 }
 
 /*
-  page_group_insert inserts the page group "group" into the page group list
-  specified by "head". It inserts the page such that the page group list
-  remains sorted.
+  page_group_insert inserts the page group "group" into the page group list. It
+  inserts the page such that the page group list remains sorted.
 */
-int page_group_insert(struct list_link* head, struct page_group* group) {
+int page_group_insert(struct page_group* group) {
+  struct list_link* head;
   uint64_t group_begin;
   uint64_t group_end;
   uint64_t curr_group_begin;
@@ -373,6 +373,7 @@ int page_group_insert(struct list_link* head, struct page_group* group) {
   struct page_group* curr_group;
   struct page_group* next_group;
 
+  head = &page_groups_head;
   group_begin = group->offset;
   group_end = group->offset + group->size - 1;
 
@@ -410,9 +411,10 @@ int page_group_insert(struct list_link* head, struct page_group* group) {
 
 /*
   page_to_group finds and returns the page group in the page group list
-  specified by head" containing the physical page "page".
+  containing the physical page "page".
 */
-struct page_group* page_to_group(struct list_link* head, const struct phys_page* page) {
+struct page_group* page_to_group(const struct phys_page* page) {
+  struct list_link* head = &page_groups_head;
   struct page_group* group;
   struct list_link* curr = head->next;
 
@@ -431,13 +433,13 @@ struct page_group* page_to_group(struct list_link* head, const struct phys_page*
 
 /*
   page_to_addr returns the physical address of the physical page "page" given
-  the page group list specified by "head".
+  the page group list.
 */
-uint64_t page_to_addr(struct list_link* head, const struct phys_page* page) {
+uint64_t page_to_addr(const struct phys_page* page) {
   struct page_group* group;
   uint64_t ret;
 
-  group = page_to_group(head, page);
+  group = page_to_group(page);
 
   if (!group) {
     return 0;
@@ -649,7 +651,7 @@ struct phys_page* alloc_page_init(void* data) {
   bytes from the page information "page" and returns a pointer to it.
 */
 void* memory_block_page_alloc(struct phys_page* page, size_t size, size_t align) {
-  void* page_data = (void*)phys_to_virt(page_to_addr(&page_groups_head, page));
+  void* page_data = (void*)phys_to_virt(page_to_addr(page));
   struct initmem_block* curr = (struct initmem_block*)page_data;
   struct initmem_block next;
 
@@ -750,7 +752,7 @@ void pages_free(struct phys_page* page, size_t count) {
   struct list_link* curr;
   struct page_group* group;
 
-  addr = page_to_addr(&page_groups_head, page);
+  addr = page_to_addr(page);
   curr = page_groups_head.next;
 
   do {

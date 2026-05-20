@@ -134,9 +134,9 @@ void page_group_reserve(struct page_group* group, uint64_t addr, size_t count);
 void page_group_clear(struct page_group* group, uint64_t addr, size_t count);
 uint64_t page_group_alloc(struct page_group* group, uint64_t begin, uint64_t end, size_t count, size_t align, size_t gap);
 void* page_group_alloc_virt(struct page_group* group, size_t count, size_t align, size_t gap);
-int page_group_insert(struct list_link* head, struct page_group* group);
-struct page_group* page_to_group(struct list_link* head, const struct phys_page* page);
-uint64_t page_to_addr(struct list_link* head, const struct phys_page* page);
+int page_group_insert(struct page_group* group);
+struct page_group* page_to_group(const struct phys_page* page);
+uint64_t page_to_addr(const struct phys_page* page);
 
 void* initmem_phys_alloc(size_t size);
 void* initmem_alloc(size_t size);
