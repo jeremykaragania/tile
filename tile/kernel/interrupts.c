@@ -38,7 +38,7 @@ int handle_fault(uint32_t addr) {
 
   /* The page region is backed by a file. */
   if (file) {
-    uint32_t offset = region->file_offset;
+    uint32_t offset = region->file_offset + (addr - region->begin);
     struct filesystem_addr addr = file_offset_to_addr(file, offset);
 
     buffer = buffer_get(addr.num);
