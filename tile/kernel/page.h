@@ -25,6 +25,7 @@ struct page_region {
   size_t count;
   int flags;
   struct file_info_int* file;
+  struct phys_page** pages;
   uint32_t file_offset;
   struct list_link link;
 };
