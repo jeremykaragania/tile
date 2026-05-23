@@ -101,7 +101,7 @@ void update_memory_map() {
 }
 
 /*
-  mem_init initializes the primary memory allocator.
+  memory_alloc_init initializes the primary memory allocator.
 */
 void memory_alloc_init() {
   struct initmem_block* block;
@@ -226,7 +226,7 @@ void initmem_add_block(struct initmem_group* group, uint32_t begin, uint32_t siz
 }
 
 /*
-  initmem_split tries to split a block in "group" at "begin" into two
+  initmem_split_block tries to split a block in "group" at "begin" into two
   discrete blocks: a left block and a right block. It returns the index of the
   left block in the group if successful.
 */
@@ -260,7 +260,7 @@ inline size_t page_group_index(const struct page_group* group, uint64_t addr) {
 }
 
 /*
-  page_group_to_addr returns the page address from a page group entry index
+  page_group_addr returns the page address from a page group entry index
   "index" in the page group "group".
 */
 inline uint64_t page_group_addr(const struct page_group* group, size_t index) {
@@ -268,8 +268,8 @@ inline uint64_t page_group_addr(const struct page_group* group, size_t index) {
 }
 
 /*
-  page_group_end_addr returns the upper address bound which the page group
-  "group" contains.
+  page_group_end returns the upper address bound which the page group "group"
+  contains.
 */
 inline uint64_t page_group_end(const struct page_group* group) {
   return group->offset + group->size - 1;
@@ -284,8 +284,8 @@ inline struct phys_page* page_group_get(const struct page_group* group, uint64_t
 }
 
 /*
-  page_group_addr_is_free returns true if "count" contiguous pages are free
-  from the address "addr" in the page group "group".
+  page_group_is_free returns true if "count" contiguous pages are free from the
+  address "addr" in the page group "group".
 */
 bool page_group_is_free(const struct page_group* group, uint64_t addr, size_t count) {
   if (addr >= group->offset && addr + count * PAGE_SIZE <= page_group_end(group)) {
