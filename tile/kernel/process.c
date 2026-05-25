@@ -65,11 +65,11 @@ int process_clone(int type, struct function_info* func) {
   proc->type = type;
   function_to_process(proc, func);
 
-  list_push(&processes_head, &proc->link);
-
   proc->stack = stack_begin(proc);
   proc->context_reg.sp = stack_end(proc);
   set_process_stack_end_token(proc);
+
+  list_push(&processes_head, &proc->link);
 
   return num;
 }
