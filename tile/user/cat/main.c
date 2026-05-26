@@ -2,6 +2,7 @@
 
 #define SYS_read 5
 #define SYS_write 6
+#define SYS_exit 16
 
 #define BUF_SIZE 256
 
@@ -14,4 +15,6 @@ int main() {
 
     syscall(SYS_write, 1, buf, count);
   }
+
+  syscall(SYS_exit, 0);
 }
