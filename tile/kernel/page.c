@@ -852,6 +852,10 @@ struct page_region* split_page_region(struct page_region* region, size_t index) 
     return NULL;
   }
 
+  if (index == 0) {
+    return region;
+  }
+
   region->count = index;
 
   insert_region = memory_alloc(sizeof(struct page_region));
