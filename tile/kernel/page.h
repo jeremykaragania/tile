@@ -98,7 +98,7 @@ uint32_t create_pte(uint64_t p_addr, int flags);
 int get_descriptor_protection(uint32_t d, const struct descriptor_bits* bits);
 uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bits, int flags);
 
-void create_page_region_bounds(struct memory_info* mem);
+int create_page_region_bounds(struct memory_info* mem);
 struct page_region* create_page_region(uint32_t begin, size_t count, int flags);
 void insert_page_region(struct memory_info* mem, struct page_region* region);
 void remove_page_region(struct memory_info* mem, struct page_region* region);

@@ -761,7 +761,7 @@ uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bit
   the memory context "mem". It creates dummy lower and upper bound page regions
   in the virtual address space.
 */
-void create_page_region_bounds(struct memory_info* mem) {
+int create_page_region_bounds(struct memory_info* mem) {
   struct page_region* begin_region;
   struct page_region* end_region;
 
@@ -771,10 +771,14 @@ void create_page_region_bounds(struct memory_info* mem) {
   if (!begin_region || !end_region) {
     memory_free(begin_region);
     memory_free(end_region);
+
+    return -1;
   }
 
   insert_page_region(mem, begin_region);
   insert_page_region(mem, end_region);
+
+  return 0;
 }
 
 /*
