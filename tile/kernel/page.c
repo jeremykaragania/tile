@@ -148,6 +148,7 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, 
   const uint32_t end = v_addr + size - 1;
   size_t i = 0;
   uint32_t step;
+  struct page_region* region;
   void* retval;
 
   /*
@@ -178,7 +179,8 @@ void* create_mapping(struct memory_info* mem, uint32_t v_addr, uint64_t p_addr, 
     i += page_count(step);
   }
 
-  create_page_region(mem, ret, count, flags);
+  region = create_page_region(ret, count, flags);
+  insert_page_region(mem, region);
 
   return (void*)ret;
 }
@@ -760,15 +762,25 @@ uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bit
   in the virtual address space.
 */
 void create_page_region_bounds(struct memory_info* mem) {
-  create_page_region(mem, 0, 1, 0);
-  create_page_region(mem, VADDR_SPACE_END, 0, 0);
+  struct page_region* begin_region;
+  struct page_region* end_region;
+
+  begin_region = create_page_region(0, 1, 0);
+  end_region = create_page_region(VADDR_SPACE_END, 0, 0);
+
+  if (!begin_region || !end_region) {
+    memory_free(begin_region);
+    memory_free(end_region);
+  }
+
+  insert_page_region(mem, begin_region);
+  insert_page_region(mem, end_region);
 }
 
 /*
-  create_page region allocates a page region and inserts it into the page
-  region list.
+  create_page region allocates and returns a page region.
 */
-struct page_region* create_page_region(struct memory_info* mem, uint32_t begin, size_t count, int flags) {
+struct page_region* create_page_region(uint32_t begin, size_t count, int flags) {
   struct page_region* region = memory_alloc(sizeof(struct page_region));
 
   if (!region) {
@@ -780,7 +792,6 @@ struct page_region* create_page_region(struct memory_info* mem, uint32_t begin, 
   region->flags = flags;
   region->file = NULL;
   region->file_offset = 0;
-  insert_page_region(mem, region);
 
   return region;
 }

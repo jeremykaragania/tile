@@ -529,6 +529,8 @@ void* file_map(int fd, int flags) {
   region->file = file;
   region->file_offset = 0;
 
+  insert_page_region(mem, region);
+
   return addr;
 }
 

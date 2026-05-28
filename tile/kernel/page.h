@@ -99,7 +99,7 @@ int get_descriptor_protection(uint32_t d, const struct descriptor_bits* bits);
 uint32_t set_descriptor_protection(uint32_t d, const struct descriptor_bits* bits, int flags);
 
 void create_page_region_bounds(struct memory_info* mem);
-struct page_region* create_page_region(struct memory_info* mem, uint32_t begin, size_t count, int flags);
+struct page_region* create_page_region(uint32_t begin, size_t count, int flags);
 void insert_page_region(struct memory_info* mem, struct page_region* region);
 void remove_page_region(struct memory_info* mem, struct page_region* region);
 struct page_region* split_page_region(struct page_region* region, size_t index);
