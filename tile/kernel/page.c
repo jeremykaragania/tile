@@ -810,6 +810,7 @@ void insert_page_region(struct memory_info* mem, struct page_region* region) {
   struct list_link* curr = head->next;
   uint32_t region_end = page_region_end(region);
   struct page_region* curr_region;
+  struct page_region* split_region;
   uint32_t curr_end;
 
   while(curr != head) {
@@ -826,15 +827,18 @@ void insert_page_region(struct memory_info* mem, struct page_region* region) {
     }
 
     if (region->begin > curr_region->begin && region->begin < curr_end) {
-      curr_region = split_page_region(curr_region, page_index(region->begin) - page_index(curr_region->begin));
+      split_region = split_page_region(curr_region, page_index(region->begin) - page_index(curr_region->begin));
+      curr_region = split_region;
       curr = &curr_region->link;
     }
 
     if (region_end <= curr_end && region_end > curr_region->begin) {
-      split_page_region(curr_region, page_index(region_end) - page_index(curr_region->begin));
+      split_region = split_page_region(curr_region, page_index(region_end) - page_index(curr_region->begin));
+      memory_free(split_region);
     }
 
     list_remove(head, curr);
+    memory_free(curr_region);
     curr = curr->next;
   }
 
