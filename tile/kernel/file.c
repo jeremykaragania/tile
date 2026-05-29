@@ -520,7 +520,7 @@ void* file_map(int fd, int flags) {
     return NULL;
   }
 
-  region = create_page_region(mem, (uint32_t)addr, page_count(file->ext.size), flags);
+  region = create_page_region((uint32_t)addr, page_count(file->ext.size), flags);
 
   if (!region) {
     return NULL;
