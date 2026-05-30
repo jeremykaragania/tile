@@ -24,6 +24,7 @@ struct page_region {
   uint32_t begin;
   size_t count;
   int flags;
+  int type;
   struct file_info_int* file;
   struct phys_page** pages;
   uint32_t file_offset;
@@ -38,6 +39,16 @@ enum page_region_flags {
   PAGE_WRITE = 0x2,
   PAGE_EXECUTE = 0x4,
   PAGE_KERNEL = 0x8
+};
+
+/*
+  enum page_region_type represents the backing storage of a virtual page
+  region.
+*/
+enum page_region_type {
+  PR_ANON,
+  PR_FILE,
+  PR_DEVICE,
 };
 
 /*
