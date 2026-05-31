@@ -528,6 +528,7 @@ void* file_map(int fd, int flags) {
 
   region->file = file;
   region->file_offset = 0;
+  region->type = PR_FILE;
 
   insert_page_region(mem, region);
 

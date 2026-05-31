@@ -766,7 +766,10 @@ int create_page_region_bounds(struct memory_info* mem) {
   struct page_region* end_region;
 
   begin_region = create_page_region(0, 1, 0);
+  begin_region->type = PR_ANON;
+
   end_region = create_page_region(VADDR_SPACE_END, 0, 0);
+  end_region->type = PR_ANON;
 
   if (!begin_region || !end_region) {
     memory_free(begin_region);
