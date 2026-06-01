@@ -803,6 +803,61 @@ struct page_region* create_page_region(uint32_t begin, size_t count, int flags) 
   return region;
 }
 
+/*
+  create_anon_page_region creates and returns an anonoymous page region. The
+  page region begins at the virtual address "begin", spans "count" pages and
+  has the memory protection flags "flags".
+*/
+struct page_region* create_anon_page_region(uint32_t begin, size_t count, int flags) {
+  struct page_region* region;
+  struct phys_page** pages;
+
+  region = memory_alloc(sizeof(struct page_region));
+  pages = memory_alloc(sizeof(struct phys_page*) * count);
+
+  if (!region || !pages) {
+    memory_free(region);
+    memory_free(pages);
+
+    return NULL;
+  }
+
+  memset(region, 0, sizeof(region));
+  memset(pages, 0, sizeof(struct phys_page*) * count);
+
+  region->begin = begin;
+  region->count = count;
+  region->flags = flags;
+  region->type = PR_ANON;
+  region->pages = pages;
+
+  return region;
+}
+
+/*
+  create_file_page_region creates and returns a file-backed page region. The
+  page region begins at the virtual address "begin", spans "count" pages, has
+  the memory protection flags "flags", and is backed by the file "file".
+*/
+struct page_region* create_file_page_region(uint32_t begin, size_t count, int flags, struct file_info_int* file) {
+  struct page_region* region;
+
+  region = memory_alloc(sizeof(struct page_region));
+
+  if (!region || !file) {
+    return NULL;
+  }
+
+  memset(region, 0, sizeof(region));
+
+  region->begin = begin;
+  region->count = count;
+  region->flags = flags;
+  region->type = PR_FILE;
+  region->file = file;
+
+  return region;
+}
 
 /*
   insert_page_region inserts a page region in the page region list with head
