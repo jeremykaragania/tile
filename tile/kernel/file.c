@@ -520,15 +520,11 @@ void* file_map(int fd, int flags) {
     return NULL;
   }
 
-  region = create_page_region((uint32_t)addr, page_count(file->ext.size), flags);
+  region = create_file_page_region((uint32_t)addr, page_count(file->ext.size), flags, file);
 
   if (!region) {
     return NULL;
   }
-
-  region->file = file;
-  region->file_offset = 0;
-  region->type = PR_FILE;
 
   insert_page_region(mem, region);
 
