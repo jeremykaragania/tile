@@ -47,7 +47,6 @@ enum page_region_flags {
 */
 enum page_region_type {
   PR_ANON,
-  PR_FILE,
   PR_DEVICE,
 };
 
