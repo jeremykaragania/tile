@@ -1100,6 +1100,10 @@ void file_put(struct file_info_int* file_info) {
   struct filesystem_addr addr;
   struct buffer_info* buffer;
 
+  if (!file_info) {
+    return;
+  }
+
   if (--file_info->ref == 0) {
     addr = file_to_addr(file_info->ext.num);
     buffer = buffer_get(addr.num);
