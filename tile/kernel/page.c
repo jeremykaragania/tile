@@ -860,6 +860,19 @@ struct page_region* create_file_page_region(uint32_t begin, size_t count, int fl
 }
 
 /*
+  free_page_region frees the page region "region".
+*/
+void free_page_region(struct page_region* region) {
+  if (!region) {
+    return;
+  }
+
+  file_put(region->file);
+  memory_free(region->pages);
+  memory_free(region);
+}
+
+/*
   insert_page_region inserts a page region in the page region list with head
   "head" while preserving a page region address ordering.
 */

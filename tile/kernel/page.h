@@ -112,6 +112,7 @@ int create_page_region_bounds(struct memory_info* mem);
 struct page_region* create_page_region(uint32_t begin, size_t count, int flags);
 struct page_region* create_anon_page_region();
 struct page_region* create_file_page_region();
+void free_page_region(struct page_region* region);
 void insert_page_region(struct memory_info* mem, struct page_region* region);
 void remove_page_region(struct memory_info* mem, struct page_region* region);
 struct page_region* split_page_region(struct page_region* region, size_t index);
