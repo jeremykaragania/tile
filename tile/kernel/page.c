@@ -1060,6 +1060,6 @@ void free_page_regions(struct memory_info* mem) {
 
     list_remove(pages_head, curr);
     curr = curr->next;
-    memory_free(region);
+    free_page_region(region);
   }
 }
