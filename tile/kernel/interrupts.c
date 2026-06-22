@@ -23,6 +23,10 @@ int handle_fault(uint32_t addr) {
   uint64_t phys_addr;
   void* retval;
 
+  if (addr == 0) {
+    return -1;
+  }
+
   mem = current->mem;
   region = find_page_region(mem, addr);
 
