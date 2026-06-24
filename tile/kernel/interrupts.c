@@ -5,7 +5,6 @@
 #include <kernel/buffer.h>
 #include <kernel/file.h>
 #include <kernel/memory.h>
-#include <kernel/page.h>
 #include <kernel/process.h>
 #include <kernel/schedule.h>
 #include <kernel/syscall.h>
@@ -18,10 +17,7 @@
 int handle_fault(uint32_t addr) {
   struct memory_info* mem;
   struct page_region* region;
-  struct file_info_int* file;
-  struct buffer_info* buffer;
-  uint64_t phys_addr;
-  void* retval;
+  int ret;
 
   if (addr == 0) {
     return -1;
@@ -34,20 +30,43 @@ int handle_fault(uint32_t addr) {
     return -1;
   }
 
+  switch (region->type) {
+    case PR_FILE:
+      ret = handle_file_fault(addr, region);
+      break;
+    default:
+      ret = -1;
+      break;
+  }
+
+  return ret;
+}
+
+/*
+  handle_file_fault handles a fault on address "addr" which exists in the page
+  region "region" which is file-backed.
+*/
+int handle_file_fault(uint32_t addr, struct page_region* region) {
+  struct memory_info* mem;
+  struct file_info_int* file;
+  uint32_t offset;
+  struct filesystem_addr fs_addr;
+  struct buffer_info* buffer;
+  uint64_t phys_addr;
+  void* retval;
+
+  mem = current->mem;
   file = region->file;
 
   if (!file) {
     return -1;
   }
 
-  /* The page region is backed by a file. */
-  if (file) {
-    uint32_t offset = region->file_offset + (addr - region->begin);
-    struct filesystem_addr addr = file_offset_to_addr(file, offset);
+  offset = region->file_offset + (addr - region->begin);
+  fs_addr = file_offset_to_addr(file, offset);
 
-    buffer = buffer_get(addr.num);
-    phys_addr = virt_to_phys((uint32_t)buffer->data);
-  }
+  buffer = buffer_get(fs_addr.num);
+  phys_addr = virt_to_phys((uint32_t)buffer->data);
 
   if (!phys_addr) {
     return -1;

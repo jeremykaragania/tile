@@ -2,6 +2,7 @@
 #define INTERRUPTS_H
 
 #include <stdint.h>
+#include <kernel/page.h>
 #include <kernel/processor.h>
 
 // Watchdog timer.
@@ -45,6 +46,7 @@
 #define PCIE_GPEN 49
 
 int handle_fault(uint32_t addr);
+int handle_file_fault(uint32_t addr, struct page_region* region);
 
 void do_reset();
 void do_undefined_instruction();
