@@ -42,6 +42,33 @@ int handle_fault(uint32_t addr) {
   return ret;
 }
 
+int handle_anon_fault(uint32_t addr, struct page_region* region) {
+  struct memory_info* mem;
+  size_t index;
+  struct phys_page* page;
+  uint64_t page_addr;
+  void* retval;
+
+  mem = current->mem;
+
+  index = (addr - region->begin) >> PAGE_SHIFT;
+  page = pages_alloc(1, ZONE_HIGHMEM);
+
+  if (!page) {
+    return -1;
+  }
+
+  page_addr = page_to_addr(page);
+
+  retval = create_mapping(mem, ALIGN_DOWN(addr, PAGE_SIZE), page_addr, PAGE_SIZE, region->flags);
+
+  if (!retval) {
+    return -1;
+  }
+
+  return 0;
+}
+
 /*
   handle_file_fault handles a fault on address "addr" which exists in the page
   region "region" which is file-backed.

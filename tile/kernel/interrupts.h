@@ -46,6 +46,7 @@
 #define PCIE_GPEN 49
 
 int handle_fault(uint32_t addr);
+int handle_anon_fault(uint32_t addr, struct page_region* region);
 int handle_file_fault(uint32_t addr, struct page_region* region);
 
 void do_reset();
