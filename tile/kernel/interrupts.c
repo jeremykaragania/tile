@@ -42,6 +42,10 @@ int handle_fault(uint32_t addr) {
   return ret;
 }
 
+/*
+  handle_anon_fault handles a fault on address "addr" which exists in the page
+  region "region" which is anonymous.
+*/
 int handle_anon_fault(uint32_t addr, struct page_region* region) {
   struct memory_info* mem;
   size_t index;
